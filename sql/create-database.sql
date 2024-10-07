@@ -89,14 +89,22 @@ CREATE TABLE Reduction (
     FOREIGN KEY (Teacher) REFERENCES Teacher(Username)
 );
 
+CREATE TABLE Program (
+    ProgramID INT NOT NULL AUTO_INCREMENT,
+    ProgramName VARCAHR (100),
+    PRIMARY KEY (ProgramID)
+);
+
 CREATE TABLE Lecture (
     LectureID INT NOT NULL AUTO_INCREMENT,
     LectureName VARCHAR (200),
     HoursSWS DECIMAL (6, 2),
     IsArranged BOOLEAN,
+    ProgramID INT,
     SemesterID INT,
     Teacher VARCHAR(100),
     PRIMARY KEY (LectureID),
+    FOREIGN KEY (ProgramID) REFERENCES Program(ProgramID),
     FOREIGN KEY (SemesterID) REFERENCES Semester(SemesterID),
     FOREIGN KEY (Teacher) REFERENCES Teacher(Username)    
 );
