@@ -11,6 +11,10 @@ INSERT INTO TeachingGroup (TeachingGroupName, GroupBalance) VALUES
 ('Mathe', 0),
 ('Informatik', 0);
 
+INSERT INTO Program (ProgramName) VALUES
+('BBW'),
+('BWI');
+
 INSERT INTO Teacher_TeachingGroup (Username, TeachingGroupID) VALUES
 ('jdoe', 1),
 ('asmith', 1),
@@ -36,10 +40,10 @@ INSERT INTO Reduction (TypeOfReductionID, IsArranged, ApprovalDate, ApprovedBy, 
 (2, TRUE, '2020-03-05', 'Dean', 'Project E', 0, 15.0, 5, 'djohnson'),
 (3, FALSE, '2019-07-30', 'Dean', '', 0.1, 5.0, 6, 'ewilliams');
 
-INSERT INTO Lecture (LectureName, HoursSWS, IsArranged, SemesterID, Teacher) VALUES
-('Calculus', 4.0, TRUE, 1, 'jdoe'),
-('Physics 101', 3.5, FALSE, 2, 'asmith'),
-('Organic Chemistry', 4.5, TRUE, 3, 'bwhite'),
-('Biology Basics', 3.0, FALSE, 4, 'cmiller'),
-('World History', 2.5, TRUE, 5, 'djohnson'),
-('Geography of Europe', 3.5, FALSE, 6, 'ewilliams');
+INSERT INTO Lecture (LectureName, HoursSWS, IsArranged, ProgramID, SemesterID, Teacher) VALUES
+('Calculus', 4.0, TRUE, 1, 1, 'jdoe'),
+('Physics 101', 3.5, FALSE, 2, 1, 'asmith'),
+('Organic Chemistry', 4.5, TRUE, 3, 1, 'bwhite'),
+('Biology Basics', 3.0, FALSE, 4, 2, 'cmiller'),
+('World History', 2.5, TRUE, 5, 2, 'djohnson'),
+('Geography of Europe', 3.5, FALSE, 6, 2, 'ewilliams');
