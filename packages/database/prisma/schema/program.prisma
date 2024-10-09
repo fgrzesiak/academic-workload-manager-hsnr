@@ -1,0 +1,6 @@
+model Program {
+  id             Int      @id @default(autoincrement())
+  programName    String
+  teachingEvents TeachingEvent[]
+  semesterPeriods SemesterPeriod[]
+}

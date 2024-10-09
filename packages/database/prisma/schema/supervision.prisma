@@ -1,0 +1,9 @@
+model Supervision {
+  id                Int        @id @default(autoincrement())
+  studentId         Int
+  semesterPeriod    SemesterPeriod @relation(fields: [semesterPeriodId], references: [id])
+  semesterPeriodId  Int
+  supervisionType   SupervisionType
+  teacher           Teacher @relation(fields: [teacherId], references: [id])
+  teacherId         Int
+}

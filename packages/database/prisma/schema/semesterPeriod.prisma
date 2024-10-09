@@ -1,0 +1,10 @@
+model SemesterPeriod {
+  id             Int       @id @default(autoincrement())
+  name           String
+  active         Boolean
+  programs       Program[]
+  teachingEvents TeachingEvent[]
+  teachingDuties TeachingDutyPerSemester[]
+  discounts      Discount[]
+  supervisions   Supervision[]
+}

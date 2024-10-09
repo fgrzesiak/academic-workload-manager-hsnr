@@ -1,0 +1,10 @@
+model TeachingDutyPerSemester {
+  id                     Int     @id @default(autoincrement())
+  individualDuty         Float
+  sumBalance             Float
+  sumOrderedBalance      Float
+  semesterPeriod         SemesterPeriod @relation(fields: [semesterPeriodId], references: [id])
+  semesterPeriodId       Int
+  teacher                Teacher @relation(fields: [teacherId], references: [id])
+  teacherId              Int
+}

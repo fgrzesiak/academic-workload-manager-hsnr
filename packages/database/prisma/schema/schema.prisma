@@ -1,0 +1,28 @@
+//test
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["prismaSchemaFolder"]
+  output          = "../../dist"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// DiscountType enum for "Ermäßigungsart"
+enum DiscountType {
+  FUNCTION
+  TASK
+  RESEARCH
+  DEVELOPMENT
+  DISABILITY
+}
+
+// SupervisionType enum for "Betreuungsart"
+enum SupervisionType {
+  BACHELOR_THESIS
+  MASTER_THESIS
+  SECOND_EXAMINER
+  INTERNSHIP_SEMESTER
+}

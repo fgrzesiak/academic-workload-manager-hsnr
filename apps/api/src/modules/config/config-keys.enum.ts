@@ -1,0 +1,5 @@
+export enum ConfigKeys {
+  DATABASE_URL = "DATABASE_URL",
+  FRONTEND_URL = "FRONTEND_URL",
+  JWT_SECRET = "JWT_SECRET",
+}

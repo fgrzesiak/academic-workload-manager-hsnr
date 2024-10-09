@@ -1,0 +1,13 @@
+model Discount {
+  id                 Int       @id @default(autoincrement())
+  discountType       DiscountType
+  semesterPeriod     SemesterPeriod @relation(fields: [semesterPeriodId], references: [id])
+  semesterPeriodId   Int
+  ordered            Boolean
+  approvalDate       DateTime
+  supervisor         Teacher   @relation(fields: [supervisorId], references: [id])
+  supervisorId       Int
+  disabilityDegree   Float
+  projectName        String
+  scope              Float
+}
