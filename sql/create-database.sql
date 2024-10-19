@@ -47,6 +47,14 @@ CREATE TABLE DeputationPerSemester (
     FOREIGN KEY (Teacher) REFERENCES Teacher(Username)
 );
 
+CREATE TABLE Comment (
+    CommentID INT NOT NULL AUTO_INCREMENT,
+    CommentContent VARCHAR (255),
+    TeacherUsername VARCHAR(100),
+    PRIMARY KEY (CommentID),
+    FOREIGN KEY (TeacherUsername) REFERENCES Teacher(Username)
+);
+
 CREATE TABLE TypeOfSupervision (
     TypeOfSupervisionID INT NOT NULL AUTO_INCREMENT,
     TypeOfSupervision VARCHAR (100),
@@ -60,10 +68,12 @@ CREATE TABLE Supervision (
     MatriculationNumber INT,
     SemesterID INT,
     Teacher VARCHAR(100),
+    Comment INT,
     PRIMARY KEY (SupervisionID),
     FOREIGN KEY (TypeOfSupervisionID) REFERENCES TypeOfSupervision(TypeOfSupervisionID),
     FOREIGN KEY (SemesterID) REFERENCES Semester(SemesterID),
-    FOREIGN KEY (Teacher) REFERENCES Teacher(Username)
+    FOREIGN KEY (Teacher) REFERENCES Teacher(Username),
+    FOREIGN KEY (Comment) REFERENCES Comment(CommentID)
 );
 
 CREATE TABLE TypeOfReduction (
@@ -83,10 +93,12 @@ CREATE TABLE Reduction (
     ScopeOfReduction DECIMAL(6, 2),
     SemesterID INT,
     Teacher VARCHAR(100),
+    Comment INT,
     PRIMARY KEY (ReductionID),
     FOREIGN KEY (TypeOfReductionID) REFERENCES TypeOfReduction(TypeOfReductionID),
     FOREIGN KEY (SemesterID) REFERENCES Semester(SemesterID),
-    FOREIGN KEY (Teacher) REFERENCES Teacher(Username)
+    FOREIGN KEY (Teacher) REFERENCES Teacher(Username),
+    FOREIGN KEY (Comment) REFERENCES Comment(CommentID)
 );
 
 CREATE TABLE Program (
@@ -103,8 +115,10 @@ CREATE TABLE Lecture (
     ProgramID INT,
     SemesterID INT,
     Teacher VARCHAR(100),
+    Comment INT,
     PRIMARY KEY (LectureID),
     FOREIGN KEY (ProgramID) REFERENCES Program(ProgramID),
     FOREIGN KEY (SemesterID) REFERENCES Semester(SemesterID),
-    FOREIGN KEY (Teacher) REFERENCES Teacher(Username)    
+    FOREIGN KEY (Teacher) REFERENCES Teacher(Username),
+    FOREIGN KEY (Comment) REFERENCES Comment(CommentID)    
 );
