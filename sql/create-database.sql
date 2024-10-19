@@ -103,21 +103,29 @@ CREATE TABLE Reduction (
 
 CREATE TABLE Program (
     ProgramID INT NOT NULL AUTO_INCREMENT,
-    ProgramName VARCAHR (100),
+    ProgramName VARCHAR (100),
     PRIMARY KEY (ProgramID)
+);
+
+CREATE TABLE LectureCatalog (
+    CatalogID INT NOT NULL AUTO_INCREMENT,
+    LectureName VARCHAR (255) NOT NULL,
+    ProgramID INT,
+    PRIMARY KEY (CatalogID, LectureName),
+    UNIQUE (LectureName),
+    FOREIGN KEY (ProgramID) REFERENCES Program(ProgramID)
 );
 
 CREATE TABLE Lecture (
     LectureID INT NOT NULL AUTO_INCREMENT,
-    LectureName VARCHAR (200),
+    LectureName VARCHAR (255),
     HoursSWS DECIMAL (6, 2),
     IsArranged BOOLEAN,
-    ProgramID INT,
     SemesterID INT,
     Teacher VARCHAR(100),
     Comment INT,
     PRIMARY KEY (LectureID),
-    FOREIGN KEY (ProgramID) REFERENCES Program(ProgramID),
+    FOREIGN KEY (LectureName) REFERENCES LectureCatalog(LectureName) ON UPDATE CASCADE,
     FOREIGN KEY (SemesterID) REFERENCES Semester(SemesterID),
     FOREIGN KEY (Teacher) REFERENCES Teacher(Username),
     FOREIGN KEY (Comment) REFERENCES Comment(CommentID)    
