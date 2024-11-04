@@ -1,6 +1,6 @@
-import { Teacher } from "@workspace/repo";
+import { User } from "@workspace/repo";
 import { Request } from "express";
 
 export interface AuthRequest extends Request {
-  teacher: Teacher;
+  user: User;
 }

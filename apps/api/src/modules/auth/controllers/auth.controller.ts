@@ -9,7 +9,9 @@ import {
   HttpStatus,
   Injectable,
   Post,
+  Req,
   Request,
+  Res,
   UseGuards,
 } from "@nestjs/common";
 import { User } from "@workspace/repo";
@@ -48,7 +50,7 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Get("profile")
-  getProfile(@Request() req) {
-    return req.jwt;
+  getProfile(@Req() req: AuthRequest, @Res() res: Response) {
+    return res.json(req.user);
   }
 }
