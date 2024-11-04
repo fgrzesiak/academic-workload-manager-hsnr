@@ -28,7 +28,6 @@ export class AuthController {
     private readonly configService: ConfigService,
   ) {}
 
-  @UseGuards(LocalAuthGuard)
   @Post("login")
   async login(
     @Body()
@@ -38,8 +37,7 @@ export class AuthController {
       role: User["role"];
     },
   ) {
-    const jwt = this.authService.login(loginDto);
-    return { jwt };
+    return await this.authService.login(loginDto);
   }
 
   @UseGuards(LocalAuthGuard)

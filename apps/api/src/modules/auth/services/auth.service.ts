@@ -1,9 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
-import { Teacher, User, users } from "@workspace/repo";
+import { User, users } from "@workspace/repo";
 import * as bcrypt from "bcrypt";
-
-import { ConfigKeys, ConfigService } from "../../config/config.service.js";
 
 @Injectable()
 export class AuthService {
@@ -37,7 +35,7 @@ export class AuthService {
       user.role,
     );
     if (!validUser) {
-      return { message: "Invalid credentials" };
+      return { message: "Ungültige Zugangsdaten" };
     }
     const payload = {
       username: validUser.username,
