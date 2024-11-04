@@ -6,8 +6,7 @@ import { teachers } from "../managers/index.js";
 @injectable()
 export class Teacher implements ITeacher {
   id!: number;
-  username!: string;
-  password!: string;
+  userId!: number;
   firstName!: string;
   lastName!: string;
   retirementDate!: Date;

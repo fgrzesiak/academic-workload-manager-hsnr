@@ -25,12 +25,12 @@ export class TeacherManager {
   }
 
   /**
-   * Get by username
+   * Get by userId
    */
-  async getByUsername(username: string): Promise<Teacher | null> {
+  async getByUserId(userId: number): Promise<Teacher | null> {
     try {
       const result = await this.prisma.teacher.findUniqueOrThrow({
-        where: { username },
+        where: { userId: userId },
       });
 
       return new Teacher(result);

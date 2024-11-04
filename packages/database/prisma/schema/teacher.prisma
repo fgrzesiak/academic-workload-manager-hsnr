@@ -1,7 +1,6 @@
 model Teacher {
   id                 Int      @id @default(autoincrement())
-  username           String   @unique
-  password           String
+  userId             Int      @unique
   firstName          String
   lastName           String
   retirementDate     DateTime
@@ -10,4 +9,5 @@ model Teacher {
   teachingDuties     TeachingDutyPerSemester[]
   discounts          Discount[]
   supervisions       Supervision[]
+  user               User     @relation(fields: [userId], references: [id])
 }

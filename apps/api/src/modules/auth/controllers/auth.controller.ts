@@ -12,6 +12,7 @@ import {
   Request,
   UseGuards,
 } from "@nestjs/common";
+import { User } from "@workspace/repo";
 import { Response } from "express";
 
 import { AuthRequest } from "../../../shared/interfaces/express.js";
@@ -29,7 +30,14 @@ export class AuthController {
 
   @UseGuards(LocalAuthGuard)
   @Post("login")
-  async login(@Body() loginDto: { username: string; password: string }) {
+  async login(
+    @Body()
+    loginDto: {
+      username: string;
+      password: string;
+      role: User["role"];
+    },
+  ) {
     const jwt = this.authService.login(loginDto);
     return { jwt };
   }
