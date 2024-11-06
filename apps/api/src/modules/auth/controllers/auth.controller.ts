@@ -36,7 +36,6 @@ export class AuthController {
     loginDto: {
       username: string;
       password: string;
-      role: User["role"];
     },
   ) {
     return await this.authService.login(loginDto);

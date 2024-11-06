@@ -1,6 +1,7 @@
 import { createApp } from 'vue';
+import { createPinia } from 'pinia';
 import App from './App.vue';
-import router from './router';
+import { router } from '@/helpers';
 
 import Lara from '@primevue/themes/lara';
 import { definePreset } from '@primevue/themes';
@@ -86,5 +87,5 @@ app.use(PrimeVue, {
 });
 app.use(ToastService);
 app.use(ConfirmationService);
-
+app.use(createPinia());
 app.mount('#app');
