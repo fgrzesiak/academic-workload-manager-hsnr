@@ -116,9 +116,24 @@ CREATE TABLE LectureCatalog (
     FOREIGN KEY (ProgramID) REFERENCES Program(ProgramID)
 );
 
+CREATE TABLE Program_LectureCatalog (
+    ProgramID INT NOT NULL,
+    CatalogID INT NOT NULL,    
+    PRIMARY KEY (ProgramID, CatalogID),
+    FOREIGN KEY (ProgramID) REFERENCES Program(ProgramID),
+    FOREIGN KEY (CatalogID) REFERENCES LectureCatalog(CatalogID)
+);
+
+CREATE TABLE LectureType (
+    LectureTypeID INT NOT NULL AUTO_INCREMENT,
+    TypeName VARCHAR (255),
+    PRIMARY KEY (LectureTypeID)
+);
+
 CREATE TABLE Lecture (
     LectureID INT NOT NULL AUTO_INCREMENT,
     LectureName VARCHAR (255),
+    LectureType INT,
     HoursSWS DECIMAL (6, 2),
     IsArranged BOOLEAN,
     SemesterID INT,
@@ -126,6 +141,7 @@ CREATE TABLE Lecture (
     Comment INT,
     PRIMARY KEY (LectureID),
     FOREIGN KEY (LectureName) REFERENCES LectureCatalog(LectureName) ON UPDATE CASCADE,
+    FOREIGN KEY (LectureType) REFERENCES LectureType(LectureTypeID),
     FOREIGN KEY (SemesterID) REFERENCES Semester(SemesterID),
     FOREIGN KEY (Teacher) REFERENCES Teacher(Username),
     FOREIGN KEY (Comment) REFERENCES Comment(CommentID)    
