@@ -3,7 +3,7 @@
     "version": "0.0.1",
     "scripts": {
         "dev": "vite",
-        "build": "vite build",
+        "build": "vue-tsc -b && vite build",
         "preview": "vite preview",
         "lint": "eslint --fix . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore"
     },
@@ -11,6 +11,7 @@
         "@primevue/core": "^4.2.1",
         "@primevue/forms": "^4.2.1",
         "@primevue/themes": "^4.0.0",
+        "@vueuse/core": "^11.2.0",
         "chart.js": "3.3.2",
         "pinia": "^2.2.6",
         "primeicons": "^6.0.1",
@@ -32,6 +33,7 @@
         "tailwindcss": "^3.4.6",
         "tailwindcss-primeui": "^0.3.2",
         "unplugin-vue-components": "^0.27.3",
-        "vite": "^5.3.1"
+        "vite": "^5.3.1",
+        "vue-tsc": "^2.1.10"
     }
 }

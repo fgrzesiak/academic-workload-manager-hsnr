@@ -1,7 +1,7 @@
 import { createApp } from 'vue';
 import { createPinia } from 'pinia';
 import App from './App.vue';
-import { router } from '@/helpers';
+import { router } from '@/helpers/index';
 
 import Lara from '@primevue/themes/lara';
 import { definePreset } from '@primevue/themes';

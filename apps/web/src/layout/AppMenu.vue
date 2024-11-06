@@ -1,9 +1,9 @@
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue';
 
-import AppMenuItem from './AppMenuItem.vue';
+import AppMenuItem, { MenuItem } from './AppMenuItem.vue';
 
-const model = ref([
+const model = ref<MenuItem[]>([
     {
         label: 'Home',
         items: [{ label: 'Dashboard', icon: 'pi pi-fw pi-home', to: '/' }]

@@ -1,15 +1,24 @@
-<script setup>
+<script setup lang="ts">
 import FloatingConfigurator from '@/components/FloatingConfigurator.vue';
-import { ref } from 'vue';
-import { useAuthStore } from '@/stores';
+//import { useAuthStore } from '@/stores/';
 import { useToast } from 'primevue';
+import { FormSubmitEvent } from '@primevue/forms';
+import AuthService from '@/service/auth.service';
 
 const toast = useToast();
 
-const checked = ref(false);
+interface FormValues {
+    username?: string;
+    password?: string;
+}
 
-const resolver = ({ values }) => {
-    const errors = {};
+const initialValues: FormValues = {
+    username: '',
+    password: ''
+};
+
+const resolver = ({ values }: { values: FormValues }) => {
+    const errors: { username?: { message: string }[]; password?: { message: string }[] } = {};
 
     if (!values.username) {
         errors.username = [{ message: 'Benutzername ist erforderlich.' }];
@@ -23,12 +32,13 @@ const resolver = ({ values }) => {
     };
 };
 
-/** @param states */
-const onFormSubmit = ({ valid, states }) => {
+const onFormSubmit = async ({ valid, states }: FormSubmitEvent) => {
     if (valid) {
-        const authStore = useAuthStore();
-        const { username, password } = states;
-        return authStore.login(username.value, password.value).catch((error) => toast.add({ severity: 'error', summary: 'Anmeldefehler', detail: error, life: 5000 }));
+        const username = states.username.value;
+        const password = states.password.value;
+
+        // Perform login using AuthService
+        const { data, isFetching } = AuthService.login({ username, password });
     }
 };
 </script>
@@ -50,19 +60,23 @@ const onFormSubmit = ({ valid, states }) => {
                         <Form v-slot="$form" :initialValues :resolver @submit="onFormSubmit" class="flex flex-col gap-4 w-full">
                             <div class="flex flex-col gap-1">
                                 <FloatLabel variant="on">
-                                    <label for="username" class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2">Benutzername</label>
+                                    <label for="username" class="block text-surface-900 dark:text-surface-0 text-lg font-medium mb-2">Benutzername</label>
                                     <InputText name="username" class="w-full" type="text" fluid />
                                 </FloatLabel>
+                                <!-- @vue-expect-error: https://github.com/primefaces/primevue/issues/6723 -->
                                 <Message v-if="$form.username?.invalid" severity="error" size="small" variant="simple">
+                                    <!-- @vue-expect-error -->
                                     {{ $form.username.error?.message }}
                                 </Message>
                             </div>
                             <div class="flex flex-col gap-1">
                                 <FloatLabel variant="on">
                                     <Password name="password" :toggleMask="true" fluid :feedback="false" />
-                                    <label for="password" class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2">Passwort</label>
+                                    <label for="password" class="block text-surface-900 dark:text-surface-0 text-lg font-medium mb-2">Passwort</label>
                                 </FloatLabel>
+                                <!-- @vue-expect-error: https://github.com/primefaces/primevue/issues/6723 -->
                                 <Message v-if="$form.password?.invalid" severity="error" size="small" variant="simple">
+                                    <!-- @vue-expect-error -->
                                     {{ $form.password.error?.message }}
                                 </Message>
                             </div>

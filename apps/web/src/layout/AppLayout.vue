@@ -1,13 +1,13 @@
-<script setup>
-import { useLayout } from '@/layout/composables/layout';
+<script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 import AppFooter from './AppFooter.vue';
 import AppSidebar from './AppSidebar.vue';
 import AppTopbar from './AppTopbar.vue';
+import { useLayout } from './composables/layout';
 
 const { layoutConfig, layoutState, isSidebarActive, resetMenu } = useLayout();
 
-const outsideClickListener = ref(null);
+const outsideClickListener = ref<((event: Event) => void) | null>(null);
 
 watch(isSidebarActive, (newVal) => {
     if (newVal) {
@@ -38,18 +38,22 @@ function bindOutsideClickListener() {
     }
 }
 
-function unbindOutsideClickListener() {
+function unbindOutsideClickListener(): void {
     if (outsideClickListener.value) {
-        document.removeEventListener('click', outsideClickListener);
+        document.removeEventListener('click', outsideClickListener.value);
         outsideClickListener.value = null;
     }
 }
 
-function isOutsideClicked(event) {
-    const sidebarEl = document.querySelector('.layout-sidebar');
-    const topbarEl = document.querySelector('.layout-menu-button');
+interface HTMLElementWithContains extends HTMLElement {
+    contains(node: Node): boolean;
+}
 
-    return !(sidebarEl.isSameNode(event.target) || sidebarEl.contains(event.target) || topbarEl.isSameNode(event.target) || topbarEl.contains(event.target));
+function isOutsideClicked(event: Event): boolean {
+    const sidebarEl = document.querySelector('.layout-sidebar') as HTMLElementWithContains | null;
+    const topbarEl = document.querySelector('.layout-menu-button') as HTMLElementWithContains | null;
+
+    return !(sidebarEl?.isSameNode(event.target as Node) || sidebarEl?.contains(event.target as Node) || topbarEl?.isSameNode(event.target as Node) || topbarEl?.contains(event.target as Node));
 }
 </script>
 
