@@ -116,7 +116,7 @@ CREATE TABLE LectureCatalog (
     FOREIGN KEY (ProgramID) REFERENCES Program(ProgramID)
 );
 
-CREATE TABLE Program_LectrueCatalog (
+CREATE TABLE Program_LectureCatalog (
     ProgramID INT NOT NULL,
     CatalogID INT NOT NULL,    
     PRIMARY KEY (ProgramID, CatalogID),
