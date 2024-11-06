@@ -17,3 +17,8 @@ INSERT INTO TypeOfReduction (TypeOfReduction) VALUES
 ('Funktion/Aufgabe'), 
 ('Forschung/Entwicklung'), 
 ('Behinderung');
+
+INSERT INTO LectureType (TypeName) VALUES 
+('Plattform'), 
+('Pflicht'), 
+('Wahl');
