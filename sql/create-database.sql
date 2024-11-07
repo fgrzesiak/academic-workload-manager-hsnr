@@ -38,7 +38,7 @@ CREATE TABLE Semester (
 CREATE TABLE DeputationPerSemester (
     DeputationID INT NOT NULL AUTO_INCREMENT,
     DeputationIndividual DECIMAL (6, 2),
-    TotalBalance DECIMAL (10, 2),
+    TotalBalance DECIMAL (6, 2),
     TotalBalanceArranged DECIMAL (6, 2),
     SemesterID INT,
     Teacher VARCHAR(100),
@@ -107,6 +107,8 @@ CREATE TABLE Program (
     PRIMARY KEY (ProgramID)
 );
 
+-- Deactivate LetruceCatalog for free text input
+/*
 CREATE TABLE LectureCatalog (
     CatalogID INT NOT NULL AUTO_INCREMENT,
     LectureName VARCHAR (255) NOT NULL,
@@ -123,11 +125,12 @@ CREATE TABLE Program_LectureCatalog (
     FOREIGN KEY (ProgramID) REFERENCES Program(ProgramID),
     FOREIGN KEY (CatalogID) REFERENCES LectureCatalog(CatalogID)
 );
+*/
 
-CREATE TABLE LectureType (
-    LectureTypeID INT NOT NULL AUTO_INCREMENT,
+CREATE TABLE TypeOfLecture (
+    TypeOfLectureID INT NOT NULL AUTO_INCREMENT,
     TypeName VARCHAR (255),
-    PRIMARY KEY (LectureTypeID)
+    PRIMARY KEY (TypeOfLectureID)
 );
 
 CREATE TABLE Lecture (
@@ -140,8 +143,8 @@ CREATE TABLE Lecture (
     Teacher VARCHAR(100),
     Comment INT,
     PRIMARY KEY (LectureID),
-    FOREIGN KEY (LectureName) REFERENCES LectureCatalog(LectureName) ON UPDATE CASCADE,
-    FOREIGN KEY (LectureType) REFERENCES LectureType(LectureTypeID),
+    --FOREIGN KEY (LectureName) REFERENCES LectureCatalog(LectureName) ON UPDATE CASCADE,
+    FOREIGN KEY (LectureType) REFERENCES TypeOfLecture(TypeOfLectureID),
     FOREIGN KEY (SemesterID) REFERENCES Semester(SemesterID),
     FOREIGN KEY (Teacher) REFERENCES Teacher(Username),
     FOREIGN KEY (Comment) REFERENCES Comment(CommentID)    

@@ -20,7 +20,7 @@ INSERT INTO TypeOfReduction (TypeOfReduction) VALUES
 ('Forschung/Entwicklung'), 
 ('Behinderung');
 
-INSERT INTO LectureType (TypeName) VALUES 
+INSERT INTO TypeOfLecture (TypeName) VALUES 
 ('Plattform'), 
 ('Pflicht'), 
 ('Wahl');
