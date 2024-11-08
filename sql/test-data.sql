@@ -94,10 +94,10 @@ INSERT INTO Supervision (TypeOfSupervisionID, MatriculationNumber, SemesterID, T
 (3, 5673201, 7, 'mafre001'),
 (4, 5671941, 7, 'mafre001'),
 
-(1, 1304099, 8, 'mafre001'),
-(1, 1300343, 8, 'mafre001'),
-(1, 1171640, 8, 'mafre001'),
-(3, 1327223, 8, 'mafre001'),
+(5, 1304099, 8, 'mafre001'),
+(5, 1300343, 8, 'mafre001'),
+(5, 1171640, 8, 'mafre001'),
+(7, 1327223, 8, 'mafre001'),
 (4, 1430680, 8, 'mafre001'),
 (4, 5487291, 8, 'mafre001');
 
