@@ -59,7 +59,9 @@ CREATE TABLE TypeOfSupervision (
     TypeOfSupervisionID INT NOT NULL AUTO_INCREMENT,
     TypeOfSupervision VARCHAR (100),
     CalculationFactor DECIMAL (6, 2),
-    PRIMARY KEY (TypeOfSupervisionID)
+    ValidFrom INT,
+    PRIMARY KEY (TypeOfSupervisionID),
+    FOREIGN KEY (ValidFrom) REFERENCES Semester(SemesterID)
 );
 
 CREATE TABLE Supervision (

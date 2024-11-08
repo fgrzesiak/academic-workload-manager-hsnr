@@ -9,11 +9,14 @@ INSERT INTO Semester (Name, IsActive) VALUES
 ('WS2324', 0), 
 ('SS24', 1);
 
-INSERT INTO TypeOfSupervision (TypeOfSupervision, CalculationFactor) VALUES 
-('Bachelorarbeit', '0.3'), 
-('Masterarbeit', '0.3'), 
-('Zweitprüfer', '0.1'), 
-('Praxissemester', '0.2');
+INSERT INTO TypeOfSupervision (TypeOfSupervision, CalculationFactor, ValidFrom) VALUES 
+('Bachelorarbeit', '0.2', 1), 
+('Masterarbeit', '0.2', 1), 
+('Zweitprüfer', '0.2', 1), 
+('Praxissemester', '0.2', 1),
+('Bachelorarbeit', '0.3', 8), 
+('Masterarbeit', '0.3', 8), 
+('Zweitprüfer', '0.1', 8);
 
 INSERT INTO TypeOfReduction (TypeOfReduction) VALUES 
 ('Funktion/Aufgabe'), 
