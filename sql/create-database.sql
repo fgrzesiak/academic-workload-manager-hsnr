@@ -145,7 +145,7 @@ CREATE TABLE Lecture (
     Teacher VARCHAR(100),
     Comment INT,
     PRIMARY KEY (LectureID),
-    --FOREIGN KEY (LectureName) REFERENCES LectureCatalog(LectureName) ON UPDATE CASCADE,
+    -- FOREIGN KEY (LectureName) REFERENCES LectureCatalog(LectureName) ON UPDATE CASCADE,
     FOREIGN KEY (LectureType) REFERENCES TypeOfLecture(TypeOfLectureID),
     FOREIGN KEY (SemesterID) REFERENCES Semester(SemesterID),
     FOREIGN KEY (Teacher) REFERENCES Teacher(Username),
