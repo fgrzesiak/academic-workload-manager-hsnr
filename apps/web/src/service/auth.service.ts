@@ -5,7 +5,11 @@ interface LoginRequest {
     password: string;
 }
 
-const login = (_: LoginRequest) => apiClient.post('/auth/login', _);
+interface LoginResponse {
+    token: string;
+}
+
+const login = (_: LoginRequest) => apiClient.post<LoginResponse>('/auth/login', _);
 
 const authService = { login };
 

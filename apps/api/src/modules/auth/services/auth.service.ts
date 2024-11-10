@@ -29,7 +29,7 @@ export class AuthService {
       sub: validUser.id,
     };
     return {
-      access_token: this.jwtService.sign(payload),
+      token: this.jwtService.sign(payload),
     };
   }
 }

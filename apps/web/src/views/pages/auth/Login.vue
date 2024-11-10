@@ -4,8 +4,11 @@ import FloatingConfigurator from '@/components/FloatingConfigurator.vue';
 import { useToast } from 'primevue';
 import { FormSubmitEvent } from '@primevue/forms';
 import AuthService from '@/service/auth.service';
+import { ref } from 'vue';
+import { useAuthStore } from '@/stores/auth.store';
 
 const toast = useToast();
+const { login, logout } = useAuthStore();
 
 interface FormValues {
     username?: string;
@@ -16,6 +19,8 @@ const initialValues: FormValues = {
     username: '',
     password: ''
 };
+
+const isFetching = ref(false);
 
 const resolver = ({ values }: { values: FormValues }) => {
     const errors: { username?: { message: string }[]; password?: { message: string }[] } = {};
@@ -37,8 +42,21 @@ const onFormSubmit = async ({ valid, states }: FormSubmitEvent) => {
         const username = states.username.value;
         const password = states.password.value;
 
-        // Perform login using AuthService
-        const { data, isFetching } = AuthService.login({ username, password });
+        isFetching.value = true;
+
+        const { data, error } = await AuthService.login({ username, password });
+        isFetching.value = false;
+
+        if (error.value || !data.value) {
+            toast.add({ severity: 'error', summary: 'Fehler', detail: error.value, life: 5000 });
+            logout();
+        } else if (!data.value || !data.value.token) {
+            toast.add({ severity: 'error', summary: 'Fehler', detail: 'Ein unbekannter Fehler ist aufgetreten.', life: 5000 });
+            logout();
+        } else {
+            toast.add({ severity: 'success', summary: 'Erfolgreich', detail: 'Login erfolgreich!' });
+            login({ token: data.value.token });
+        }
     }
 };
 </script>
@@ -87,7 +105,7 @@ const onFormSubmit = async ({ valid, states }: FormSubmitEvent) => {
                                 </div>
                                 <span class="font-medium no-underline ml-2 text-right cursor-pointer text-primary">Passwort vergessen?</span>
                             </div>
-                            <Button type="submit" label="Anmelden" class="w-full" />
+                            <Button :loading="isFetching" type="submit" label="Anmelden" class="w-full" />
                         </Form>
                     </div>
                 </div>

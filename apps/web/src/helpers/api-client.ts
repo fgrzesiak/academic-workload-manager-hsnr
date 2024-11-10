@@ -19,17 +19,15 @@ const networkFetchClient = createFetch({
             }
         },
         onFetchError(ctx) {
-            if (ctx.data) {
-                return ctx.data;
+            if (ctx.data && ctx.data.message) {
+                ctx.error = ctx.data.message;
             }
             return ctx;
         },
         afterFetch(ctx) {
-            // if the response contains a data property, return it
             if (ctx.data) {
                 return ctx.data;
             }
-
             return ctx;
         }
     },
