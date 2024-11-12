@@ -8,8 +8,8 @@
     "db:generate": {
       "cache": false
     },
-    "db:restart": {
-      "dependsOn": ["^db:restart"],
+    "db:start": {
+      "dependsOn": ["^db:start"],
       "cache": false
     },
     "db:push": {
@@ -27,7 +27,7 @@
       "cache": false
     },
     "dev": {
-      "dependsOn": ["^build", "^db:restart"],
+      "dependsOn": ["^build", "^db:start"],
       "cache": false,
       "persistent": true
     },

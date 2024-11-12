@@ -11,7 +11,7 @@
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
-    "db:start": "turbo run db:start",
+    "db:restart": "turbo run db:restart",
     "db:migrate": "turbo run db:migrate",
     "db:deploy": "turbo run db:deploy",
     "db:push": "turbo run db:push",
