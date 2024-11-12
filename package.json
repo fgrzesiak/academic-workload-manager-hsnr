@@ -9,9 +9,12 @@
     "turbo": "^2.0.13"
   },
   "scripts": {
-    "build": "turbo run build",
     "dev": "turbo run dev",
-    "migrate": "pnpm --filter @workspace/database migrate",
+    "build": "turbo run build",
+    "db:start": "turbo run db:start",
+    "db:migrate": "turbo run db:migrate",
+    "db:deploy": "turbo run db:deploy",
+    "db:push": "turbo run db:push",
     "lint": "turbo run lint",
     "format": "prettier --write .",
     "clean": "rm -rf node_modules",
