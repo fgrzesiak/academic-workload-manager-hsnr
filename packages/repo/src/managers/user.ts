@@ -20,7 +20,7 @@ export class UserManager {
       });
 
       return new User(result);
-    } catch (err) {
+    } catch (_err) {
       return null;
     }
   }
@@ -37,7 +37,7 @@ export class UserManager {
       });
 
       return new User(result);
-    } catch (err) {
+    } catch (_err) {
       return null;
     }
   }

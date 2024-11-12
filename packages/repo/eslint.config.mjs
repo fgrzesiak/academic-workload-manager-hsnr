@@ -37,6 +37,15 @@ export default [
       "@typescript-eslint/no-unsafe-assignment": "off",
       "@typescript-eslint/no-unsafe-call": "off",
       "@typescript-eslint/no-unsafe-member-access": "off",
+
+      // Unused variables rule
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        {
+          argsIgnorePattern: "^_", // Ignore unused variables that start with _
+          varsIgnorePattern: "^_", // Ignore unused variables (not just args) that start with _
+        },
+      ],
     },
   },
   {

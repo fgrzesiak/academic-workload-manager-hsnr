@@ -1,16 +1,21 @@
 <script setup>
-import { useToast } from 'primevue/usetoast';
-import { ref } from 'vue';
+import { useToast } from 'primevue/usetoast'
+import { ref } from 'vue'
 
-const toast = useToast();
-const fileupload = ref();
+const toast = useToast()
+const fileupload = ref()
 
 function upload() {
-    fileupload.value.upload();
+    fileupload.value.upload()
 }
 
 function onUpload() {
-    toast.add({ severity: 'info', summary: 'Success', detail: 'File Uploaded', life: 3000 });
+    toast.add({
+        severity: 'info',
+        summary: 'Success',
+        detail: 'File Uploaded',
+        life: 3000,
+    })
 }
 </script>
 
@@ -18,17 +23,38 @@ function onUpload() {
     <div class="grid grid-cols-12 gap-8">
         <div class="col-span-full lg:col-span-6">
             <div class="card">
-                <div class="font-semibold text-xl mb-4">Advanced</div>
-                <FileUpload name="demo[]" @uploader="onUpload" :multiple="true" accept="image/*" :maxFileSize="1000000" customUpload />
+                <div class="mb-4 text-xl font-semibold">Advanced</div>
+                <FileUpload
+                    name="demo[]"
+                    :multiple="true"
+                    accept="image/*"
+                    :max-file-size="1000000"
+                    custom-upload
+                    @uploader="onUpload"
+                />
             </div>
         </div>
         <div class="col-span-full lg:col-span-6">
             <div class="card">
-                <div class="font-semibold text-xl mb-4">Basic</div>
-                <div class="card flex flex-col gap-6 items-center justify-center">
+                <div class="mb-4 text-xl font-semibold">Basic</div>
+                <div
+                    class="card flex flex-col items-center justify-center gap-6"
+                >
                     <Toast />
-                    <FileUpload ref="fileupload" mode="basic" name="demo[]" accept="image/*" :maxFileSize="1000000" @uploader="onUpload" customUpload />
-                    <Button label="Upload" @click="upload" severity="secondary" />
+                    <FileUpload
+                        ref="fileupload"
+                        mode="basic"
+                        name="demo[]"
+                        accept="image/*"
+                        :max-file-size="1000000"
+                        custom-upload
+                        @uploader="onUpload"
+                    />
+                    <Button
+                        label="Upload"
+                        severity="secondary"
+                        @click="upload"
+                    />
                 </div>
             </div>
         </div>

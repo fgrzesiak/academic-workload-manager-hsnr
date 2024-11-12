@@ -1,16 +1,17 @@
-import { apiClient } from '@/helpers/api-client';
+import { apiClient } from '@/helpers/api-client'
 
 interface LoginRequest {
-    username: string;
-    password: string;
+    username: string
+    password: string
 }
 
 interface LoginResponse {
-    token: string;
+    token: string
 }
 
-const login = (_: LoginRequest) => apiClient.post<LoginResponse>('/auth/login', _);
+const login = (_: LoginRequest) =>
+    apiClient.post<LoginResponse>('/auth/login', _)
 
-const authService = { login };
+const authService = { login }
 
-export default authService;
+export default authService
