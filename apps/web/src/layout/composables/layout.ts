@@ -15,6 +15,7 @@ interface LayoutState {
     configSidebarVisible: boolean
     staticMenuMobileActive: boolean
     menuHoverActive: boolean
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     activeMenuItem: any | null
 }
 
@@ -49,6 +50,7 @@ export function useLayout() {
         layoutConfig.preset = value
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const setActiveMenuItem = (item: any) => {
         layoutState.activeMenuItem = item.value || item
     }
