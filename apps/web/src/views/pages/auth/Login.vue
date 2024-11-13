@@ -67,11 +67,6 @@ const onFormSubmit = async ({ valid, states }: FormSubmitEvent) => {
             })
             logout()
         } else {
-            toast.add({
-                severity: 'success',
-                summary: 'Erfolgreich',
-                detail: 'Login erfolgreich!',
-            })
             login({ token: data.value.token })
         }
     }

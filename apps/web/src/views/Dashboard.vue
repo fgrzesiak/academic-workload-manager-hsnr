@@ -1,13 +1,6 @@
-<script setup>
-import { useLayout } from '@/layout/composables/layout'
-import { ProductService } from '@/service/ProductService'
-import { onMounted, ref, watch } from 'vue'
-
-const { getPrimary, getSurface, isDarkTheme } = useLayout()
-
-const products = ref(null)
-const chartData = ref(null)
-const chartOptions = ref(null)
+<script setup lang="ts">
+import UserService from '@/service/user.service'
+import { onMounted, ref } from 'vue'
 
 const items = ref([
     { label: 'Add New', icon: 'pi pi-fw pi-plus' },
@@ -15,93 +8,7 @@ const items = ref([
 ])
 
 onMounted(() => {
-    ProductService.getProductsSmall().then((data) => (products.value = data))
-    chartData.value = setChartData()
-    chartOptions.value = setChartOptions()
-})
-
-function setChartData() {
-    const documentStyle = getComputedStyle(document.documentElement)
-
-    return {
-        labels: ['Q1', 'Q2', 'Q3', 'Q4'],
-        datasets: [
-            {
-                type: 'bar',
-                label: 'Subscriptions',
-                backgroundColor:
-                    documentStyle.getPropertyValue('--p-primary-400'),
-                data: [4000, 10000, 15000, 4000],
-                barThickness: 32,
-            },
-            {
-                type: 'bar',
-                label: 'Advertising',
-                backgroundColor:
-                    documentStyle.getPropertyValue('--p-primary-300'),
-                data: [2100, 8400, 2400, 7500],
-                barThickness: 32,
-            },
-            {
-                type: 'bar',
-                label: 'Affiliate',
-                backgroundColor:
-                    documentStyle.getPropertyValue('--p-primary-200'),
-                data: [4100, 5200, 3400, 7400],
-                borderRadius: {
-                    topLeft: 8,
-                    topRight: 8,
-                },
-                borderSkipped: true,
-                barThickness: 32,
-            },
-        ],
-    }
-}
-
-function setChartOptions() {
-    const documentStyle = getComputedStyle(document.documentElement)
-    const borderColor = documentStyle.getPropertyValue('--surface-border')
-    const textMutedColor = documentStyle.getPropertyValue(
-        '--text-color-secondary'
-    )
-
-    return {
-        maintainAspectRatio: false,
-        aspectRatio: 0.8,
-        scales: {
-            x: {
-                stacked: true,
-                ticks: {
-                    color: textMutedColor,
-                },
-                grid: {
-                    color: 'transparent',
-                    borderColor: 'transparent',
-                },
-            },
-            y: {
-                stacked: true,
-                ticks: {
-                    color: textMutedColor,
-                },
-                grid: {
-                    color: borderColor,
-                    borderColor: 'transparent',
-                    drawTicks: false,
-                },
-            },
-        },
-    }
-}
-
-const formatCurrency = (value) => {
-    return value.toLocaleString('en-US', { style: 'currency', currency: 'USD' })
-}
-
-watch([getPrimary, getSurface, isDarkTheme], () => {
-    chartData.value = setChartData()
-    chartOptions.value = setChartOptions()
+    UserService.getProfile().then((data) => console.log(data))
 })
 </script>
 
@@ -209,48 +116,6 @@ watch([getPrimary, getSurface, isDarkTheme], () => {
         <div class="col-span-12 xl:col-span-6">
             <div class="card">
                 <div class="mb-4 text-xl font-semibold">Recent Sales</div>
-                <DataTable
-                    :value="products"
-                    :rows="5"
-                    :paginator="true"
-                    responsive-layout="scroll"
-                >
-                    <Column style="width: 15%" header="Image">
-                        <template #body="slotProps">
-                            <img
-                                :src="`https://primefaces.org/cdn/primevue/images/product/${slotProps.data.image}`"
-                                :alt="slotProps.data.image"
-                                width="50"
-                                class="shadow"
-                            />
-                        </template>
-                    </Column>
-                    <Column
-                        field="name"
-                        header="Name"
-                        :sortable="true"
-                        style="width: 35%"
-                    ></Column>
-                    <Column
-                        field="price"
-                        header="Price"
-                        :sortable="true"
-                        style="width: 35%"
-                    >
-                        <template #body="slotProps">
-                            {{ formatCurrency(slotProps.data.price) }}
-                        </template>
-                    </Column>
-                    <Column style="width: 15%" header="View">
-                        <template #body>
-                            <Button
-                                icon="pi pi-search"
-                                type="button"
-                                class="p-button-text"
-                            ></Button>
-                        </template>
-                    </Column>
-                </DataTable>
             </div>
             <div class="card">
                 <div class="mb-6 flex items-center justify-between">
@@ -258,11 +123,6 @@ watch([getPrimary, getSurface, isDarkTheme], () => {
                         Best Selling Products
                     </div>
                     <div>
-                        <Button
-                            icon="pi pi-ellipsis-v"
-                            class="p-button-text p-button-plain p-button-rounded"
-                            @click="$refs.menu2.toggle($event)"
-                        ></Button>
                         <Menu
                             ref="menu2"
                             :popup="true"
@@ -438,22 +298,11 @@ watch([getPrimary, getSurface, isDarkTheme], () => {
         <div class="col-span-12 xl:col-span-6">
             <div class="card">
                 <div class="mb-4 text-xl font-semibold">Revenue Stream</div>
-                <Chart
-                    type="bar"
-                    :data="chartData"
-                    :options="chartOptions"
-                    class="h-80"
-                />
             </div>
             <div class="card">
                 <div class="mb-6 flex items-center justify-between">
                     <div class="text-xl font-semibold">Notifications</div>
                     <div>
-                        <Button
-                            icon="pi pi-ellipsis-v"
-                            class="p-button-text p-button-plain p-button-rounded"
-                            @click="$refs.menu1.toggle($event)"
-                        ></Button>
                         <Menu
                             ref="menu1"
                             :popup="true"

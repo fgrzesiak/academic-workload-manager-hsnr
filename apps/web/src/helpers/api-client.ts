@@ -19,6 +19,10 @@ const networkFetchClient = createFetch({
             }
         },
         onFetchError(ctx) {
+            if (ctx.response?.status === 401) {
+                const { logout } = useAuthStore()
+                logout()
+            }
             if (ctx.data && ctx.data.message) {
                 ctx.error = ctx.data.message
             }
