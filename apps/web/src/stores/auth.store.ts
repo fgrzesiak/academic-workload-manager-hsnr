@@ -12,13 +12,14 @@ export const useAuthStore = defineStore({
         ) as UserStore | null,
         isAuthenticated: !!JSON.parse(localStorage.getItem('user') || 'null')
             ?.token,
+        role: JSON.parse(localStorage.getItem('user') || 'null')?.role,
     }),
     actions: {
         async login(user: UserStore) {
             // update pinia state
             this.user = user
             localStorage.setItem('user', JSON.stringify(user))
-            router.push({ name: 'dashboard' })
+            router.push('/')
         },
         logout() {
             this.user = null

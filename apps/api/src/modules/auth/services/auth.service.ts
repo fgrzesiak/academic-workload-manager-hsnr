@@ -7,16 +7,18 @@ import * as bcrypt from "bcrypt";
 export class AuthService {
   constructor(private readonly jwtService: JwtService) {}
 
-  async validateUser(username: string, password: string): Promise<any | null> {
+  async validateUser(username: string, password: string): Promise<User | null> {
     const user = await users.findByUsername(username);
     if (user && (await bcrypt.compare(password, user.password))) {
-      const { password, ...result } = user;
-      return result; // User data without password
+      return user;
     }
     return null;
   }
 
-  async login(user: { username: string; password: string }) {
+  async login(user: {
+    username: string;
+    password: string;
+  }): Promise<{ token: string; role: string }> {
     const validUser = await this.validateUser(user.username, user.password);
     if (!validUser) {
       throw new HttpException(
@@ -30,6 +32,7 @@ export class AuthService {
     };
     return {
       token: this.jwtService.sign(payload),
+      role: validUser.role,
     };
   }
 }

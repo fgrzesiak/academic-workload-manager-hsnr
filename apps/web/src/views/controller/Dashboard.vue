@@ -7,8 +7,9 @@ const items = ref([
     { label: 'Remove', icon: 'pi pi-fw pi-trash' },
 ])
 
-onMounted(() => {
-    UserService.getProfile().then((data) => console.log(data))
+onMounted(async () => {
+    const { data } = await UserService.getProfile()
+    console.log(data.value)
 })
 </script>
 

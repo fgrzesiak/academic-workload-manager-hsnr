@@ -67,7 +67,7 @@ const onFormSubmit = async ({ valid, states }: FormSubmitEvent) => {
             })
             logout()
         } else {
-            login({ token: data.value.token })
+            login(data.value)
         }
     }
 }

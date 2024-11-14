@@ -17,7 +17,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async validate(payload: any): Promise<User> {
     const { sub } = payload;
-
     const user = await users.findOne(sub);
     if (!user) {
       throw new UnauthorizedException();

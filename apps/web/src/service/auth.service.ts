@@ -7,6 +7,7 @@ interface LoginRequest {
 
 interface LoginResponse {
     token: string
+    role: 'CONTROLLER' | 'TEACHER'
 }
 
 const login = (_: LoginRequest) =>

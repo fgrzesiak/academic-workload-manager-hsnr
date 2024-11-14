@@ -30,7 +30,7 @@ export class AuthController {
       username: string;
       password: string;
     },
-  ) {
+  ): Promise<{ token: string; role: string }> {
     return await this.authService.login(loginDto);
   }
 
