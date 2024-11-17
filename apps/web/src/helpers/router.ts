@@ -15,9 +15,79 @@ const router = createRouter({
             component: AppLayout,
             children: [
                 {
-                    path: '/controlling',
+                    path: '',
                     name: 'c.dashboard',
                     component: () => import('@/views/controller/Dashboard.vue'),
+                },
+                {
+                    path: 'edit-data',
+                    children: [
+                        {
+                            path: 'courses',
+                            name: 'c.courses',
+                            component: () =>
+                                import(
+                                    '@/views/controller/edit-data/Courses.vue'
+                                ),
+                            meta: {
+                                label: 'Courses',
+                                icon: 'pi pi-fw pi-calendar',
+                            },
+                        },
+                        {
+                            path: 'mentoring',
+                            name: 'c.mentoring',
+                            component: () =>
+                                import(
+                                    '@/views/controller/edit-data/Mentoring.vue'
+                                ),
+                            meta: {
+                                label: 'Mentoring',
+                                icon: 'pi pi-fw pi-users',
+                            },
+                        },
+                        {
+                            path: 'discounts',
+                            name: 'c.discounts',
+                            component: () =>
+                                import(
+                                    '@/views/controller/edit-data/Discounts.vue'
+                                ),
+                            meta: {
+                                label: 'Discounts',
+                                icon: 'pi pi-fw pi-money-bill',
+                            },
+                        },
+                    ],
+                },
+                {
+                    path: 'evaluation',
+                    children: [
+                        {
+                            path: 'overview',
+                            name: 'c.overview',
+                            component: () =>
+                                import(
+                                    '@/views/controller/evaluation/Overview.vue'
+                                ),
+                            meta: {
+                                label: 'Overview',
+                                icon: 'pi pi-fw pi-chart-bar',
+                            },
+                        },
+                        {
+                            path: 'group-analysis',
+                            name: 'c.groupanalysis',
+                            component: () =>
+                                import(
+                                    '@/views/controller/evaluation/GroupAnalysis.vue'
+                                ),
+                            meta: {
+                                label: 'Group Analysis',
+                                icon: 'pi pi-fw pi-chart-line',
+                            },
+                        },
+                    ],
                 },
             ],
         },
@@ -26,20 +96,43 @@ const router = createRouter({
             component: AppLayout,
             children: [
                 {
-                    path: '/',
+                    path: '',
                     name: 't.dashboard',
                     component: () => import('@/views/teacher/Dashboard.vue'),
+                    meta: {
+                        label: 'Lehrsaldo',
+                        icon: 'pi pi-fw pi-chart-bar',
+                    },
+                },
+                {
+                    path: 'management',
+                    children: [
+                        {
+                            path: 'report-data',
+                            name: 't.report-data',
+                            component: () =>
+                                import(
+                                    '@/views/teacher/management/ReportData.vue'
+                                ),
+                            meta: {
+                                label: 'Daten melden',
+                                icon: 'pi pi-fw pi-database',
+                            },
+                        },
+                    ],
                 },
             ],
+        },
+        {
+            path: '/:catchAll(.*)',
+            name: 'not-found',
+            component: () => import('@/views/pages/NotFound.vue'),
         },
     ],
 })
 
 router.beforeEach(async (to, _from, next) => {
     const { isAuthenticated, role, logout } = useAuthStore()
-    console.log('isAuthenticated', isAuthenticated)
-    console.log('role', role)
-    console.log('to', to)
     if (isAuthenticated && to.name === 'login') {
         next({ name: role === 'CONTROLLER' ? 'c.dashboard' : 't.dashboard' })
     } else if (!isAuthenticated) {

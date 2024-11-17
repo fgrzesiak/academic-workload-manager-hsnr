@@ -9,7 +9,6 @@ const items = ref([
 
 onMounted(async () => {
     const { data } = await UserService.getProfile()
-    console.log(data.value)
 })
 </script>
 

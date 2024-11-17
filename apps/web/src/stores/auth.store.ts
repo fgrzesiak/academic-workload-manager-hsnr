@@ -12,7 +12,9 @@ export const useAuthStore = defineStore({
         ) as UserStore | null,
         isAuthenticated: !!JSON.parse(localStorage.getItem('user') || 'null')
             ?.token,
-        role: JSON.parse(localStorage.getItem('user') || 'null')?.role,
+        role:
+            (JSON.parse(localStorage.getItem('user') || 'null')
+                ?.role as UserStore['role']) || null,
     }),
     actions: {
         async login(user: UserStore) {

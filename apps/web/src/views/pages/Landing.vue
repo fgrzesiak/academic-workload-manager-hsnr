@@ -49,7 +49,7 @@ function smoothScroll(id) {
                     </svg>
                     <span
                         class="mr-20 text-2xl font-medium leading-normal text-surface-900 dark:text-surface-0"
-                        >SAKAI</span
+                        >Deputatsverwaltung FB08</span
                     >
                 </a>
                 <Button
@@ -1052,7 +1052,7 @@ function smoothScroll(id) {
                             <h4
                                 class="text-3xl font-medium text-surface-900 dark:text-surface-0"
                             >
-                                SAKAI
+                                Deputatsverwaltung FB08
                             </h4>
                         </a>
                     </div>
