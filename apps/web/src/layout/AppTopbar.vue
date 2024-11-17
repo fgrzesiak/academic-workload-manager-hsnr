@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useLayout } from './composables/layout'
+import UserPopover from '@/components/UserPopover.vue'
 
 const { onMenuToggle, toggleDarkMode, isDarkTheme } = useLayout()
 </script>
@@ -60,10 +61,7 @@ const { onMenuToggle, toggleDarkMode, isDarkTheme } = useLayout()
                         <i class="pi pi-inbox"></i>
                         <span>Messages</span>
                     </button>
-                    <button type="button" class="layout-topbar-action">
-                        <i class="pi pi-user"></i>
-                        <span>Profile</span>
-                    </button>
+                    <user-popover />
                 </div>
             </div>
         </div>
