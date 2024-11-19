@@ -24,11 +24,11 @@ const logout = () => {
         <Popover ref="userPopover">
             <div class="p-shadow-4 w-52">
                 <Button
-                    @click="logout"
                     type="submit"
                     severity="danger"
                     label="Abmelden"
                     class="w-full"
+                    @click="logout"
                 />
             </div>
         </Popover>

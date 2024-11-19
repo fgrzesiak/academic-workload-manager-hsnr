@@ -1,15 +1,10 @@
 <script setup lang="ts">
-import UserService from '@/service/user.service'
-import { onMounted, ref } from 'vue'
+import { ref } from 'vue'
 
-const items = ref([
+const items = ref<any>([
     { label: 'Add New', icon: 'pi pi-fw pi-plus' },
     { label: 'Remove', icon: 'pi pi-fw pi-trash' },
 ])
-
-onMounted(async () => {
-    const { data } = await UserService.getProfile()
-})
 </script>
 
 <template>

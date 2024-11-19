@@ -1,5 +1,5 @@
 import { Injectable, OnModuleInit } from "@nestjs/common";
-import { controllers, users } from "@workspace/repo";
+import { controllers } from "@workspace/repo";
 import * as bcrypt from "bcrypt";
 
 import { ConfigKeys, ConfigService } from "./modules/config/config.service";
