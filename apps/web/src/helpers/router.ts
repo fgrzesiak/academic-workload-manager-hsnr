@@ -89,6 +89,21 @@ const router = createRouter({
                         },
                     ],
                 },
+                {
+                    path: 'administration',
+                    children: [
+                        {
+                            path: 'users',
+                            name: 'c.users',
+                            component: () =>
+                                import('@/views/controller/admin/Users.vue'),
+                            meta: {
+                                label: 'Users',
+                                icon: 'pi pi-fw pi-users',
+                            },
+                        },
+                    ],
+                },
             ],
         },
         {
@@ -124,6 +139,11 @@ const router = createRouter({
             ],
         },
         {
+            path: '/403',
+            name: 'access-denied',
+            component: () => import('@/views/pages/auth/Access.vue'),
+        },
+        {
             path: '/:catchAll(.*)',
             name: 'not-found',
             component: () => import('@/views/pages/NotFound.vue'),
@@ -133,7 +153,9 @@ const router = createRouter({
 
 router.beforeEach(async (to, _from, next) => {
     const { isAuthenticated, role, logout } = useAuthStore()
-    if (isAuthenticated && to.name === 'login') {
+    if (to.path.startsWith('/403')) {
+        next()
+    } else if (isAuthenticated && to.name === 'login') {
         next({ name: role === 'CONTROLLER' ? 'c.dashboard' : 't.dashboard' })
     } else if (!isAuthenticated) {
         if (to.name === 'login') {

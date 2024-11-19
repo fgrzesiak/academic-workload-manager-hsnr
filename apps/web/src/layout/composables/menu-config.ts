@@ -46,6 +46,21 @@ export const CONTROLLER_MENU: MenuItem[] = [
             },
         ],
     },
+    {
+        label: 'Verwaltung',
+        items: [
+            {
+                label: 'Nutzer',
+                icon: 'pi pi-fw pi-user',
+                to: '/controlling/administration/users',
+            },
+            {
+                label: 'Rollen',
+                icon: 'pi pi-fw pi-users',
+                to: '/controlling/administration/roles',
+            },
+        ],
+    },
 ]
 
 export const TEACHER_MENU: MenuItem[] = [

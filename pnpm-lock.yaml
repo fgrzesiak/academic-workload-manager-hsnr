@@ -44,6 +44,9 @@ importers:
       '@workspace/repo':
         specifier: workspace:^
         version: link:../../packages/repo
+      '@workspace/shared':
+        specifier: workspace:^
+        version: link:../../packages/shared
       bcrypt:
         specifier: ^5.1.1
         version: 5.1.1
@@ -150,6 +153,12 @@ importers:
       '@vueuse/core':
         specifier: ^11.2.0
         version: 11.2.0(vue@3.5.12(typescript@5.6.3))
+      '@workspace/repo':
+        specifier: workspace:^
+        version: link:../../packages/repo
+      '@workspace/shared':
+        specifier: workspace:^
+        version: link:../../packages/shared
       chart.js:
         specifier: 3.3.2
         version: 3.3.2
@@ -241,6 +250,31 @@ importers:
         version: 5.6.3
 
   packages/repo:
+    dependencies:
+      '@workspace/database':
+        specifier: workspace:^
+        version: link:../database
+      reflect-metadata:
+        specifier: ^0.2.2
+        version: 0.2.2
+      tsyringe:
+        specifier: ^4.8.0
+        version: 4.8.0
+    devDependencies:
+      eslint-config-prettier:
+        specifier: ^9.1.0
+        version: 9.1.0(eslint@9.14.0(jiti@2.4.0))
+      eslint-plugin-prettier:
+        specifier: ^5.2.1
+        version: 5.2.1(@types/eslint@9.6.1)(eslint-config-prettier@9.1.0(eslint@9.14.0(jiti@2.4.0)))(eslint@9.14.0(jiti@2.4.0))(prettier@3.3.3)
+      prettier:
+        specifier: ^3.3.3
+        version: 3.3.3
+      typescript:
+        specifier: ^5.6.2
+        version: 5.6.3
+
+  packages/shared:
     dependencies:
       '@workspace/database':
         specifier: workspace:^
@@ -8449,7 +8483,7 @@ snapshots:
   synckit@0.9.1:
     dependencies:
       '@pkgr/core': 0.1.1
-      tslib: 2.6.3
+      tslib: 2.7.0
 
   tailwindcss-primeui@0.3.4(tailwindcss@3.4.14(ts-node@10.9.2(@types/node@22.9.0)(typescript@5.6.3))):
     dependencies:

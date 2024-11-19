@@ -5,8 +5,8 @@ import { PassportModule } from "@nestjs/passport";
 import { JwtStrategy } from "../../common/strategies/jwt.strategy.js";
 import { ConfigModule } from "../config/config.module.js";
 import { ConfigKeys, ConfigService } from "../config/config.service.js";
-import { AuthController } from "./controllers/auth.controller.js";
-import { AuthService } from "./services/auth.service.js";
+import { UsersController } from "./controllers/users.controller.js";
+import { UsersService } from "./services/users.service.js";
 
 //https://docs.nestjs.com/recipes/passport for authentication
 @Module({
@@ -21,8 +21,8 @@ import { AuthService } from "./services/auth.service.js";
       imports: [ConfigModule],
     }),
   ],
-  providers: [AuthService, JwtStrategy],
-  controllers: [AuthController],
-  exports: [AuthService],
+  providers: [UsersService, JwtStrategy],
+  controllers: [UsersController],
+  exports: [UsersService],
 })
-export class AuthModule {}
+export class UsersModule {}

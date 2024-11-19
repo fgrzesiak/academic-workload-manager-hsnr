@@ -52,4 +52,8 @@ export class UserManager {
       where: { id },
     });
   }
+
+  async findAll(): Promise<IUser[]> {
+    return await this.prisma.user.findMany();
+  }
 }

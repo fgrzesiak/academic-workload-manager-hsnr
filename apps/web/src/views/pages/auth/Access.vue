@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import FloatingConfigurator from '@/components/FloatingConfigurator.vue'
 </script>
 
@@ -35,11 +35,12 @@ import FloatingConfigurator from '@/components/FloatingConfigurator.vue'
                         <h1
                             class="mb-2 text-4xl font-bold text-surface-900 lg:text-5xl dark:text-surface-0"
                         >
-                            Access Denied
+                            Zugriff verweigert
                         </h1>
-                        <span class="mb-8 text-muted-color"
-                            >You do not have the necessary permisions. Please
-                            contact admins.</span
+                        <span class="mb-8 text-center text-muted-color"
+                            >Sie haben nicht die erforderlichen Berechtigungen.
+                            <br />
+                            Kontaktieren Sie einen Administrator.</span
                         >
                         <img
                             src="/demo/images/access/asset-access.svg"
@@ -50,7 +51,7 @@ import FloatingConfigurator from '@/components/FloatingConfigurator.vue'
                         <div class="col-span-12 mt-8 text-center">
                             <Button
                                 as="router-link"
-                                label="Go to Dashboard"
+                                label="Zurück zur Startseite"
                                 to="/"
                                 severity="warn"
                             />
