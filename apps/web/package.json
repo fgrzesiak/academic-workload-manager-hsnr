@@ -8,9 +8,9 @@
         "lint": "eslint . --ext .js,.jsx,.mjs,.cjs,.ts,.tsx,.mts,.vue --fix"
     },
     "dependencies": {
-        "@primevue/core": "^4.2.1",
-        "@primevue/forms": "^4.2.1",
-        "@primevue/themes": "^4.0.0",
+        "@primevue/core": "^4.2.3",
+        "@primevue/forms": "^4.2.3",
+        "@primevue/themes": "^4.2.3",
         "@vueuse/core": "^11.2.0",
         "@workspace/repo": "workspace:^",
         "@workspace/shared": "workspace:^",
@@ -22,7 +22,7 @@
         "vue-router": "^4.4.0"
     },
     "devDependencies": {
-        "@primevue/auto-import-resolver": "^4.0.1",
+        "@primevue/auto-import-resolver": "^4.2.3",
         "@rushstack/eslint-patch": "^1.8.0",
         "@typescript-eslint/eslint-plugin": "^8.14.0",
         "@typescript-eslint/parser": "^8.14.0",

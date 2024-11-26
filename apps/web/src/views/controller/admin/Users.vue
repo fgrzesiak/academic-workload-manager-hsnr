@@ -2,13 +2,13 @@
 import { FilterMatchMode, FilterOperator } from '@primevue/core/api'
 import { onBeforeMount, reactive, ref } from 'vue'
 import UserService from '@/service/user.service'
-import { User } from '@workspace/shared'
+import { IUserResponse } from '@workspace/shared'
 import { useToast } from 'primevue'
 import { UserRole } from '@workspace/shared'
 import { getObjectAsFilter } from '@/helpers/functions'
 
-const users = ref<User[]>([])
-const filters = ref<any>(null)
+const users = ref<IUserResponse[]>([])
+const filters = ref<Record<string, any>>({})
 const loading = ref(false)
 const toast = useToast()
 
@@ -20,7 +20,6 @@ onBeforeMount(() => {
     loading.value = true
     UserService.getUsers().then((res) => {
         loading.value = false
-        console.log(res)
         const { data, error } = res
         if (error) {
             toast.add({
@@ -31,6 +30,7 @@ onBeforeMount(() => {
             })
         } else {
             users.value = data
+            console.log(users.value)
         }
     })
     initFilters()
@@ -62,7 +62,7 @@ function initFilters() {
 }
 
 // Utility to format dates
-function formatDate(value: Date) {
+function formatDate(value: string) {
     return new Date(value).toLocaleDateString('de-DE', {
         day: '2-digit',
         month: '2-digit',
@@ -80,11 +80,10 @@ function formatDate(value: Date) {
             :rows="10"
             data-key="id"
             :row-hover="true"
-            filter-display="menu"
+            filter-display="row"
             :loading="loading"
             v-model:filters="filters"
             :global-filter-fields="['username', 'role']"
-            show-gridlines
         >
             <!-- Table Header -->
             <template #header>
@@ -115,10 +114,15 @@ function formatDate(value: Date) {
             </Column>
 
             <!-- Username Column -->
-            <Column field="username" header="Username" style="min-width: 12rem">
+            <Column
+                field="username"
+                header="Nutzername"
+                style="min-width: 12rem"
+            >
                 <template #body="{ data }">{{ data.username }}</template>
-                <template #filter="{ filterModel }">
+                <template #filter="{ filterModel, filterCallback }">
                     <InputText
+                        @input="filterCallback()"
                         v-model="filterModel.value"
                         type="text"
                         placeholder="Nutzername suchen"
@@ -129,27 +133,30 @@ function formatDate(value: Date) {
             <!-- Role Column -->
             <Column
                 field="role"
-                header="Role"
+                header="Rolle"
                 style="min-width: 10rem"
                 filter-field="role"
+                :show-filter-menu="false"
             >
                 <template #body="{ data }">{{ data.role }}</template>
-                <template #filter="{ filterModel }">
+                <template #filter="{ filterModel, filterCallback }">
                     <Select
+                        @change="filterCallback()"
                         v-model="filterModel.value"
                         :options="roles"
                         option-label="label"
                         option-value="value"
                         placeholder="Rolle auswählen"
                         show-clear
-                    />
+                    >
+                    </Select>
                 </template>
             </Column>
 
             <!-- Created At Column -->
             <Column
                 field="createdAt"
-                header="Created At"
+                header="Erstellt am"
                 data-type="date"
                 style="min-width: 12rem"
             >
@@ -168,7 +175,7 @@ function formatDate(value: Date) {
             <!-- Updated At Column -->
             <Column
                 field="updatedAt"
-                header="Updated At"
+                header="Aktualisiert am"
                 data-type="date"
                 style="min-width: 12rem"
             >
