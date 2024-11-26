@@ -53,6 +53,19 @@ class ApiClient {
         })
             .get()
             .json<T>()
+            .then((res) => {
+                const { data, error } = res
+                if (error.value) {
+                    return { data: null, error: new String(error.value) }
+                } else if (!data.value) {
+                    return {
+                        data: null,
+                        error: 'Ein unbekannter Fehler ist aufgetreten.',
+                    }
+                } else {
+                    return { data: data.value, error: null }
+                }
+            })
     }
 
     post<T>(url: string, body: unknown) {

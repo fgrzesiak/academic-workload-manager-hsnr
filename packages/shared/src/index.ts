@@ -1,5 +1,5 @@
 import "reflect-metadata";
 
-export * as PrismaModel from "@workspace/database";
+//do not export prisma client as vite can't run node.js code in the browser
 
 export * from "./types";

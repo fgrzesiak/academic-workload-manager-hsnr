@@ -2,43 +2,35 @@
 import { FilterMatchMode, FilterOperator } from '@primevue/core/api'
 import { onBeforeMount, reactive, ref } from 'vue'
 import UserService from '@/service/user.service'
-import { IUserResponse } from '@workspace/shared'
+import { User } from '@workspace/shared'
 import { useToast } from 'primevue'
+import { UserRole } from '@workspace/shared'
+import { getObjectAsFilter } from '@/helpers/functions'
 
-const users = ref<IUserResponse[]>([])
+const users = ref<User[]>([])
 const filters = ref<any>(null)
 const loading = ref(false)
 const toast = useToast()
 
 // Define roles for filtering
-const roles = reactive([
-    { label: 'Admin', value: 'admin' },
-    { label: 'User', value: 'user' },
-    { label: 'Controller', value: 'controller' },
-])
+const roles = reactive(getObjectAsFilter(UserRole))
 
 // Fetch user data
 onBeforeMount(() => {
     loading.value = true
     UserService.getUsers().then((res) => {
         loading.value = false
+        console.log(res)
         const { data, error } = res
-        if (error.value) {
+        if (error) {
             toast.add({
                 severity: 'error',
                 summary: 'Fehler',
-                detail: error.value,
-                life: 5000,
-            })
-        } else if (!data.value) {
-            toast.add({
-                severity: 'error',
-                summary: 'Fehler',
-                detail: 'Ein unbekannter Fehler ist aufgetreten.',
+                detail: error,
                 life: 5000,
             })
         } else {
-            users.value = data.value
+            users.value = data
         }
     })
     initFilters()
@@ -90,7 +82,7 @@ function formatDate(value: Date) {
             :row-hover="true"
             filter-display="menu"
             :loading="loading"
-            :filters="filters"
+            v-model:filters="filters"
             :global-filter-fields="['username', 'role']"
             show-gridlines
         >
@@ -100,7 +92,7 @@ function formatDate(value: Date) {
                     <Button
                         type="button"
                         icon="pi pi-filter-slash"
-                        label="Clear Filters"
+                        label="Filter aufheben"
                         outlined
                         @click="initFilters"
                     />
@@ -115,7 +107,7 @@ function formatDate(value: Date) {
             </template>
 
             <!-- Empty Table State -->
-            <template #empty>No users found.</template>
+            <template #empty>Keine Nutzer gefunden.</template>
 
             <!-- ID Column -->
             <Column field="id" header="ID" style="min-width: 6rem">
@@ -129,7 +121,7 @@ function formatDate(value: Date) {
                     <InputText
                         v-model="filterModel.value"
                         type="text"
-                        placeholder="Search by username"
+                        placeholder="Nutzername suchen"
                     />
                 </template>
             </Column>
@@ -148,7 +140,7 @@ function formatDate(value: Date) {
                         :options="roles"
                         option-label="label"
                         option-value="value"
-                        placeholder="Select Role"
+                        placeholder="Rolle auswählen"
                         show-clear
                     />
                 </template>
@@ -167,8 +159,8 @@ function formatDate(value: Date) {
                 <template #filter="{ filterModel }">
                     <DatePicker
                         v-model="filterModel.value"
-                        date-format="mm/dd/yy"
-                        placeholder="Select a date"
+                        date-format="dd.mm.yy"
+                        placeholder="Datum auswählen"
                     />
                 </template>
             </Column>
@@ -186,8 +178,8 @@ function formatDate(value: Date) {
                 <template #filter="{ filterModel }">
                     <DatePicker
                         v-model="filterModel.value"
-                        date-format="mm/dd/yy"
-                        placeholder="Select a date"
+                        date-format="dd.mm.yy"
+                        placeholder="Datum auswählen"
                     />
                 </template>
             </Column>
