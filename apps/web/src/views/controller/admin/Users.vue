@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { FilterMatchMode, FilterOperator } from '@primevue/core/api'
+import { FilterMatchMode } from '@primevue/core/api'
 import { onBeforeMount, reactive, ref } from 'vue'
 import UserService from '@/service/user.service'
 import { IUserResponse } from '@workspace/shared'
-import { useToast } from 'primevue'
+import { DataTableFilterMeta, useToast } from 'primevue'
 import { UserRole } from '@workspace/shared'
 import { getObjectAsFilter } from '@/helpers/functions'
 
 const users = ref<IUserResponse[]>([])
-const filters = ref<Record<string, any>>({})
+const filters = ref<DataTableFilterMeta>({})
 const loading = ref(false)
 const toast = useToast()
 
@@ -29,7 +29,11 @@ onBeforeMount(() => {
                 life: 5000,
             })
         } else {
-            users.value = data
+            users.value = [...(data || [])].map((d) => {
+                d.createdAt = new Date(d.createdAt)
+                d.updatedAt = new Date(d.updatedAt)
+                return d
+            })
             console.log(users.value)
         }
     })
@@ -41,29 +45,27 @@ function initFilters() {
     filters.value = {
         global: { value: null, matchMode: FilterMatchMode.CONTAINS },
         username: {
-            operator: FilterOperator.AND,
-            constraints: [
-                { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-            ],
+            value: null,
+            matchMode: FilterMatchMode.STARTS_WITH,
         },
         role: {
-            operator: FilterOperator.AND,
-            constraints: [{ value: null, matchMode: FilterMatchMode.EQUALS }],
+            value: null,
+            matchMode: FilterMatchMode.EQUALS,
         },
         createdAt: {
-            operator: FilterOperator.AND,
-            constraints: [{ value: null, matchMode: FilterMatchMode.DATE_IS }],
+            value: null,
+            matchMode: FilterMatchMode.DATE_IS,
         },
         updatedAt: {
-            operator: FilterOperator.AND,
-            constraints: [{ value: null, matchMode: FilterMatchMode.DATE_IS }],
+            value: null,
+            matchMode: FilterMatchMode.DATE_IS,
         },
     }
 }
 
 // Utility to format dates
-function formatDate(value: string) {
-    return new Date(value).toLocaleDateString('de-DE', {
+function formatDate(value: Date) {
+    return value.toLocaleDateString('de-DE', {
         day: '2-digit',
         month: '2-digit',
         year: 'numeric',
@@ -97,6 +99,7 @@ function formatDate(value: string) {
                     />
                     <div class="flex items-center gap-2">
                         <i class="pi pi-search" />
+                        <!-- @vue-ignore -->
                         <InputText
                             v-model="filters['global'].value"
                             placeholder="Search"
@@ -163,8 +166,9 @@ function formatDate(value: string) {
                 <template #body="{ data }">{{
                     formatDate(data.createdAt)
                 }}</template>
-                <template #filter="{ filterModel }">
+                <template #filter="{ filterModel, filterCallback }">
                     <DatePicker
+                        @date-select="filterCallback()"
                         v-model="filterModel.value"
                         date-format="dd.mm.yy"
                         placeholder="Datum auswählen"
@@ -182,8 +186,9 @@ function formatDate(value: string) {
                 <template #body="{ data }">{{
                     formatDate(data.updatedAt)
                 }}</template>
-                <template #filter="{ filterModel }">
+                <template #filter="{ filterModel, filterCallback }">
                     <DatePicker
+                        @date-select="filterCallback()"
                         v-model="filterModel.value"
                         date-format="dd.mm.yy"
                         placeholder="Datum auswählen"
