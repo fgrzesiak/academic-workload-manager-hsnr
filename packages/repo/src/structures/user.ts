@@ -7,6 +7,7 @@ export class User implements IUser {
   id!: number;
   username!: string;
   password!: string;
+  isPasswordTemporary!: boolean;
   role!: $Enums.Role;
   createdAt!: Date;
   updatedAt!: Date;

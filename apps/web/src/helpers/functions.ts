@@ -1,17 +1,19 @@
 import { PrimeVueLocaleOptions } from 'primevue/config'
 
-interface Filter {
+interface ISelectOption {
     label: string
     value: string
 }
 
 /**
- * Converts an object with string values into an array of Filter objects.
+ * Converts an object with string values into an array of SelectOption objects.
  *
- * @param obj - The object to be converted, where each key-value pair represents a filter.
- * @returns An array of Filter objects, each containing a label and value derived from the object's values.
+ * @param obj - The object to be converted, where each key-value pair represents a select option.
+ * @returns An array of SelectOption objects, each containing a label and value derived from the object's values.
  */
-export const getObjectAsFilter = (obj: { [key: string]: string }): Filter[] => {
+export const getObjectAsSelectOptions = (obj: {
+    [key: string]: string
+}): ISelectOption[] => {
     return Object.values(obj).map((value) => ({
         label: value,
         value: value,

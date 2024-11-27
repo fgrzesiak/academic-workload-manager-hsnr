@@ -7,6 +7,7 @@ import {
   Res,
   UseGuards,
 } from "@nestjs/common";
+import { LoginRequest, LoginResponse } from "@workspace/shared";
 import { Response } from "express";
 
 import { JwtAuthGuard } from "../../../common/guards/jwt-auth.guard.js";
@@ -24,11 +25,8 @@ export class AuthController {
   @Post("login")
   async login(
     @Body()
-    loginDto: {
-      username: string;
-      password: string;
-    },
-  ): Promise<{ token: string; role: string }> {
+    loginDto: LoginRequest,
+  ): Promise<LoginResponse> {
     return await this.authService.login(loginDto);
   }
 

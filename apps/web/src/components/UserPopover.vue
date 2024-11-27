@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Popover } from 'primevue'
 import { useAuthStore } from '@/stores/auth.store'
+import { useAlertStore } from '@/stores/alert.store'
 
 import { ref, VNodeRef } from 'vue'
 
@@ -12,6 +13,11 @@ const toggle = (event: MouseEvent) => {
 
 const logout = () => {
     useAuthStore().logout()
+    useAlertStore().show({
+        severity: 'success',
+        summary: 'Erfolg',
+        detail: 'Sie haben sich erfolgreich abgemeldet.',
+    })
 }
 </script>
 

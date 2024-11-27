@@ -1,6 +1,21 @@
-import { $Enums, User as IUser } from "@workspace/database";
+import {
+  $Enums,
+  Controller,
+  User as IUser,
+  Teacher,
+} from "@workspace/database";
 
 export type IUserResponse = Omit<IUser, "password">;
+
+type UserCommon = {
+  [K in keyof Teacher & keyof Controller]: Teacher[K] & Controller[K];
+};
+
+export type ICreateUserRequest = Omit<
+  IUser,
+  "id" | "createdAt" | "updatedAt" | "isPasswordTemporary"
+> &
+  Omit<UserCommon, "id" | "userId">;
 
 export const UserRole: typeof $Enums.Role = {
   TEACHER: "TEACHER",
@@ -11,6 +26,7 @@ export class User implements IUser {
   id!: number;
   username!: string;
   password!: string;
+  isPasswordTemporary!: boolean;
   role!: $Enums.Role;
   createdAt!: Date;
   updatedAt!: Date;

@@ -1,7 +1,12 @@
 import { Injectable } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { users } from "@workspace/repo";
-import { IUserResponse } from "@workspace/shared";
+import {
+  ChangePasswordResponse,
+  ICreateUserRequest,
+  IUserResponse,
+} from "@workspace/shared";
+import * as bcrypt from "bcrypt";
 
 @Injectable()
 export class UsersService {
@@ -13,5 +18,23 @@ export class UsersService {
       const { password, ...rest } = user;
       return rest;
     });
+  }
+
+  async create(user: ICreateUserRequest): Promise<IUserResponse> {
+    user.password = await bcrypt.hash(user.password, 10);
+    const { password, ...rest } = await users.create(user);
+    return rest;
+  }
+
+  async changePassword(
+    id: number,
+    password: string,
+  ): Promise<ChangePasswordResponse> {
+    const hashedPassword = await bcrypt.hash(password, 10);
+    await users.update(id, {
+      password: hashedPassword,
+      isPasswordTemporary: false,
+    });
+    return { success: true };
   }
 }

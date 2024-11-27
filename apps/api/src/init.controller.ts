@@ -27,6 +27,7 @@ export class InitControllerService implements OnModuleInit {
         {
           username,
           password: hashedPassword,
+          isPasswordTemporary: true, //TODO: change to fals
           role: "CONTROLLER",
         },
       );

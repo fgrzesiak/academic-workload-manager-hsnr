@@ -1,24 +1,21 @@
 <script setup lang="ts">
 import FloatingConfigurator from '@/components/FloatingConfigurator.vue'
-//import { useAuthStore } from '@/stores/';
 import { useToast } from 'primevue'
 import { FormSubmitEvent } from '@primevue/forms'
-import AuthService from '@/service/auth.service'
+import UserService from '@/service/user.service'
 import { ref } from 'vue'
 import { useAuthStore } from '@/stores/auth.store'
 import { useAlertStore } from '@/stores/alert.store'
 
 const toast = useToast()
-const { login, logout } = useAuthStore()
+const { logout, isPasswordTemporary } = useAuthStore()
 const { show } = useAlertStore()
 
 interface FormValues {
-    username?: string
     password?: string
 }
 
 const initialValues: FormValues = {
-    username: '',
     password: '',
 }
 
@@ -26,13 +23,9 @@ const isFetching = ref(false)
 
 const resolver = ({ values }: { values: FormValues }) => {
     const errors: {
-        username?: { message: string }[]
         password?: { message: string }[]
     } = {}
 
-    if (!values.username) {
-        errors.username = [{ message: 'Benutzername ist erforderlich.' }]
-    }
     if (!values.password) {
         errors.password = [{ message: 'Passwort ist erforderlich.' }]
     }
@@ -44,10 +37,9 @@ const resolver = ({ values }: { values: FormValues }) => {
 
 const onFormSubmit = async ({ valid, states }: FormSubmitEvent) => {
     if (valid) {
-        const username = states.username.value
         const password = states.password.value
         isFetching.value = true
-        const { data, error } = await AuthService.login({ username, password })
+        const { error } = await UserService.changePassword({ password })
         isFetching.value = false
         if (error) {
             toast.add({
@@ -56,12 +48,13 @@ const onFormSubmit = async ({ valid, states }: FormSubmitEvent) => {
                 detail: error,
                 life: 5000,
             })
-            logout()
         } else {
-            login(data)
+            logout()
             show({
+                severity: 'success',
                 summary: 'Erfolg',
-                detail: 'Anmeldung erfolgreich',
+                detail: 'Passwort erfolgreich geändert',
+                life: 5000,
             })
         }
     }
@@ -100,9 +93,13 @@ const onFormSubmit = async ({ valid, states }: FormSubmitEvent) => {
                         >
                             Deputatsverwaltung FB08
                         </div>
-                        <span class="font-medium text-muted-color"
-                            >Anmelden um fortzufahren</span
-                        >
+                        <span class="font-medium text-muted-color">
+                            {{
+                                isPasswordTemporary
+                                    ? 'Initialpasswort ändern'
+                                    : 'Passwort ändern'
+                            }}
+                        </span>
                     </div>
                     <div class="flex w-full">
                         <Toast />
@@ -116,41 +113,15 @@ const onFormSubmit = async ({ valid, states }: FormSubmitEvent) => {
                         >
                             <div class="flex flex-col gap-1">
                                 <FloatLabel variant="on">
-                                    <label
-                                        for="username"
-                                        class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
-                                        >Benutzername</label
-                                    >
-                                    <InputText
-                                        name="username"
-                                        class="w-full"
-                                        type="text"
-                                        fluid
-                                    />
-                                </FloatLabel>
-                                <!-- @vue-expect-error: https://github.com/primefaces/primevue/issues/6723 -->
-                                <Message
-                                    v-if="$form.username?.invalid"
-                                    severity="error"
-                                    size="small"
-                                    variant="simple"
-                                >
-                                    <!-- @vue-expect-error -->
-                                    {{ $form.username.error?.message }}
-                                </Message>
-                            </div>
-                            <div class="flex flex-col gap-1">
-                                <FloatLabel variant="on">
                                     <Password
                                         name="password"
                                         :toggle-mask="true"
                                         fluid
-                                        :feedback="false"
                                     />
                                     <label
                                         for="password"
                                         class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
-                                        >Passwort</label
+                                        >Neues Passwort</label
                                     >
                                 </FloatLabel>
                                 <!-- @vue-expect-error: https://github.com/primefaces/primevue/issues/6723 -->
@@ -164,29 +135,11 @@ const onFormSubmit = async ({ valid, states }: FormSubmitEvent) => {
                                     {{ $form.password.error?.message }}
                                 </Message>
                             </div>
-                            <div
-                                class="mb-8 mt-2 flex items-center justify-between gap-8"
-                            >
-                                <div class="flex items-center">
-                                    <Checkbox
-                                        id="rememberme"
-                                        binary
-                                        class="mr-2"
-                                    ></Checkbox>
-                                    <label for="rememberme"
-                                        >Angemeldet bleiben</label
-                                    >
-                                </div>
-                                <span
-                                    class="ml-2 cursor-pointer text-right font-medium text-primary no-underline"
-                                    >Passwort vergessen?</span
-                                >
-                            </div>
                             <Button
                                 :loading="isFetching"
                                 type="submit"
-                                label="Anmelden"
                                 class="w-full"
+                                label="Passwort ändern"
                             />
                         </Form>
                     </div>

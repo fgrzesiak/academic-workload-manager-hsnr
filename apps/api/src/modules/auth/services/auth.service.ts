@@ -1,6 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { User, users } from "@workspace/repo";
+import { LoginRequest, LoginResponse } from "@workspace/shared";
 import * as bcrypt from "bcrypt";
 
 @Injectable()
@@ -15,10 +16,7 @@ export class AuthService {
     return null;
   }
 
-  async login(user: {
-    username: string;
-    password: string;
-  }): Promise<{ token: string; role: string }> {
+  async login(user: LoginRequest): Promise<LoginResponse> {
     const validUser = await this.validateUser(user.username, user.password);
     if (!validUser) {
       throw new HttpException(
@@ -33,6 +31,7 @@ export class AuthService {
     return {
       token: this.jwtService.sign(payload),
       role: validUser.role,
+      isPasswordTemporary: validUser.isPasswordTemporary,
     };
   }
 }

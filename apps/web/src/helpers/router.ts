@@ -139,6 +139,11 @@ const router = createRouter({
             ],
         },
         {
+            path: '/change-password',
+            name: 'change-password',
+            component: () => import('@/views/pages/auth/ChangePassword.vue'),
+        },
+        {
             path: '/403',
             name: 'access-denied',
             component: () => import('@/views/pages/auth/Access.vue'),
@@ -152,11 +157,18 @@ const router = createRouter({
 })
 
 router.beforeEach(async (to, _from, next) => {
-    const { isAuthenticated, role, logout } = useAuthStore()
+    const { isAuthenticated, isPasswordTemporary, role, logout } =
+        useAuthStore()
     if (to.path.startsWith('/403')) {
         next()
     } else if (isAuthenticated && to.name === 'login') {
-        next({ name: role === 'CONTROLLER' ? 'c.dashboard' : 't.dashboard' })
+        if (isPasswordTemporary) {
+            next({ name: 'change-password' })
+        } else {
+            next({
+                name: role === 'CONTROLLER' ? 'c.dashboard' : 't.dashboard',
+            })
+        }
     } else if (!isAuthenticated) {
         if (to.name === 'login') {
             next()
@@ -164,7 +176,16 @@ router.beforeEach(async (to, _from, next) => {
             next({ name: 'login' })
         }
     } else {
-        if (role === 'CONTROLLER' && to.path.startsWith('/controlling')) {
+        if (isPasswordTemporary) {
+            if (!to.path.startsWith('/change-password')) {
+                next({ name: 'change-password' })
+            } else {
+                next()
+            }
+        } else if (
+            role === 'CONTROLLER' &&
+            to.path.startsWith('/controlling')
+        ) {
             next()
         } else if (role === 'TEACHER' && !to.path.startsWith('/controlling')) {
             next()
