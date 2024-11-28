@@ -63,7 +63,7 @@ const hideDialog = () => {
 }
 const saveNewUser = () => {
     newUserSubmitted.value = true
-    newUser.value.role = newUserRole.value.value
+    newUser.value.role = newUserRole.value.value as ICreateUserRequest['role']
 
     if (newUser.value.username.trim()) {
         UserService.createUser(newUser.value).then((res) => {

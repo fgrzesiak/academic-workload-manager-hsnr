@@ -6,34 +6,30 @@ import UserService from '@/service/user.service'
 import { ref } from 'vue'
 import { useAuthStore } from '@/stores/auth.store'
 import { useAlertStore } from '@/stores/alert.store'
+import { z } from 'zod'
+import { zodResolver } from '@primevue/forms/resolvers/zod'
 
 const toast = useToast()
 const { logout, isPasswordTemporary } = useAuthStore()
 const { show } = useAlertStore()
 
-interface FormValues {
-    password?: string
-}
-
-const initialValues: FormValues = {
-    password: '',
-}
-
 const isFetching = ref(false)
 
-const resolver = ({ values }: { values: FormValues }) => {
-    const errors: {
-        password?: { message: string }[]
-    } = {}
-
-    if (!values.password) {
-        errors.password = [{ message: 'Passwort ist erforderlich.' }]
-    }
-
-    return {
-        errors,
-    }
-}
+const resolver = ref(
+    zodResolver(
+        z
+            .object({
+                password: z.string().min(1, 'Passwort ist erforderlich.'),
+                confirmPassword: z
+                    .string()
+                    .min(1, 'Bitte Passwort wiederholen.'),
+            })
+            .refine((data) => data.password === data.confirmPassword, {
+                message: 'Die Passwörter stimmen nicht überein.',
+                path: ['confirmPassword'],
+            })
+    )
+)
 
 const onFormSubmit = async ({ valid, states }: FormSubmitEvent) => {
     if (valid) {
@@ -51,9 +47,8 @@ const onFormSubmit = async ({ valid, states }: FormSubmitEvent) => {
         } else {
             logout()
             show({
-                severity: 'success',
                 summary: 'Erfolg',
-                detail: 'Passwort erfolgreich geändert',
+                detail: 'Passwort erfolgreich geändert. Bitte melden Sie sich erneut an.',
                 life: 5000,
             })
         }
@@ -106,11 +101,11 @@ const onFormSubmit = async ({ valid, states }: FormSubmitEvent) => {
 
                         <Form
                             v-slot="$form"
-                            :initial-values
                             :resolver
                             class="flex w-full flex-col gap-4"
                             @submit="onFormSubmit"
                         >
+                            <!-- Password Field -->
                             <div class="flex flex-col gap-1">
                                 <FloatLabel variant="on">
                                     <Password
@@ -135,6 +130,34 @@ const onFormSubmit = async ({ valid, states }: FormSubmitEvent) => {
                                     {{ $form.password.error?.message }}
                                 </Message>
                             </div>
+
+                            <!-- Confirm Password Field -->
+                            <div class="flex flex-col gap-1">
+                                <FloatLabel variant="on">
+                                    <Password
+                                        name="confirmPassword"
+                                        :toggle-mask="true"
+                                        :feedback="false"
+                                        fluid
+                                    />
+                                    <label
+                                        for="confirmPassword"
+                                        class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
+                                        >Passwort wiederholen</label
+                                    >
+                                </FloatLabel>
+                                <!-- @vue-expect-error: https://github.com/primefaces/primevue/issues/6723 -->
+                                <Message
+                                    v-if="$form.confirmPassword?.invalid"
+                                    severity="error"
+                                    size="small"
+                                    variant="simple"
+                                >
+                                    <!-- @vue-expect-error -->
+                                    {{ $form.confirmPassword.error?.message }}
+                                </Message>
+                            </div>
+
                             <Button
                                 :loading="isFetching"
                                 type="submit"
