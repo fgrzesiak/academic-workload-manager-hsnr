@@ -8,10 +8,20 @@
     "package.json"
   ],
   "scripts": {
-    "build": "prisma generate",
-    "db:generate": "prisma generate && npm run build",
+    "build": "pnpm db:generate",
+    "db:start": "docker-compose up -d --wait",
+    "db:generate": "prisma generate",
     "db:push": "prisma db push --skip-generate",
-    "migrate": "prisma migrate dev"
+    "db:migrate": "pnpm db:start && prisma migrate dev",
+    "db:deploy": "pnpm db:start && prisma migrate deploy"
+  },
+  "scriptsComments": {
+    "build": "Baut das Projekt",
+    "db:start": "Startet den MySQL-Container und wartet, bis er bereit ist",
+    "db:generate": "Generiert die Prisma-Client-Dateien",
+    "db:push": "Überschreibt die Datenbank",
+    "db:migrate": "Führt Migrationen aus (nur für Entwicklung)",
+    "db:deploy": "Führt Migrationen aus (auch für Produktion)"
   },
   "dependencies": {
     "@prisma/client": "^5.18.0"

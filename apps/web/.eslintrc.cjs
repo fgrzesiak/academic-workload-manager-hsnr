@@ -1,23 +1,30 @@
-/* eslint-env node */
-require('@rushstack/eslint-patch/modern-module-resolution');
-
 module.exports = {
     root: true,
     env: {
-        node: true
+        // https://eslint.org/docs/rules/no-undef#nodejs
+        node: true,
+        // ignore defineProps, defineEmits, etc.
+        'vue/setup-compiler-macros': true,
     },
-    extends: ['plugin:vue/vue3-essential', 'eslint:recommended', '@vue/eslint-config-prettier'],
+    parser: 'vue-eslint-parser',
+    // https://github.com/vuejs/vue-eslint-parser#parseroptionsparser
     parserOptions: {
-        ecmaVersion: 'latest'
+        parser: '@typescript-eslint/parser',
     },
+    plugins: ['@typescript-eslint'],
+    extends: [
+        'eslint:recommended',
+        'plugin:@typescript-eslint/recommended',
+        'plugin:vue/vue3-recommended',
+        'plugin:prettier/recommended',
+    ],
     rules: {
+        // allow vue component files to be a single word eg: Index.vue
         'vue/multi-word-component-names': 'off',
-        'vue/no-reserved-component-names': 'off',
-        'vue/component-tags-order': [
-            'error',
-            {
-                order: ['script', 'template', 'style']
-            }
-        ]
-    }
-};
+        // allow unused args that start with an underscore
+        '@typescript-eslint/no-unused-vars': [
+            2,
+            { args: 'all', argsIgnorePattern: '^_' },
+        ],
+    },
+}

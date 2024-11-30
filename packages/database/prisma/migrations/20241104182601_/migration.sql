@@ -8,7 +8,7 @@
 
 */
 -- AlterTable
-ALTER TABLE `teacher` DROP COLUMN `password`,
+ALTER TABLE `Teacher` DROP COLUMN `password`,
     DROP COLUMN `username`,
     ADD COLUMN `userId` INTEGER NOT NULL;
 

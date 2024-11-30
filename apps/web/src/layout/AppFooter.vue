@@ -1,8 +1,22 @@
-<script setup></script>
+<script setup lang="ts"></script>
 
 <template>
     <div class="layout-footer">
-        SAKAI by
-        <a href="https://primevue.org" target="_blank" rel="noopener noreferrer" class="text-primary font-bold hover:underline">PrimeVue</a>
+        Deputatsverwaltung FB08 von
+        <a
+            href="/"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="font-bold text-primary hover:underline"
+            >Bjarne Christel</a
+        >
+        &
+        <a
+            href="/"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="font-bold text-primary hover:underline"
+            >Fabian Grzesiak</a
+        >
     </div>
 </template>

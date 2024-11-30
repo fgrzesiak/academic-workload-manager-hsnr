@@ -1,4 +1,4 @@
-@use "mixins";
+@use 'mixins';
 
 .layout-topbar {
     position: fixed;
@@ -14,7 +14,7 @@
     align-items: center;
 
     .layout-topbar-logo-container {
-        width: 20rem;
+        width: 30rem;
         display: flex;
         align-items: center;
     }

@@ -1,26 +1,18 @@
 import {
-  ArgumentsHost,
   Body,
-  Catch,
   Controller,
-  ExceptionFilter,
   Get,
-  HttpException,
-  HttpStatus,
-  Injectable,
   Post,
   Req,
-  Request,
   Res,
   UseGuards,
 } from "@nestjs/common";
-import { User } from "@workspace/repo";
+import { LoginRequest, LoginResponse } from "@workspace/shared";
 import { Response } from "express";
 
-import { AuthRequest } from "../../../shared/interfaces/express.js";
-import { ConfigKeys, ConfigService } from "../../config/config.service.js";
-import { JwtAuthGuard } from "../guards/jwt-auth.guard.js";
-import { LocalAuthGuard } from "../guards/local-auth.guard.js";
+import { JwtAuthGuard } from "../../../common/guards/jwt-auth.guard.js";
+import { AuthRequest } from "../../../common/interfaces/express.js";
+import { ConfigService } from "../../config/config.service.js";
 import { AuthService } from "../services/auth.service.js";
 
 @Controller("auth")
@@ -33,18 +25,9 @@ export class AuthController {
   @Post("login")
   async login(
     @Body()
-    loginDto: {
-      username: string;
-      password: string;
-    },
-  ) {
+    loginDto: LoginRequest,
+  ): Promise<LoginResponse> {
     return await this.authService.login(loginDto);
-  }
-
-  @UseGuards(LocalAuthGuard)
-  @Post("auth/logout")
-  async logout(@Request() req) {
-    //TODO: Implement logout
   }
 
   @UseGuards(JwtAuthGuard)

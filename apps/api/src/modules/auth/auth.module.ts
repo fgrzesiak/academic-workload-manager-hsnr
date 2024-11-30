@@ -1,13 +1,12 @@
 import { Module } from "@nestjs/common";
-import { JwtModule, JwtService } from "@nestjs/jwt";
+import { JwtModule } from "@nestjs/jwt";
 import { PassportModule } from "@nestjs/passport";
 
+import { JwtStrategy } from "../../common/strategies/jwt.strategy.js";
 import { ConfigModule } from "../config/config.module.js";
 import { ConfigKeys, ConfigService } from "../config/config.service.js";
 import { AuthController } from "./controllers/auth.controller.js";
 import { AuthService } from "./services/auth.service.js";
-import { JwtStrategy } from "./strategies/jwt.strategy.js";
-import { LocalStrategy } from "./strategies/local.strategy.js";
 
 //https://docs.nestjs.com/recipes/passport for authentication
 @Module({
@@ -22,7 +21,7 @@ import { LocalStrategy } from "./strategies/local.strategy.js";
       imports: [ConfigModule],
     }),
   ],
-  providers: [AuthService, JwtStrategy, LocalStrategy],
+  providers: [AuthService, JwtStrategy],
   controllers: [AuthController],
   exports: [AuthService],
 })

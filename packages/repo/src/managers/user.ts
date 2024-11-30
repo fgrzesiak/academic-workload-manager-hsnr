@@ -1,4 +1,5 @@
-import { User as IUser } from "@workspace/database";
+import { User as IUser, Role } from "@workspace/database";
+import { ICreateUserRequest } from "@workspace/shared";
 import { singleton } from "tsyringe";
 
 import { PrismaService } from "../services/index.js";
@@ -20,7 +21,7 @@ export class UserManager {
       });
 
       return new User(result);
-    } catch (err) {
+    } catch (_err) {
       return null;
     }
   }
@@ -37,7 +38,7 @@ export class UserManager {
       });
 
       return new User(result);
-    } catch (err) {
+    } catch (_err) {
       return null;
     }
   }
@@ -51,5 +52,38 @@ export class UserManager {
       data,
       where: { id },
     });
+  }
+
+  async findAll(): Promise<IUser[]> {
+    return await this.prisma.user.findMany();
+  }
+
+  async create(user: ICreateUserRequest): Promise<User> {
+    const { firstName, lastName, ...rest } = user;
+    const result = await this.prisma.user.create({
+      data: {
+        ...rest,
+        ...(Role.CONTROLLER === rest.role
+          ? {
+              Controller: {
+                create: {
+                  firstName,
+                  lastName,
+                },
+              },
+            }
+          : {
+              Teacher: {
+                create: {
+                  firstName,
+                  lastName,
+                  retirementDate: new Date(), // TODO: set a proper value
+                  totalTeachingDuty: 0, // TODO: set a proper value
+                },
+              },
+            }),
+      },
+    });
+    return new User(result);
   }
 }

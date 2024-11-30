@@ -7,6 +7,7 @@ model User {
   id          Int      @id @default(autoincrement())
   username    String   @unique
   password    String
+  isPasswordTemporary Boolean @default(true)
   role        Role
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

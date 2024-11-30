@@ -1,0 +1,13 @@
+services:
+  database:
+    image: mysql:latest
+    container_name: db-container
+    ports:
+      - "3307:3306"
+    env_file:
+      - /packages/database/.env
+    healthcheck:
+      test: mysqladmin ping -h 127.0.0.1 -P 3306 -u $$MYSQL_USER --password=$$MYSQL_PASSWORD
+      interval: 1s
+      timeout: 1s
+      retries: 30
