@@ -33,29 +33,11 @@ const updateUsers = (data: IUserResponse[]) => {
 const newUserSubmitted = ref(false)
 const newUserDialog = ref(false)
 const newUserSchema = z.object({
-    username: z
-        .string({ required_error: 'Benutzername ist erforderlich.' })
-        .trim()
-        .min(5, 'Benutzername muss mindestens 5 Zeichen lang sein.')
-        .max(30, 'Benutzername darf maximal 30 Zeichen lang sein.'),
-    password: z
-        .string({ required_error: 'Passwort ist erforderlich.' })
-        .trim()
-        .min(6, 'Passwort muss mindestens 6 Zeichen lang sein.')
-        .max(30, 'Passwort darf maximal 30 Zeichen lang sein.'),
-    firstName: z
-        .string({ required_error: 'Vorname ist erforderlich.' })
-        .trim()
-        .min(1, 'Vorname ist erforderlich.')
-        .max(30, 'Vorname darf maximal 30 Zeichen lang sein.'),
-    lastName: z
-        .string({ required_error: 'Nachname ist erforderlich.' })
-        .trim()
-        .min(1, 'Nachname ist erforderlich.')
-        .max(30, 'Nachname darf maximal 30 Zeichen lang sein.'),
-    role: z.enum(['TEACHER', 'CONTROLLER'], {
-        errorMap: () => ({ message: 'Ungültige Rolle.' }),
-    }),
+    username: z.string().trim().min(5).max(30),
+    password: z.string().trim().min(6).max(30),
+    firstName: z.string().trim().min(1).max(30),
+    lastName: z.string().trim().min(1).max(30),
+    role: z.enum(['TEACHER', 'CONTROLLER']),
 })
 const resolver = ref(zodResolver(newUserSchema))
 

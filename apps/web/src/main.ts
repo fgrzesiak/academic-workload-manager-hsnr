@@ -1,16 +1,23 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import App from './App.vue'
-import { getPrimeVueLocalized, router } from '@/helpers/index'
+import {
+    getPrimeVueLocalized,
+    router,
+    getCustomValidationErrorMap,
+} from '@/helpers/index'
 
 import Lara from '@primevue/themes/lara'
 import { definePreset } from '@primevue/themes'
 import PrimeVue from 'primevue/config'
 import ConfirmationService from 'primevue/confirmationservice'
 import ToastService from 'primevue/toastservice'
+import { z } from 'zod'
 
 import '@/assets/styles.scss'
 import '@/assets/tailwind.css'
+
+z.setErrorMap(getCustomValidationErrorMap)
 
 const preset = definePreset(Lara, {
     semantic: {

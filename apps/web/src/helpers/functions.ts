@@ -1,5 +1,6 @@
 import { FormFieldState } from '@primevue/forms'
 import { PrimeVueLocaleOptions } from 'primevue/config'
+import { ZodErrorMap, ZodIssueCode } from 'zod'
 
 interface ISelectOption {
     label: string
@@ -194,4 +195,35 @@ export const getPrimeVueLocalized = (): PrimeVueLocaleOptions => {
             rotateLeft: 'Nach links drehen',
         },
     }
+}
+
+/**
+ * Custom validation error map for Zod schema validation.
+ *
+ * This function provides custom error messages for validation issues
+ * related to string length constraints.
+ *
+ * @param issue - The validation issue encountered.
+ * @param ctx - The validation context, which includes the default error message.
+ * @returns An object containing a custom error message based on the validation issue.
+ *
+ */
+export const getCustomValidationErrorMap: ZodErrorMap = (issue, ctx) => {
+    if (issue.code === ZodIssueCode.too_small) {
+        switch (issue.type) {
+            case 'string':
+                return {
+                    message: `Mindestens ${issue.minimum} Zeichen erforderlich.`,
+                }
+        }
+    }
+    if (issue.code === ZodIssueCode.too_big) {
+        switch (issue.type) {
+            case 'string':
+                return {
+                    message: `Maximal ${issue.maximum} Zeichen erlaubt.`,
+                }
+        }
+    }
+    return { message: ctx.defaultError }
 }
