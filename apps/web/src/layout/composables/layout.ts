@@ -19,11 +19,17 @@ interface LayoutState {
     activeMenuItem: any | null
 }
 
+// Load the initial dark mode preference from localStorage
+const storedDarkTheme = localStorage.getItem('darkTheme') === 'true'
+if (storedDarkTheme) {
+    document.documentElement.classList.toggle('app-dark')
+}
+
 const layoutConfig = reactive<LayoutConfig>({
     preset: 'Lara',
     primary: 'blue',
     surface: 'slate',
-    darkTheme: false,
+    darkTheme: storedDarkTheme,
     menuMode: 'static',
 })
 
@@ -62,7 +68,6 @@ export function useLayout() {
     const toggleDarkMode = () => {
         if (!document.startViewTransition) {
             executeDarkModeToggle()
-
             return
         }
 
@@ -72,6 +77,7 @@ export function useLayout() {
     const executeDarkModeToggle = () => {
         layoutConfig.darkTheme = !layoutConfig.darkTheme
         document.documentElement.classList.toggle('app-dark')
+        localStorage.setItem('darkTheme', String(layoutConfig.darkTheme))
     }
 
     const onMenuToggle = () => {

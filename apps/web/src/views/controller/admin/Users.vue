@@ -294,7 +294,7 @@ function formatDate(value: Date) {
                 <!-- Username Field -->
                 <div class="mt-2 flex flex-col gap-1">
                     <FloatLabel variant="on">
-                        <InputText name="username" fluid />
+                        <InputText id="username" name="username" fluid />
                         <label
                             for="username"
                             class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
@@ -317,6 +317,7 @@ function formatDate(value: Date) {
                 <div class="flex flex-col gap-1">
                     <FloatLabel variant="on">
                         <Password
+                            id="password"
                             name="password"
                             fluid
                             toggle-mask
@@ -343,7 +344,7 @@ function formatDate(value: Date) {
                 <!-- First Name Field -->
                 <div class="flex flex-col gap-1">
                     <FloatLabel variant="on">
-                        <InputText name="firstName" fluid />
+                        <InputText id="firstName" name="firstName" fluid />
                         <label
                             for="firstName"
                             class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
@@ -365,7 +366,7 @@ function formatDate(value: Date) {
                 <!-- Last Name Field -->
                 <div class="flex flex-col gap-1">
                     <FloatLabel variant="on">
-                        <InputText name="lastName" fluid />
+                        <InputText id="lastName" name="lastName" fluid />
                         <label
                             for="lastName"
                             class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
@@ -388,6 +389,7 @@ function formatDate(value: Date) {
                 <div class="flex flex-col gap-1">
                     <FloatLabel variant="on">
                         <Select
+                            label-id="role-select"
                             name="role"
                             :options="roles"
                             option-label="label"
@@ -395,7 +397,7 @@ function formatDate(value: Date) {
                             fluid
                         ></Select>
                         <label
-                            for="role"
+                            for="role-select"
                             class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
                             >Rolle</label
                         >
