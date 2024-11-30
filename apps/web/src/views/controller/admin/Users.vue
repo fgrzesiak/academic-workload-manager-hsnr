@@ -5,7 +5,13 @@ import UserService from '@/service/user.service'
 import { IUserResponse, ICreateUserRequest } from '@workspace/shared'
 import { DataTableFilterMeta, useToast } from 'primevue'
 import { UserRole } from '@workspace/shared'
-import { getObjectAsSelectOptions } from '@/helpers/functions'
+import {
+    getFormStatesAsType,
+    getObjectAsSelectOptions,
+} from '@/helpers/functions'
+import { z } from 'zod'
+import { zodResolver } from '@primevue/forms/resolvers/zod'
+import { Form, FormSubmitEvent } from '@primevue/forms'
 
 const users = ref<IUserResponse[]>([])
 const filters = ref<DataTableFilterMeta>({})
@@ -13,13 +19,6 @@ const loading = ref(false)
 const toast = useToast()
 const roles = reactive(getObjectAsSelectOptions(UserRole))
 
-/**
- * Updates the `users` reactive variable with data from the server.
- * Converts the `createdAt` and `updatedAt` fields (date fields) of each user response object to JavaScript Date objects.
- *
- * @param data - Array of user objects fetched from the server.
- * @returns
- */
 const updateUsers = (data: IUserResponse[]) => {
     users.value = data.map((d) => {
         d.createdAt = new Date(d.createdAt)
@@ -28,31 +27,39 @@ const updateUsers = (data: IUserResponse[]) => {
     })
 }
 
-const createInitialPassword = () => {
-    return Math.random().toString(36).slice(-8)
-}
-
-const newUserRole = ref(roles[0])
-
-const getNewUser = (): ICreateUserRequest => {
-    return {
-        username: '',
-        role: 'TEACHER',
-        password: createInitialPassword(),
-        firstName: '',
-        lastName: '',
-    }
-}
-
 /**
- * CRUD User Operations
+ * New User Configuration
  */
-const newUser = ref<ICreateUserRequest>(getNewUser())
 const newUserSubmitted = ref(false)
 const newUserDialog = ref(false)
+const newUserSchema = z.object({
+    username: z
+        .string({ required_error: 'Benutzername ist erforderlich.' })
+        .trim()
+        .min(5, 'Benutzername muss mindestens 5 Zeichen lang sein.')
+        .max(30, 'Benutzername darf maximal 30 Zeichen lang sein.'),
+    password: z
+        .string({ required_error: 'Passwort ist erforderlich.' })
+        .trim()
+        .min(6, 'Passwort muss mindestens 6 Zeichen lang sein.')
+        .max(30, 'Passwort darf maximal 30 Zeichen lang sein.'),
+    firstName: z
+        .string({ required_error: 'Vorname ist erforderlich.' })
+        .trim()
+        .min(1, 'Vorname ist erforderlich.')
+        .max(30, 'Vorname darf maximal 30 Zeichen lang sein.'),
+    lastName: z
+        .string({ required_error: 'Nachname ist erforderlich.' })
+        .trim()
+        .min(1, 'Nachname ist erforderlich.')
+        .max(30, 'Nachname darf maximal 30 Zeichen lang sein.'),
+    role: z.enum(['TEACHER', 'CONTROLLER'], {
+        errorMap: () => ({ message: 'Ungültige Rolle.' }),
+    }),
+})
+const resolver = ref(zodResolver(newUserSchema))
 
 const openNew = () => {
-    newUser.value = getNewUser()
     newUserSubmitted.value = false
     newUserDialog.value = true
 }
@@ -61,12 +68,22 @@ const hideDialog = () => {
     newUserDialog.value = false
     newUserSubmitted.value = false
 }
-const saveNewUser = () => {
-    newUserSubmitted.value = true
-    newUser.value.role = newUserRole.value.value as ICreateUserRequest['role']
 
-    if (newUser.value.username.trim()) {
-        UserService.createUser(newUser.value).then((res) => {
+const getNewUserValues = (): z.infer<typeof newUserSchema> => {
+    return {
+        username: '',
+        password: Math.random().toString(36).slice(-8),
+        firstName: '',
+        lastName: '',
+        role: 'TEACHER',
+    } satisfies ICreateUserRequest
+}
+
+const onCreateUserFormSubmit = async ({ valid, states }: FormSubmitEvent) => {
+    if (valid) {
+        newUserSubmitted.value = true
+        const newUser = getFormStatesAsType<ICreateUserRequest>(states)
+        UserService.createUser(newUser).then((res) => {
             const { data, error } = res
             if (error) {
                 toast.add({
@@ -87,7 +104,6 @@ const saveNewUser = () => {
         })
 
         newUserDialog.value = false
-        newUser.value = getNewUser()
     }
 }
 
@@ -285,107 +301,152 @@ function formatDate(value: Date) {
             header="Neuer Nutzer - Details"
             :modal="true"
         >
-            <div class="flex flex-col gap-6">
-                <div>
-                    <label for="username" class="mb-3 block font-bold"
-                        >Username</label
+            <!-- Form inside the dialog -->
+            <Form
+                v-slot="$form"
+                :resolver
+                :initial-values="getNewUserValues()"
+                class="flex w-full flex-col gap-4"
+                @submit="onCreateUserFormSubmit"
+            >
+                <!-- Username Field -->
+                <div class="mt-2 flex flex-col gap-1">
+                    <FloatLabel variant="on">
+                        <InputText name="username" fluid />
+                        <label
+                            for="username"
+                            class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
+                            >Nutzername</label
+                        >
+                    </FloatLabel>
+                    <!-- @vue-expect-error -->
+                    <Message
+                        v-if="$form.username?.invalid"
+                        severity="error"
+                        size="small"
+                        variant="simple"
                     >
-                    <InputText
-                        id="username"
-                        v-model.trim="newUser.username"
-                        required="true"
-                        autofocus
-                        :invalid="newUserSubmitted && !newUser.username"
+                        <!-- @vue-expect-error -->
+                        {{ $form.username.error?.message }}
+                    </Message>
+                </div>
+
+                <!-- Password Field -->
+                <div class="flex flex-col gap-1">
+                    <FloatLabel variant="on">
+                        <Password
+                            name="password"
+                            fluid
+                            toggle-mask
+                            :feedback="false"
+                        />
+                        <label
+                            for="password"
+                            class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
+                            >Initiales Passwort</label
+                        >
+                    </FloatLabel>
+                    <!-- @vue-expect-error -->
+                    <Message
+                        v-if="$form.password?.invalid"
+                        severity="error"
+                        size="small"
+                        variant="simple"
+                    >
+                        <!-- @vue-expect-error -->
+                        {{ $form.password.error?.message }}
+                    </Message>
+                </div>
+
+                <!-- First Name Field -->
+                <div class="flex flex-col gap-1">
+                    <FloatLabel variant="on">
+                        <InputText name="firstName" fluid />
+                        <label
+                            for="firstName"
+                            class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
+                            >Vorname</label
+                        >
+                    </FloatLabel>
+                    <!-- @vue-expect-error -->
+                    <Message
+                        v-if="$form.firstName?.invalid"
+                        severity="error"
+                        size="small"
+                        variant="simple"
+                    >
+                        <!-- @vue-expect-error -->
+                        {{ $form.firstName.error?.message }}
+                    </Message>
+                </div>
+
+                <!-- Last Name Field -->
+                <div class="flex flex-col gap-1">
+                    <FloatLabel variant="on">
+                        <InputText name="lastName" fluid />
+                        <label
+                            for="lastName"
+                            class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
+                            >Nachname</label
+                        >
+                    </FloatLabel>
+                    <!-- @vue-expect-error -->
+                    <Message
+                        v-if="$form.lastName?.invalid"
+                        severity="error"
+                        size="small"
+                        variant="simple"
+                    >
+                        <!-- @vue-expect-error -->
+                        {{ $form.lastName.error?.message }}
+                    </Message>
+                </div>
+
+                <!-- Role Selection -->
+                <div class="flex flex-col gap-1">
+                    <FloatLabel variant="on">
+                        <Select
+                            name="role"
+                            :options="roles"
+                            option-label="label"
+                            option-value="value"
+                            fluid
+                        ></Select>
+                        <label
+                            for="role"
+                            class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
+                            >Rolle</label
+                        >
+                    </FloatLabel>
+                    <!-- @vue-expect-error -->
+                    <Message
+                        v-if="$form.role?.invalid"
+                        severity="error"
+                        size="small"
+                        variant="simple"
+                    >
+                        <!-- @vue-expect-error -->
+                        {{ $form.role.error?.message }}
+                    </Message>
+                </div>
+
+                <!-- Footer -->
+                <div class="flex flex-row">
+                    <Button
+                        label="Abbrechen"
+                        icon="pi pi-times"
+                        text
+                        @click="hideDialog"
                         fluid
                     />
-                    <small
-                        v-if="newUserSubmitted && !newUser.username"
-                        class="text-red-500"
-                        >Benutzername ist erforderlich.</small
-                    >
-                </div>
-
-                <div>
-                    <label for="password" class="mb-3 block font-bold"
-                        >Passwort</label
-                    >
-                    <Password
-                        id="password"
-                        v-model.trim="newUser.password"
-                        required
-                        :invalid="newUserSubmitted && !newUser.password"
-                        fluid
-                        toggle-mask
-                        :feedback="false"
-                    />
-                    <small
-                        v-if="newUserSubmitted && !newUser.password"
-                        class="text-red-500"
-                        >Passwort ist erforderlich.</small
-                    >
-                </div>
-
-                <div>
-                    <label for="firstName" class="mb-3 block font-bold"
-                        >Vorname</label
-                    >
-                    <InputText
-                        id="firstName"
-                        v-model.trim="newUser.firstName"
-                        required="true"
-                        :invalid="newUserSubmitted && !newUser.firstName"
+                    <Button
+                        type="submit"
+                        icon="pi pi-check"
+                        label="Erstellen"
                         fluid
                     />
-                    <small
-                        v-if="newUserSubmitted && !newUser.firstName"
-                        class="text-red-500"
-                        >Vorname ist erforderlich.</small
-                    >
                 </div>
-
-                <div>
-                    <label for="lastName" class="mb-3 block font-bold"
-                        >Nachname</label
-                    >
-                    <InputText
-                        id="lastName"
-                        v-model.trim="newUser.lastName"
-                        required="true"
-                        :invalid="newUserSubmitted && !newUser.lastName"
-                        fluid
-                    />
-                    <small
-                        v-if="newUserSubmitted && !newUser.lastName"
-                        class="text-red-500"
-                        >Nachname ist erforderlich.</small
-                    >
-                </div>
-
-                <div>
-                    <label for="role" class="mb-3 block font-bold">Rolle</label>
-                    <Select
-                        id="role"
-                        v-model="newUserRole"
-                        :options="roles"
-                        optionLabel="label"
-                        fluid
-                    ></Select>
-                </div>
-            </div>
-
-            <template #footer>
-                <Button
-                    label="Abbrechen"
-                    icon="pi pi-times"
-                    text
-                    @click="hideDialog"
-                />
-                <Button
-                    label="Erstellen"
-                    icon="pi pi-check"
-                    @click="saveNewUser"
-                />
-            </template>
+            </Form>
         </Dialog>
     </div>
 </template>

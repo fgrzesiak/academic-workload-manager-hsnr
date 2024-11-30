@@ -1,3 +1,4 @@
+import { FormFieldState } from '@primevue/forms'
 import { PrimeVueLocaleOptions } from 'primevue/config'
 
 interface ISelectOption {
@@ -20,6 +21,20 @@ export const getObjectAsSelectOptions = (obj: {
     }))
 }
 
+/**
+ * Converts a record of form field states to a specified type.
+ *
+ * @template T - The type to which the form state should be converted.
+ * @param {Record<string, FormFieldState>} states - A record of form field states.
+ * @returns {T} - The form state converted to the specified type.
+ */
+export const getFormStatesAsType = <T>(
+    states: Record<string, FormFieldState>
+): T => {
+    return Object.fromEntries(
+        Object.entries(states).map(([key, state]) => [key, state.value])
+    ) as T
+}
 /**
  * Returns the localized configuration options for PrimeVue components in German.
  *
