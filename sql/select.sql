@@ -1,6 +1,28 @@
 SET @user = "mafre001";
 SET @semester = 8;
 
+-- amount of supervision per type and per person
+SELECT 
+    t.FirstName AS Vorname,
+    t.LastName AS Nachname,
+    SUM(CASE WHEN ts.TypeOfSupervision = 'Bachelorarbeit' THEN 1 ELSE 0 END) AS Anz_BA,
+    SUM(CASE WHEN ts.TypeOfSupervision = 'Masterarbeit' THEN 1 ELSE 0 END) AS Anz_MA,
+    SUM(CASE WHEN ts.TypeOfSupervision = 'Praxissemester' THEN 1 ELSE 0 END) AS Anz_Prxs,
+    SUM(CASE WHEN ts.TypeOfSupervision = 'Zweitprüfer' THEN 1 ELSE 0 END) AS Anz_Zwtprf
+FROM 
+    Supervision s
+JOIN 
+    Teacher t ON s.Teacher = t.Username
+JOIN 
+    TypeOfSupervision ts ON s.TypeOfSupervisionID = ts.TypeOfSupervisionID
+WHERE 
+    s.SemesterID = @semester
+GROUP BY 
+    t.FirstName, t.LastName
+ORDER BY 
+    t.LastName, t.FirstName;
+
+/*
 -- Deputat for specific prof for specific semester
 SELECT Semester.Name AS Semester, DeputationPerSemester.DeputationIndividual AS Deputat  
 FROM DeputationPerSemester 
@@ -75,4 +97,4 @@ SELECT (SELECT SUM(ts.CalculationFactor)
      FROM DeputationPerSemester d
      AND d.Teacher = @user
      AND d.SemesterID = @semester) AS SumSaldo;
-
+*/
