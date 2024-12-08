@@ -26,6 +26,26 @@ FROM Lecture
 WHERE Lecture.Teacher = @user
 AND Lecture.SemesterID = @semester;
 
+-- sum of reduction -> (5/6)
+SELECT SUM(ScopeOfReduction) AS SumReduction
+FROM Reduction
+WHERE Reduction.Teacher = @user
+AND Reduction.SemesterID = @semester;
+
+SELECT SUM(r.ScopeOfReduction) AS Sum_Funktion_Forschung
+FROM Reduction r
+JOIN TypeOfReduction tr ON r.TypeOfReductionID = tr.TypeOfReductionID
+WHERE tr.TypeOfReduction IN ('Funktion/Aufgabe', 'Forschung/Entwicklung')
+AND Reduction.Teacher = @user
+AND Reduction.SemesterID = @semester;
+
+SELECT SUM(r.ScopeOfReduction) AS Sum_Gesetzlich
+FROM Reduction r
+JOIN TypeOfReduction tr ON r.TypeOfReductionID = tr.TypeOfReductionID
+WHERE tr.TypeOfReduction = 'Gesetzlich'
+AND Reduction.Teacher = @user
+AND Reduction.SemesterID = @semester;
+
 /*
 -- Deputat for specific prof for specific semester
 SELECT Semester.Name AS Semester, DeputationPerSemester.DeputationIndividual AS Deputat  
