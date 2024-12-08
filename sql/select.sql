@@ -54,7 +54,20 @@ ON d.SemesterID = s.SemesterID
 AND d.Teacher = @user
 AND d.SemesterID = @semester;
 
+-- overview of (missing) teacher 
+SELECT t.FirstName AS Vorname, t.LastName AS Nachname
+FROM Teacher t
+JOIN DeputationPerSemester dps ON t.Username = dps.Teacher
+WHERE dps.SemesterID = @semester;
 
+SELECT t.FirstName AS Vorname, t.LastName AS Nachname
+FROM Teacher t
+WHERE NOT EXISTS (
+     SELECT 1
+     FROM DeputationPerSemester dps
+     WHERE dps.Teacher = t.Username 
+     AND dps.SemesterID = @semester -- Ersetze 8 durch die gewünschte SemesterID
+);
 
 /*
 -- overview of group of supervision
