@@ -36,25 +36,27 @@ SELECT SUM(r.ScopeOfReduction) AS Sum_Funktion_Forschung
 FROM Reduction r
 JOIN TypeOfReduction tr ON r.TypeOfReductionID = tr.TypeOfReductionID
 WHERE tr.TypeOfReduction IN ('Funktion/Aufgabe', 'Forschung/Entwicklung')
-AND Reduction.Teacher = @user
-AND Reduction.SemesterID = @semester;
+AND r.Teacher = @user
+AND r.SemesterID = @semester;
 
 SELECT SUM(r.ScopeOfReduction) AS Sum_Gesetzlich
 FROM Reduction r
 JOIN TypeOfReduction tr ON r.TypeOfReductionID = tr.TypeOfReductionID
 WHERE tr.TypeOfReduction = 'Gesetzlich'
-AND Reduction.Teacher = @user
-AND Reduction.SemesterID = @semester;
+AND r.Teacher = @user
+AND r.SemesterID = @semester;
+
+-- deputat for specific prof for specific semester -> (7)
+SELECT s.Name AS Semester, d.DeputationIndividual AS Deputat  
+FROM DeputationPerSemester d
+INNER JOIN Semester s
+ON d.SemesterID = s.SemesterID
+AND d.Teacher = @user
+AND d.SemesterID = @semester;
+
+
 
 /*
--- Deputat for specific prof for specific semester
-SELECT Semester.Name AS Semester, DeputationPerSemester.DeputationIndividual AS Deputat  
-FROM DeputationPerSemester 
-INNER JOIN Semester 
-ON DeputationPerSemester.SemesterID = Semester.SemesterID
-AND DeputationPerSemester.Teacher = @user
-AND DeputationPerSemester.SemesterID = @semester;
-
 -- overview of group of supervision
 SELECT TypeOfSupervision.TypeOfSupervision, SUM(TypeOfSupervision.CalculationFactor) AS CalculationFactor
 FROM Supervision
@@ -63,19 +65,6 @@ ON Supervision.TypeOfSupervisionID = TypeOfSupervision.TypeOfSupervisionID
 AND Supervision.Teacher = @user
 AND Supervision.SemesterID = @semester
 GROUP BY TypeOfSupervision.TypeOfSupervision;
-
-SELECT SUM(TypeOfSupervision.CalculationFactor) AS SumSupervision
-FROM Supervision
-INNER JOIN TypeOfSupervision 
-ON Supervision.TypeOfSupervisionID = TypeOfSupervision.TypeOfSupervisionID
-AND Supervision.Teacher = @user
-AND Supervision.SemesterID = @semester;
-
--- overview of reduction
-SELECT SUM(ScopeOfReduction) AS SumReduction
-FROM Reduction
-WHERE Reduction.Teacher = @user
-AND Reduction.SemesterID = @semester;
 
 -- overview auf saldo
 SELECT 
