@@ -56,6 +56,29 @@ ON d.SemesterID = s.SemesterID
 AND d.Teacher = @user
 AND d.SemesterID = @semester;
 
+-- sum of saldo for one semester -> (7)
+SELECT 
+    (SELECT SUM(ts.CalculationFactor)
+     FROM Supervision s
+     INNER JOIN TypeOfSupervision ts
+     ON s.TypeOfSupervisionID = ts.TypeOfSupervisionID
+     WHERE s.Teacher = @user
+     AND s.SemesterID = @semester) +
+    (SELECT SUM(l.HoursSWS)
+     FROM Lecture l
+     WHERE l.Teacher = @user
+     AND l.SemesterID = @semester) +
+    (SELECT SUM(r.ScopeOfReduction)
+     FROM Reduction r
+     WHERE r.Teacher = @user
+     AND r.SemesterID = @semester) -
+    (SELECT SUM(d.DeputationIndividual)
+     FROM DeputationPerSemester d
+     WHERE d.Teacher = @user
+     AND d.SemesterID = @semester) AS SumSaldo;
+
+-- [TO-DO] in backed: check for 1,5 value of indv. deputat
+
 -- overview of (missing) teacher -> (12/13)
 SELECT t.FirstName AS Vorname, t.LastName AS Nachname
 FROM Teacher t
@@ -77,7 +100,7 @@ FROM Lecture l
 WHERE l.Teacher = @user
 AND l.IsArranged = TRUE;
 
--- Saldo for range of 6 semesters
+-- Saldo for range of 6 semesters -> (17)
 SELECT 
     (SELECT SUM(ts.CalculationFactor)
      FROM Supervision s
