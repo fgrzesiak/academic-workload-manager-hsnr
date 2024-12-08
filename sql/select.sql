@@ -1,5 +1,6 @@
 SET @user = "mafre001";
 SET @semester = 8;
+SET @range = 6;
 
 -- amount of supervision per type and per person -> (1)
 SELECT t.FirstName AS Vorname, t.LastName AS Nachname, SUM(CASE WHEN ts.TypeOfSupervision = 'Bachelorarbeit' THEN 1 ELSE 0 END) AS Anz_BA, SUM(CASE WHEN ts.TypeOfSupervision = 'Masterarbeit' THEN 1 ELSE 0 END) AS Anz_MA, SUM(CASE WHEN ts.TypeOfSupervision = 'Zweitprüfer' THEN 1 ELSE 0 END) AS Anz_Zwtprf, SUM(CASE WHEN ts.TypeOfSupervision = 'Praxissemester' THEN 1 ELSE 0 END) AS Anz_Prxs
@@ -76,6 +77,29 @@ FROM Lecture l
 WHERE l.Teacher = @user
 AND l.IsArranged = TRUE;
 
+-- Saldo for range of 6 semesters
+SELECT 
+    (SELECT SUM(ts.CalculationFactor)
+     FROM Supervision s
+     INNER JOIN TypeOfSupervision ts
+     ON s.TypeOfSupervisionID = ts.TypeOfSupervisionID
+     WHERE s.Teacher = @user
+     AND s.SemesterID BETWEEN (@semester - @range + 1) AND @semester) +
+    (SELECT SUM(l.HoursSWS)
+     FROM Lecture l
+     WHERE l.Teacher = @user
+     AND l.SemesterID BETWEEN (@semester - @range + 1) AND @semester) +
+    (SELECT SUM(r.ScopeOfReduction)
+     FROM Reduction r
+     WHERE r.Teacher = @user
+     AND r.SemesterID BETWEEN (@semester - @range + 1) AND @semester) -
+    (SELECT SUM(d.DeputationIndividual)
+     FROM DeputationPerSemester d
+     WHERE d.Teacher = @user
+     AND d.SemesterID BETWEEN (@semester - @range + 1) AND @semester) AS SumSaldo;
+
+
+
 /*
 -- overview of group of supervision
 SELECT TypeOfSupervision.TypeOfSupervision, SUM(TypeOfSupervision.CalculationFactor) AS CalculationFactor
@@ -85,43 +109,4 @@ ON Supervision.TypeOfSupervisionID = TypeOfSupervision.TypeOfSupervisionID
 AND Supervision.Teacher = @user
 AND Supervision.SemesterID = @semester
 GROUP BY TypeOfSupervision.TypeOfSupervision;
-
--- overview auf saldo
-SELECT 
-    (SELECT SUM(ts.CalculationFactor)
-     FROM Supervision s
-     INNER JOIN TypeOfSupervision ts
-     ON s.TypeOfSupervisionID = ts.TypeOfSupervisionID
-     WHERE s.Teacher = @user
-     AND s.SemesterID = @semester) AS SumSupervision,
-     
-    (SELECT SUM(l.HoursSWS)
-     FROM Lecture l
-     WHERE l.Teacher = @user
-     AND l.SemesterID = @semester) AS SumLecture,
-    
-    (SELECT SUM(r.ScopeOfReduction)
-     FROM Reduction r
-     WHERE r.Teacher = @user
-     AND r.SemesterID = @semester) AS SumReduction,
-
--- overview of saldo
-SELECT (SELECT SUM(ts.CalculationFactor)
-     FROM Supervision s
-     INNER JOIN TypeOfSupervision ts
-     ON s.TypeOfSupervisionID = ts.TypeOfSupervisionID
-     WHERE s.Teacher = @user
-     AND s.SemesterID = @semester) +
-    (SELECT SUM(l.HoursSWS)
-     FROM Lecture l
-     WHERE l.Teacher = @user
-     AND l.SemesterID = @semester) +
-    (SELECT SUM(r.ScopeOfReduction)
-     FROM Reduction r
-     WHERE r.Teacher = @user
-     AND r.SemesterID = @semester) -
-    (SELECT d.DeputationIndividual   
-     FROM DeputationPerSemester d
-     AND d.Teacher = @user
-     AND d.SemesterID = @semester) AS SumSaldo;
 */
