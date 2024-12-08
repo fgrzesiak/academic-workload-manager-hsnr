@@ -21,7 +21,7 @@ INSERT INTO TypeOfSupervision (TypeOfSupervision, CalculationFactor, ValidFrom) 
 INSERT INTO TypeOfReduction (TypeOfReduction) VALUES 
 ('Funktion/Aufgabe'), 
 ('Forschung/Entwicklung'), 
-('Behinderung');
+('Gesetzlich');
 
 INSERT INTO TypeOfLecture (TypeName) VALUES 
 ('Plattform'), 
