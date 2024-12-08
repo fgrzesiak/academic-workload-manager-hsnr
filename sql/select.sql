@@ -11,20 +11,21 @@ GROUP BY t.FirstName, t.LastName
 ORDER BY t.LastName, t.FirstName;
 
 -- sum of supervision for one semester -> (2/3)
-SELECT SUM(TypeOfSupervision.CalculationFactor) AS SumSupervision
-FROM Supervision
-INNER JOIN TypeOfSupervision 
-ON Supervision.TypeOfSupervisionID = TypeOfSupervision.TypeOfSupervisionID
-AND Supervision.Teacher = @user
-AND Supervision.SemesterID = @semester;
+SELECT SUM(tos.CalculationFactor) AS SumSupervision
+FROM Supervision s
+INNER JOIN TypeOfSupervision tos
+ON s.TypeOfSupervisionID = tos.TypeOfSupervisionID
+AND s.Teacher = @user
+AND s.SemesterID = @semester;
 
 -- [TO-DO] in backend: check for > 3, if > 3 show amount of overhead
 
 -- sum of lectures per semester -> (4)
 SELECT SUM(HoursSWS) AS SumLecture
-FROM Lecture
-WHERE Lecture.Teacher = @user
-AND Lecture.SemesterID = @semester;
+FROM Lecture l
+WHERE l.Teacher = @user
+AND l.SemesterID = @semester
+AND l.IsArranged = FALSE;
 
 -- sum of reduction -> (5/6)
 SELECT SUM(ScopeOfReduction) AS SumReduction
@@ -54,7 +55,7 @@ ON d.SemesterID = s.SemesterID
 AND d.Teacher = @user
 AND d.SemesterID = @semester;
 
--- overview of (missing) teacher 
+-- overview of (missing) teacher -> (12/13)
 SELECT t.FirstName AS Vorname, t.LastName AS Nachname
 FROM Teacher t
 JOIN DeputationPerSemester dps ON t.Username = dps.Teacher
@@ -68,6 +69,12 @@ WHERE NOT EXISTS (
      WHERE dps.Teacher = t.Username 
      AND dps.SemesterID = @semester -- Ersetze 8 durch die gewünschte SemesterID
 );
+
+-- sum of angeodnete mehrarbeit -> (14)
+SELECT SUM(HoursSWS) AS SumLecture
+FROM Lecture l
+WHERE l.Teacher = @user
+AND l.IsArranged = TRUE;
 
 /*
 -- overview of group of supervision
