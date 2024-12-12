@@ -15,8 +15,15 @@ const createUser = (data: ICreateUserRequest) =>
 const changePassword = (data: ChangePasswordRequest) =>
     apiClient.post<ChangePasswordResponse>('/users/change-password', data)
 
-const updateUser = (data: IUpdateUserRequest) => apiClient.put<IUserResponse>('/users', data)
+const updateUser = (data: IUpdateUserRequest) =>
+    apiClient.put<IUserResponse>('/users', data)
 
-const userService = { getProfile, getUsers, createUser, updateUser, changePassword }
+const userService = {
+    getProfile,
+    getUsers,
+    createUser,
+    updateUser,
+    changePassword,
+}
 
 export default userService

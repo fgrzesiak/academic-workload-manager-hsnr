@@ -5,7 +5,8 @@ import {
   Teacher,
 } from "@workspace/database";
 
-type OptionalExceptFor<T, TRequired extends keyof T> = Partial<T> & Pick<T, TRequired>
+type OptionalExceptFor<T, TRequired extends keyof T> = Partial<T> &
+  Pick<T, TRequired>;
 
 export type IUserResponse = Omit<IUser, "password">;
 
@@ -13,9 +14,16 @@ type UserCommon = {
   [K in keyof Teacher & keyof Controller]: Teacher[K] & Controller[K];
 };
 
-export type ICreateUserRequest = Pick<IUser, "password" | "role" | "username" | "isPasswordTemporary"> & Pick<UserCommon, "firstName" | "lastName">; 
+export type ICreateUserRequest = Pick<
+  IUser,
+  "password" | "role" | "username" | "isPasswordTemporary"
+> &
+  Pick<UserCommon, "firstName" | "lastName">;
 
-export type IUpdateUserRequest = OptionalExceptFor<Pick<IUser, "id" | "username" | "password" | "isPasswordTemporary">, "id">;
+export type IUpdateUserRequest = OptionalExceptFor<
+  Pick<IUser, "id" | "username" | "password" | "isPasswordTemporary">,
+  "id"
+>;
 
 export const UserRole: typeof $Enums.Role = {
   TEACHER: "TEACHER",

@@ -28,7 +28,7 @@ export class UsersService {
   }
 
   async update(user: IUpdateUserRequest): Promise<IUserResponse> {
-    const { password, ...rest} = await users.update(user);
+    const { password, ...rest } = await users.update(user);
     return rest;
   }
 
@@ -37,7 +37,11 @@ export class UsersService {
     password: string,
   ): Promise<ChangePasswordResponse> {
     const hashedPassword = await bcrypt.hash(password, 10);
-    await users.update({ id, password: hashedPassword, isPasswordTemporary: false});
+    await users.update({
+      id,
+      password: hashedPassword,
+      isPasswordTemporary: false,
+    });
     return { success: true };
   }
 }

@@ -3,7 +3,11 @@ import { FilterMatchMode } from '@primevue/core/api'
 import { onBeforeMount, reactive, ref } from 'vue'
 import UserService from '@/service/user.service'
 import { IUserResponse, ICreateUserRequest } from '@workspace/shared'
-import { DataTableFilterMeta, DataTableRowEditSaveEvent, useToast } from 'primevue'
+import {
+    DataTableFilterMeta,
+    DataTableRowEditSaveEvent,
+    useToast,
+} from 'primevue'
 import { UserRole } from '@workspace/shared'
 import {
     getFormStatesAsType,
@@ -15,7 +19,7 @@ import { Form, FormSubmitEvent } from '@primevue/forms'
 
 const users = ref<IUserResponse[]>([])
 const filters = ref<DataTableFilterMeta>({})
-const editingRows = ref([]);
+const editingRows = ref([])
 const loading = ref(false)
 const toast = useToast()
 const roles = reactive(getObjectAsSelectOptions(UserRole))
@@ -92,7 +96,7 @@ const onCreateUserFormSubmit = async ({ valid, states }: FormSubmitEvent) => {
     }
 }
 
-const onRowEditSave = ({ newData }: DataTableRowEditSaveEvent) => { 
+const onRowEditSave = ({ newData }: DataTableRowEditSaveEvent) => {
     UserService.updateUser(newData).then((res) => {
         const { data, error } = res
         if (error) {
@@ -113,7 +117,7 @@ const onRowEditSave = ({ newData }: DataTableRowEditSaveEvent) => {
             })
         }
     })
-};
+}
 
 onBeforeMount(() => {
     loading.value = true
@@ -197,9 +201,11 @@ function formatDate(value: Date) {
                 table: { style: 'min-width: 50rem' },
                 column: {
                     bodycell: ({ state }: any) => ({
-                        style:  state['d_editing']&&'padding-top: 0.75rem; padding-bottom: 0.75rem'
-                    })
-                }
+                        style:
+                            state['d_editing'] &&
+                            'padding-top: 0.75rem; padding-bottom: 0.75rem',
+                    }),
+                },
             }"
         >
             <!-- Table Header -->
@@ -315,7 +321,11 @@ function formatDate(value: Date) {
                     />
                 </template>
             </Column>
-            <Column :rowEditor="true" style="width: 10%; min-width: 8rem" bodyStyle="text-align:center"></Column>
+            <Column
+                :rowEditor="true"
+                style="width: 10%; min-width: 8rem"
+                bodyStyle="text-align:center"
+            ></Column>
         </DataTable>
 
         <Dialog

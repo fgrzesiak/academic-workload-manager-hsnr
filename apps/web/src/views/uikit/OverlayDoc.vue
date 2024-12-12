@@ -252,26 +252,26 @@ function confirm(event) {
                 <Button
                     icon="pi pi-arrow-right"
                     style="margin-right: 0.25em"
-                    @click="visibleLeft = true"
+                    @click="(visibleLeft = true)"
                 />
                 <Button
                     icon="pi pi-arrow-left"
                     style="margin-right: 0.25em"
-                    @click="visibleRight = true"
+                    @click="(visibleRight = true)"
                 />
                 <Button
                     icon="pi pi-arrow-down"
                     style="margin-right: 0.25em"
-                    @click="visibleTop = true"
+                    @click="(visibleTop = true)"
                 />
                 <Button
                     icon="pi pi-arrow-up"
                     style="margin-right: 0.25em"
-                    @click="visibleBottom = true"
+                    @click="(visibleBottom = true)"
                 />
                 <Button
                     icon="pi pi-external-link"
-                    @click="visibleFull = true"
+                    @click="(visibleFull = true)"
                 />
             </div>
 

@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Post, Put, Req, UseGuards } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Put,
+  Req,
+  UseGuards,
+} from "@nestjs/common";
 import {
   ChangePasswordRequest,
   ChangePasswordResponse,
