@@ -143,7 +143,7 @@ function formatDate(value: Date) {
 
 <template>
     <div class="card">
-        <div class="mb-4 text-xl font-semibold">Nutzerverwaltung</div>
+        <h1 class="mb-4 text-xl font-semibold">Nutzerverwaltung</h1>
         <Toolbar class="mb-6">
             <template #start>
                 <Button
