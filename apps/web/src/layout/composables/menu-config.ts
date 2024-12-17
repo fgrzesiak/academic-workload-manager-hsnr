@@ -2,17 +2,17 @@ import { MenuItem } from '../AppMenuItem.vue'
 
 export const CONTROLLER_MENU: MenuItem[] = [
     {
-        label: 'Startseite',
+        label: 'Start',
         items: [
             {
-                label: 'Übersicht',
-                icon: 'pi pi-fw pi-home',
+                label: 'Daten übertragen',
+                icon: 'pi pi-fw pi-upload',
                 to: '/controlling',
             },
         ],
     },
     {
-        label: 'Daten bearbeiten',
+        label: 'Datenverwaltung',
         items: [
             {
                 label: 'Lehrveranstaltungen',
