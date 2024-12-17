@@ -111,8 +111,8 @@ export default defineComponent({
                     <Button
                         type="submit"
                         label="Abschicken"
+                        class="p-button-success"
                         icon="pi pi-send"
-                        class="mr-2"
                     />
                 </div>
             </div>
@@ -149,14 +149,14 @@ export default defineComponent({
                     <Button
                         label="Entfernen"
                         icon="pi pi-trash"
-                        class="mr-2"
+                        class="p-button-danger"
                         @click="removeCourse(index)"
                     />
                 </div>
                 <Button
                     label="Weitere Eingabe hinzufügen"
                     icon="pi pi-plus"
-                    class="mr-2"
+                    class="p-button-primary"
                     @click="addCourse"
                 />
             </div>
@@ -191,14 +191,14 @@ export default defineComponent({
                     <Button
                         label="Entfernen"
                         icon="pi pi-trash"
-                        class="mr-2"
+                        class="p-button-danger"
                         @click="removeMentoring(index)"
                     />
                 </div>
                 <Button
                     label="Weitere Eingabe hinzufügen"
                     icon="pi pi-plus"
-                    class="mr-2"
+                    class="p-button-primary"
                     @click="addMentoring"
                 />
             </div>
@@ -267,14 +267,14 @@ export default defineComponent({
                     <Button
                         label="Entfernen"
                         icon="pi pi-trash"
-                        class="mr-2"
+                        class="p-button-danger"
                         @click="removeReduction(index)"
                     />
                 </div>
                 <Button
                     label="Weitere Eingabe hinzufügen"
                     icon="pi pi-plus"
-                    class="mr-2"
+                    class="p-button-primary"
                     @click="addReduction"
                 />
             </div>
