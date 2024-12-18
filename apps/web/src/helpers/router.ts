@@ -16,12 +16,24 @@ const router = createRouter({
             children: [
                 {
                     path: '',
-                    name: 'c.dashboard',
-                    component: () => import('@/views/controller/Dashboard.vue'),
+                    name: 'c.data-import',
+                    component: () => import('@/views/controller/DataImport.vue'),
                 },
                 {
                     path: 'edit-data',
                     children: [
+                        {
+                            path: 'global-data',
+                            name: 'c.global-data',
+                            component: () =>
+                                import(
+                                    '@/views/controller/edit-data/GlobalData.vue'
+                                ),
+                            meta: {
+                                label: 'Global Data',
+                                icon: 'pi pi-fw pi-globe',
+                            },
+                        },
                         {
                             path: 'courses',
                             name: 'c.courses',
@@ -63,6 +75,18 @@ const router = createRouter({
                 {
                     path: 'evaluation',
                     children: [
+                        {
+                            path: 'export',
+                            name: 'c.export',
+                            component: () =>
+                                import(
+                                    '@/views/controller/evaluation/Export.vue'
+                                ),
+                            meta: {
+                                label: 'Export',
+                                icon: 'pi pi-fw pi-download',
+                            },
+                        },
                         {
                             path: 'overview',
                             name: 'c.overview',

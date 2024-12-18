@@ -15,6 +15,11 @@ export const CONTROLLER_MENU: MenuItem[] = [
         label: 'Datenverwaltung',
         items: [
             {
+                label: 'Stammdaten',
+                icon: 'pi pi-fw pi-globe',
+                to: '/controlling/edit-data/global-data',
+            },
+            {
                 label: 'Lehrveranstaltungen',
                 icon: 'pi pi-fw pi-calendar',
                 to: '/controlling/edit-data/courses',
@@ -32,8 +37,13 @@ export const CONTROLLER_MENU: MenuItem[] = [
         ],
     },
     {
-        label: 'Auswertung',
+        label: 'Datenauswertung',
         items: [
+            {
+                label: 'Daten exportieren',
+                icon: 'pi pi-fw pi-download',
+                to: '/controlling/evaluation/export',
+            },
             {
                 label: 'Übersicht',
                 icon: 'pi pi-fw pi-chart-bar',
@@ -47,7 +57,7 @@ export const CONTROLLER_MENU: MenuItem[] = [
         ],
     },
     {
-        label: 'Verwaltung',
+        label: 'Nutzerverwaltung',
         items: [
             {
                 label: 'Nutzer',
