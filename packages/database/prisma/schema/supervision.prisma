@@ -3,7 +3,10 @@ model Supervision {
   studentId         Int
   semesterPeriod    SemesterPeriod @relation(fields: [semesterPeriodId], references: [id])
   semesterPeriodId  Int
-  supervisionType   SupervisionType
+  sueprvisionType   SupervisionType @relation(fields: [supervisionTypeId], references: [typeOfSupervisionId])
+  supervisionTypeId Int
   teacher           Teacher @relation(fields: [teacherId], references: [id])
   teacherId         Int
+  comment           Comment @relation(fields: [commentId], references: [commentId])
+  commentId         Int
 }
