@@ -1,6 +1,7 @@
 model Comment {
   commentId       Int     @id @default(autoincrement())
   commentContent  String
+  commentDate     DateTime @default(now())
   userId          Int
   user            User     @relation(fields: [userId], references: [id])
   supervision     Supervision[]
