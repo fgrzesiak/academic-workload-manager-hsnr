@@ -1,0 +1,5 @@
+model DiscountType {
+  discountTypeId   Int    @id @default(autoincrement())
+  discountType     String
+  Discount         Discount[]
+}

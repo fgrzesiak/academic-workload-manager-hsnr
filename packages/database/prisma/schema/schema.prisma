@@ -11,18 +11,16 @@ datasource db {
 }
 
 // DiscountType enum for "Ermäßigungsart"
-enum DiscountType {
-  FUNCTION
-  TASK
-  RESEARCH
-  DEVELOPMENT
-  DISABILITY
-}
+// enum DiscountType {
+//   FUNCTION_TASK
+//   RESEARCH_DEVELOPMENT
+//   DISABILITY
+// }
 
 // SupervisionType enum for "Betreuungsart"
-enum SupervisionType {
-  BACHELOR_THESIS
-  MASTER_THESIS
-  SECOND_EXAMINER
-  INTERNSHIP_SEMESTER
-}
+// enum SupervisionType {
+//   BACHELOR_THESIS
+//   MASTER_THESIS
+//   SECOND_EXAMINER
+//   INTERNSHIP_SEMESTER
+// }

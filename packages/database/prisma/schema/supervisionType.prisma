@@ -1,0 +1,8 @@
+model SupervisionType {
+  typeOfSupervisionId Int     @id @default(autoincrement())
+  typeOfSupervision   String
+  calculationFactor   Float
+  semesterPeriod      SemesterPeriod @relation(fields: [validFrom], references: [id])
+  validFrom           Int
+  supervision         Supervision[]
+}
