@@ -1,8 +1,17 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Put,
+  Req,
+  UseGuards,
+} from "@nestjs/common";
 import {
   ChangePasswordRequest,
   ChangePasswordResponse,
   ICreateUserRequest,
+  IUpdateUserRequest,
   IUserResponse,
 } from "@workspace/shared";
 
@@ -26,6 +35,12 @@ export class UsersController {
   @Auth(Role.CONTROLLER)
   async createUser(@Body() user: ICreateUserRequest): Promise<IUserResponse> {
     return await this.usersService.create(user);
+  }
+
+  @Put("/")
+  @Auth(Role.CONTROLLER)
+  async updateUser(@Body() user: IUpdateUserRequest): Promise<IUserResponse> {
+    return await this.usersService.update(user);
   }
 
   @Post("change-password")

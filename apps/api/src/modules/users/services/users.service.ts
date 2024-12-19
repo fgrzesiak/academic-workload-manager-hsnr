@@ -4,6 +4,7 @@ import { users } from "@workspace/repo";
 import {
   ChangePasswordResponse,
   ICreateUserRequest,
+  IUpdateUserRequest,
   IUserResponse,
 } from "@workspace/shared";
 import * as bcrypt from "bcrypt";
@@ -26,12 +27,18 @@ export class UsersService {
     return rest;
   }
 
+  async update(user: IUpdateUserRequest): Promise<IUserResponse> {
+    const { password, ...rest } = await users.update(user);
+    return rest;
+  }
+
   async changePassword(
     id: number,
     password: string,
   ): Promise<ChangePasswordResponse> {
     const hashedPassword = await bcrypt.hash(password, 10);
-    await users.update(id, {
+    await users.update({
+      id,
       password: hashedPassword,
       isPasswordTemporary: false,
     });

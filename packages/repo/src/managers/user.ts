@@ -1,5 +1,5 @@
 import { User as IUser, Role } from "@workspace/database";
-import { ICreateUserRequest } from "@workspace/shared";
+import { ICreateUserRequest, IUpdateUserRequest } from "@workspace/shared";
 import { singleton } from "tsyringe";
 
 import { PrismaService } from "../services/index.js";
@@ -44,14 +44,13 @@ export class UserManager {
   }
 
   // Update user details; for Teacher/Controller-specific fields, handle separately in their services if necessary
-  async update(
-    id: number,
-    data: Partial<Omit<IUser, "id" | "createdAt" | "updatedAt">>,
-  ): Promise<void> {
-    await this.prisma.user.update({
-      data,
+  async update(user: IUpdateUserRequest): Promise<User> {
+    const { id } = user;
+    const result = await this.prisma.user.update({
+      data: user,
       where: { id },
     });
+    return new User(result);
   }
 
   async findAll(): Promise<IUser[]> {

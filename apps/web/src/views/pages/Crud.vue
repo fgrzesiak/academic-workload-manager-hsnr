@@ -473,7 +473,7 @@ function getStatusLabel(status) {
                     label="No"
                     icon="pi pi-times"
                     text
-                    @click="deleteProductDialog = false"
+                    @click="(deleteProductDialog = false)"
                 />
                 <Button label="Yes" icon="pi pi-check" @click="deleteProduct" />
             </template>
@@ -497,7 +497,7 @@ function getStatusLabel(status) {
                     label="No"
                     icon="pi pi-times"
                     text
-                    @click="deleteProductsDialog = false"
+                    @click="(deleteProductsDialog = false)"
                 />
                 <Button
                     label="Yes"

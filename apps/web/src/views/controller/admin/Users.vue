@@ -3,7 +3,11 @@ import { FilterMatchMode } from '@primevue/core/api'
 import { onBeforeMount, reactive, ref } from 'vue'
 import UserService from '@/service/user.service'
 import { IUserResponse, ICreateUserRequest } from '@workspace/shared'
-import { DataTableFilterMeta, useToast } from 'primevue'
+import {
+    DataTableFilterMeta,
+    DataTableRowEditSaveEvent,
+    useToast,
+} from 'primevue'
 import { UserRole } from '@workspace/shared'
 import {
     getFormStatesAsType,
@@ -15,6 +19,7 @@ import { Form, FormSubmitEvent } from '@primevue/forms'
 
 const users = ref<IUserResponse[]>([])
 const filters = ref<DataTableFilterMeta>({})
+const editingRows = ref([])
 const loading = ref(false)
 const toast = useToast()
 const roles = reactive(getObjectAsSelectOptions(UserRole))
@@ -35,6 +40,7 @@ const newUserDialog = ref(false)
 const newUserSchema = z.object({
     username: z.string().trim().min(5).max(30),
     password: z.string().trim().min(6).max(30),
+    isPasswordTemporary: z.boolean(),
     firstName: z.string().trim().min(1).max(30),
     lastName: z.string().trim().min(1).max(30),
     role: z.enum(['TEACHER', 'CONTROLLER']),
@@ -58,6 +64,7 @@ const getNewUserValues = (): z.infer<typeof newUserSchema> => {
         firstName: '',
         lastName: '',
         role: 'TEACHER',
+        isPasswordTemporary: true,
     } satisfies ICreateUserRequest
 }
 
@@ -87,6 +94,29 @@ const onCreateUserFormSubmit = async ({ valid, states }: FormSubmitEvent) => {
 
         newUserDialog.value = false
     }
+}
+
+const onRowEditSave = ({ newData }: DataTableRowEditSaveEvent) => {
+    UserService.updateUser(newData).then((res) => {
+        const { data, error } = res
+        if (error) {
+            toast.add({
+                severity: 'error',
+                summary: 'Fehler',
+                detail: error,
+                life: 5000,
+            })
+        } else {
+            data
+            updateUsers(users.value.map((u) => (u.id === data.id ? data : u)))
+            toast.add({
+                severity: 'success',
+                summary: 'Erfolgreich',
+                detail: 'Nutzer aktualisiert',
+                life: 3000,
+            })
+        }
+    })
 }
 
 onBeforeMount(() => {
@@ -164,6 +194,19 @@ function formatDate(value: Date) {
             :loading="loading"
             v-model:filters="filters"
             :global-filter-fields="['username', 'role']"
+            v-model:editing-rows="editingRows"
+            editMode="row"
+            @row-edit-save="onRowEditSave"
+            :pt="{
+                table: { style: 'min-width: 50rem' },
+                column: {
+                    bodycell: ({ state }: any) => ({
+                        style:
+                            state['d_editing'] &&
+                            'padding-top: 0.75rem; padding-bottom: 0.75rem',
+                    }),
+                },
+            }"
         >
             <!-- Table Header -->
             <template #header>
@@ -201,6 +244,9 @@ function formatDate(value: Date) {
                 style="min-width: 12rem"
             >
                 <template #body="{ data }">{{ data.username }}</template>
+                <template #editor="{ data, field }">
+                    <InputText v-model="data[field]" fluid />
+                </template>
                 <template #filter="{ filterModel, filterCallback }">
                     <InputText
                         @input="filterCallback()"
@@ -275,6 +321,11 @@ function formatDate(value: Date) {
                     />
                 </template>
             </Column>
+            <Column
+                :rowEditor="true"
+                style="width: 10%; min-width: 8rem"
+                bodyStyle="text-align:center"
+            ></Column>
         </DataTable>
 
         <Dialog
