@@ -119,7 +119,7 @@ export default defineComponent({
 
             <div class="card courses">
                 <h2 class="mb-4 text-xl font-semibold">Lehrveranstaltungen</h2>
-                <div v-for="(course, index) in courses" :key="index" class="course-entry flex gap-4 mb-4">
+                <div v-for="(course, index) in courses" :key="index" class="course-entry flex items-center gap-4 mb-4">
                     <FloatLabel variant="on">
                         <InputText
                             label-id="name-course"
@@ -142,16 +142,17 @@ export default defineComponent({
                             >Umfang (SWS)</label
                         >
                     </FloatLabel>
-                    <label
-                        for="course.ordered"
-                        class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
-                        >Angeordnet?</label
-                    >
-                    <Checkbox 
-                        v-model="course.ordered"
-                        label-id="course.ordered"
-                        placeholder="Angeordnet"
-                    />
+                    <div class="flex items-center mr-4">
+                        <label for="course.ordered" class="mr-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
+                            >Angeordnet?</label
+                        >
+                        <Checkbox
+                            id="course.ordered"
+                            v-model="course.ordered"
+                            name="option"
+                            value="True"
+                        />
+                    </div>
                     <Button
                         label="Entfernen"
                         icon="pi pi-trash"
@@ -192,7 +193,7 @@ export default defineComponent({
                         <label
                             for="mentor-matriculationNumber"
                             class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
-                            >Zugehörige Matrikelnummer</label
+                            >Matrikelnummer</label
                         >
                     </FloatLabel>
                     <Button
@@ -235,7 +236,7 @@ export default defineComponent({
                         <label
                             for="reduction-details"
                             class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
-                            >Beschreibung der Ermäßigung</label
+                            >Beschreibung</label
                         >
                     </FloatLabel>
                     <FloatLabel variant="on">
