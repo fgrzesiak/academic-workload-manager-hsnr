@@ -57,6 +57,24 @@ export default defineComponent({
       reductions.value.splice(index, 1);
     };
 
+    const display = ref(false);
+
+    const openDialog = () => {
+        display.value = true;
+    };
+
+    const closeDialog = () => {
+        const formData = {
+            individualDeputat: individualDeputat.value,
+            courses: courses.value,
+            mentoring: mentoring.value,
+            reductions: reductions.value,
+        };
+        console.log('Form Data:', formData);
+
+        display.value = false;
+    };
+
     const submitForm = () => {
       const formData = {
         individualDeputat: individualDeputat.value,
@@ -80,6 +98,9 @@ export default defineComponent({
       removeMentoring,
       addReduction,
       removeReduction,
+      openDialog,
+      closeDialog,
+      display,
       submitForm,
     };
   },
