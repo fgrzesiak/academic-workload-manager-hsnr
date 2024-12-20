@@ -109,11 +109,34 @@ export default defineComponent({
                         >
                     </FloatLabel>
                     <Button
-                        type="submit"
                         label="Abschicken"
                         class="p-button-success"
                         icon="pi pi-send"
+                        @click="openDialog"
                     />
+                    <Dialog
+                        v-model:visible="display"
+                        header="Dialog"
+                        :breakpoints="{ '960px': '75vw' }"
+                        :style="{ width: '30vw' }"
+                        :modal="true"
+                    >
+                        <p class="m-0 leading-normal">
+                            Bitte überprüfen Sie ihre EIngaben sorgfältig! Sind sie sicher, dass alle Angaben korrekt sind? 
+                        </p>
+                        <p class="m-0 leading-normal">
+                            Falls alles korrekt ist, klicken Sie auf "Abschicken", um fortzufahren. Andernfalls, korrigieren Sie bitte Ihre Eingaben vor dem Absenden.
+                        </p>
+                        <template #footer>
+                            <Button
+                            type="submit"
+                            label="Abschicken"
+                            class="p-button-success"
+                            icon="pi pi-send"
+                            @click="closeDialog"
+                            />
+                        </template>
+                    </Dialog>
                 </div>
             </div>
 
