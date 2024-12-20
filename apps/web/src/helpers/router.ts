@@ -190,7 +190,7 @@ router.beforeEach(async (to, _from, next) => {
             next({ name: 'change-password' })
         } else {
             next({
-                name: role === 'CONTROLLER' ? 'c.dashboard' : 't.dashboard',
+                name: role === 'CONTROLLER' ? 'c.data-import' : 't.dashboard',
             })
         }
     } else if (!isAuthenticated) {
@@ -214,7 +214,7 @@ router.beforeEach(async (to, _from, next) => {
         } else if (role === 'TEACHER' && !to.path.startsWith('/controlling')) {
             next()
         } else if (role === 'CONTROLLER') {
-            next({ name: 'c.dashboard' })
+            next({ name: 'c.data-import' })
         } else if (role === 'TEACHER') {
             next({ name: 't.dashboard' })
         } else {
