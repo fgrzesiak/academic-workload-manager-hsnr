@@ -13,7 +13,7 @@ export default defineComponent({
     ]);
 
     const mentoring = ref([
-      { type: '', matriculationNumber: null },
+      { type: '', matriculationNumber: '' },
     ]);
 
     const reductions = ref([
@@ -42,7 +42,7 @@ export default defineComponent({
     };
 
     const addMentoring = () => {
-      mentoring.value.push({ type: '', matriculationNumber: null });
+      mentoring.value.push({ type: '', matriculationNumber: '' });
     };
 
     const removeMentoring = (index: number) => {
@@ -137,7 +137,7 @@ export default defineComponent({
                     />
                     <Dialog
                         v-model:visible="display"
-                        header="Dialog"
+                        header="Deputat melden"
                         :breakpoints="{ '960px': '75vw' }"
                         :style="{ width: '30vw' }"
                         :modal="true"
@@ -146,7 +146,7 @@ export default defineComponent({
                             Bitte überprüfen Sie ihre EIngaben sorgfältig! Sind sie sicher, dass alle Angaben korrekt sind? 
                         </p>
                         <p class="m-0 leading-normal">
-                            Falls alles korrekt ist, klicken Sie auf "Abschicken", um fortzufahren. Andernfalls, korrigieren Sie bitte Ihre Eingaben vor dem Absenden.
+                            Falls alles korrekt ist, klicken Sie auf "Abschicken", um fortzufahren. Andernfalls, korrigieren Sie bitte Ihre Eingaben vor dem Abschicken.
                         </p>
                         <template #footer>
                             <Button
@@ -162,7 +162,19 @@ export default defineComponent({
             </div>
 
             <div class="card courses">
-                <h2 class="mb-4 text-xl font-semibold">Lehrveranstaltungen</h2>
+                <div class="flex mb-4 gap-4 items-center">
+                    <h2 class="text-xl font-semibold">Lehrveranstaltungen</h2>
+                    <Button
+                        icon="pi pi-info-circle"
+                        severity="info"
+                        type="button"
+                        v-tooltip="'*Lehrveranstaltungen, die nicht in jeder Woche der Vorlesungszeit stattfinden, sind in SWS umzurechnen (Gesamtstunden geteilt durch 15)'"
+                        raised
+                        rounded
+                        outlined
+                    />
+                </div>
+                <!-- <p class="mb-4 text-xs">*Lehrveranstaltungen, die nicht in jeder Woche der Vorlesungszeit stattfinden, sind in SWS umzurechnen (Gesamtstunden geteilt durch 15)</p> -->
                 <div v-for="(course, index) in courses" :key="index" class="course-entry flex items-center gap-4 mb-4">
                     <FloatLabel variant="on">
                         <InputText
@@ -183,7 +195,7 @@ export default defineComponent({
                         <label
                             for="sws-course"
                             class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
-                            >Umfang (SWS)</label
+                            >Umfang (SWS)*</label
                         >
                     </FloatLabel>
                     <div class="flex items-center mr-4">
@@ -205,7 +217,7 @@ export default defineComponent({
                     />
                 </div>
                 <Button
-                    label="Weitere Eingabe hinzufügen"
+                    label="Lehrveranstaltung hinzufügen"
                     icon="pi pi-plus"
                     class="p-button-primary"
                     @click="addCourse"
@@ -213,7 +225,18 @@ export default defineComponent({
             </div>
 
             <div class="card mentoring">
-                <h2 class="mb-4 text-xl font-semibold">Betreuungen</h2>
+                <div class="flex mb-4 gap-4 items-center">
+                    <h2 class="text-xl font-semibold">Betreuungen</h2>
+                    <Button
+                        icon="pi pi-info-circle"
+                        severity="info"
+                        type="button"
+                        v-tooltip="'gemäß §4 Abs. 5 LVV max. 3 SWS anrechenbar'"
+                        raised
+                        rounded
+                        outlined
+                    />
+                </div>
                 <div v-for="(mentor, index) in mentoring" :key="index" class="course-entry flex flex-wrap gap-4 mb-4">
                     <FloatLabel variant="on">
                         <Select
@@ -230,9 +253,10 @@ export default defineComponent({
                         >
                     </FloatLabel>
                     <FloatLabel variant="on">
-                        <InputNumber
+                        <InputText
                             label-id="mentor-matriculationNumber"
                             v-model="mentor.matriculationNumber"
+                            v-tooltip="'Matrikelnummer des betreuten Studenten'"
                         />
                         <label
                             for="mentor-matriculationNumber"
@@ -248,7 +272,7 @@ export default defineComponent({
                     />
                 </div>
                 <Button
-                    label="Weitere Eingabe hinzufügen"
+                    label="Betreuung hinzufügen"
                     icon="pi pi-plus"
                     class="p-button-primary"
                     @click="addMentoring"
@@ -276,6 +300,7 @@ export default defineComponent({
                         <InputText
                             label-id="reduction-details"
                             v-model="reduction.details"
+                            v-tooltip="'Kurze Beschreibung der Ermäßigung'"
                         />
                         <label
                             for="reduction-details"
@@ -325,7 +350,7 @@ export default defineComponent({
                     />
                 </div>
                 <Button
-                    label="Weitere Eingabe hinzufügen"
+                    label="Ermäßigung hinzufügen"
                     icon="pi pi-plus"
                     class="p-button-primary"
                     @click="addReduction"
