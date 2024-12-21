@@ -9,15 +9,15 @@ export default defineComponent({
     const individualDeputat = ref<number | null>(null);
 
     const courses = ref([
-      { name: '', sws: null, ordered: false },
+      { name: '', sws: null, ordered: false, comment: '', },
     ]);
 
     const mentoring = ref([
-      { type: '', matriculationNumber: '' },
+      { type: '', matriculationNumber: '', comment: '', },
     ]);
 
     const reductions = ref([
-      { type: '', details: '', approvedBy: '', approvedOn: new Date(), sws: null },
+      { type: '', details: '', approvedBy: '', approvedOn: new Date(), sws: null, comment: '', },
     ]);
 
     const mentoringTypes = [
@@ -58,6 +58,9 @@ export default defineComponent({
     };
 
     const display = ref(false);
+    const courseCommentOverlay = ref(false);
+    const mentorCommentOverlay = ref(false);
+    const reductionCommentOverlay = ref(false);
 
     const openDialog = () => {
         display.value = true;
@@ -101,6 +104,9 @@ export default defineComponent({
       openDialog,
       closeDialog,
       display,
+      courseCommentOverlay,
+      mentorCommentOverlay,
+      reductionCommentOverlay,
       submitForm,
     };
   },
@@ -215,6 +221,32 @@ export default defineComponent({
                         class="p-button-danger"
                         @click="removeCourse(index)"
                     />
+                    <Button
+                        label="Kommentar hinzufügen"
+                        icon="pi pi-comments"
+                        class="p-button-secondary"
+                        @click="(courseCommentOverlay = true)"
+                    />
+                    <Drawer
+                        v-model:visible="courseCommentOverlay"
+                        header="Kommentar zur Lehrveranstaltung"
+                        position="right"
+                    >
+                        <div class="flex flex-wrap flex-col gap-4">
+                            <Textarea 
+                                v-model="course.comment"
+                                id="comment" 
+                                rows="8" 
+                            />
+                            <Button
+                                label="Speichern"
+                                class="p-button-success"
+                                icon="pi pi-save"
+                                @click=""
+                            />
+                        </div>
+                    </Drawer>
+                    <!--TO-DO: Kommentar speichern -->
                 </div>
                 <Button
                     label="Lehrveranstaltung hinzufügen"
@@ -270,6 +302,31 @@ export default defineComponent({
                         class="p-button-danger"
                         @click="removeMentoring(index)"
                     />
+                    <Button
+                        label="Kommentar hinzufügen"
+                        icon="pi pi-comments"
+                        class="p-button-secondary"
+                        @click="(mentorCommentOverlay = true)"
+                    />
+                    <Drawer
+                        v-model:visible="mentorCommentOverlay"
+                        header="Kommentar zur Betreuung"
+                        position="right"
+                    >
+                        <div class="flex flex-wrap flex-col gap-4">
+                            <Textarea 
+                                v-model="mentor.comment"
+                                id="comment" 
+                                rows="8" 
+                            />
+                            <Button
+                                label="Speichern"
+                                class="p-button-success"
+                                icon="pi pi-save"
+                                @click=""
+                            />
+                        </div>
+                    </Drawer>
                 </div>
                 <Button
                     label="Betreuung hinzufügen"
@@ -348,6 +405,31 @@ export default defineComponent({
                         class="p-button-danger"
                         @click="removeReduction(index)"
                     />
+                    <Button
+                        label="Kommentar hinzufügen"
+                        icon="pi pi-comments"
+                        class="p-button-secondary"
+                        @click="(reductionCommentOverlay = true)"
+                    />
+                    <Drawer
+                        v-model:visible="reductionCommentOverlay"
+                        header="Kommentar zur Ermäßigung"
+                        position="right"
+                    >
+                        <div class="flex flex-wrap flex-col gap-4">
+                            <Textarea 
+                                v-model="reduction.comment"
+                                id="comment" 
+                                rows="8" 
+                            />
+                            <Button
+                                label="Speichern"
+                                class="p-button-success"
+                                icon="pi pi-save"
+                                @click=""
+                            />
+                        </div>
+                    </Drawer>
                 </div>
                 <Button
                     label="Ermäßigung hinzufügen"
