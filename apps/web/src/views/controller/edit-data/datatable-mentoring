@@ -1,0 +1,135 @@
+<DataTable
+            :value="mentorings"
+            :paginator="true"
+            :rows="5"
+            data-key="id"
+            :row-hover="true"
+            filter-display="row"
+            :loading="loading"
+            v-model:filters="filtersMentoring"
+            :global-filter-fields="['name']"
+            v-model:editing-rows="editingRowsMentoring"
+            editMode="row"
+            @row-edit-save="onRowEditSaveMentoring"
+            :pt="{
+                table: { style: 'min-width: 50rem' },
+                column: {
+                    bodycell: ({ state }: any) => ({
+                        style:
+                            state['d_editing'] &&
+                            'padding-top: 0.75rem; padding-bottom: 0.75rem',
+                    }),
+                },
+            }"
+        >
+            <!-- Empty Table State -->
+            <template #empty>Keine Betreuungsarten gefunden.</template>
+
+            <!-- ID Column -->
+            <Column field="id" header="ID" style="min-width: 6rem" sortable>
+                <template #body="{ data }">{{ data.id }}</template>
+            </Column>
+
+            <!-- Mentoring-Name Column -->
+            <Column
+                field="name"
+                header="Name der Betreuungsart"
+                style="min-width: 12rem"
+            >
+                <template #body="{ data }">{{ data.name }}</template>
+                <template #editor="{ data, field }">
+                    <InputText v-model="data[field]" fluid />
+                </template>
+                <template #filter="{ filterModel, filterCallback }">
+                    <InputText
+                        @input="filterCallback()"
+                        v-model="filterModel.value"
+                        type="text"
+                        placeholder="Betreuungsart suchen"
+                    />
+                </template>
+            </Column>
+
+            <!-- Multifactor Column -->
+            <Column
+                field="factor"
+                header="Multiplikationsfaktor"
+                style="min-width: 10rem"
+            >
+                <template #body="{ data }">{{ data.factor }}</template>
+            </Column>
+            <Column
+                :rowEditor="true"
+                style="width: 10%; min-width: 8rem"
+                bodyStyle="text-align:center"
+            ></Column>
+
+            <!-- Multifactor Column -->
+            <Column
+                field="valid"
+                header="Gültig seit"
+                style="min-width: 10rem"
+            >
+                <template #body="{ data }">{{ data.valid }}</template>
+            </Column>
+            <Column
+                :rowEditor="true"
+                style="width: 10%; min-width: 8rem"
+                bodyStyle="text-align:center"
+            ></Column>
+        </DataTable>
+
+        <Dialog
+            v-model:visible="newMentoringDialog"
+            :style="{ width: '450px' }"
+            header="Neue Betreuungsart anlegen"
+            :modal="true"
+        >
+            <!-- Form inside the dialog -->
+            <Form
+                v-slot="$form"
+                :resolverMentoring
+                :initial-values="getNewMentoringValues()"
+                class="flex w-full flex-col gap-4"
+                @submit="onCreateMentoringFormSubmit"
+            >
+                <!-- Semester-Name Field -->
+                <div class="mt-2 flex flex-col gap-1">
+                    <FloatLabel variant="on">
+                        <InputText id="name" name="name" fluid />
+                        <label
+                            for="name"
+                            class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
+                            >Name der Betreuungsart</label
+                        >
+                    </FloatLabel>
+                    <!-- @vue-expect-error -->
+                    <Message
+                        v-if="$form.name?.invalid"
+                        severity="error"
+                        size="small"
+                        variant="simple"
+                    >
+                        <!-- @vue-expect-error -->
+                        {{ $form.name.error?.message }}
+                    </Message>
+                </div>
+
+                <!-- Footer -->
+                <div class="flex flex-row">
+                    <Button
+                        label="Abbrechen"
+                        icon="pi pi-times"
+                        text
+                        @click="hideMentoringDialog"
+                        fluid
+                    />
+                    <Button
+                        type="submit"
+                        icon="pi pi-check"
+                        label="Erstellen"
+                        fluid
+                    />
+                </div>
+            </Form>
+        </Dialog>
