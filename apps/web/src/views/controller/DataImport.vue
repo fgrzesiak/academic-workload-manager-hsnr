@@ -34,7 +34,7 @@ export default defineComponent({
     ];
 
     const addCourse = () => {
-      courses.value.push({ name: '', sws: null, ordered: false });
+      courses.value.push({ name: '', sws: null, ordered: false, comment: '', });
     };
 
     const removeCourse = (index: number) => {
@@ -42,7 +42,7 @@ export default defineComponent({
     };
 
     const addMentoring = () => {
-      mentoring.value.push({ type: '', matriculationNumber: '' });
+      mentoring.value.push({ type: '', matriculationNumber: '', comment: '', });
     };
 
     const removeMentoring = (index: number) => {
@@ -50,7 +50,7 @@ export default defineComponent({
     };
 
     const addReduction = () => {
-      reductions.value.push({ type: '', details: '', approvedBy: '', approvedOn: new Date(), sws: null });
+      reductions.value.push({ type: '', details: '', approvedBy: '', approvedOn: new Date(), sws: null, comment: '', });
     };
 
     const removeReduction = (index: number) => {
