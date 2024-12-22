@@ -6,9 +6,10 @@ import { ConfigModule } from "./modules/config/config.module.js";
 import { UsersModule } from "./modules/users/users.module.js";
 import { SemesterModule } from "./modules/semester/semester.module.js";
 import { SupervisionTypeModule } from "./modules/supervision/supervisionType.module.js";
+import { DiscountTypeModule } from "./modules/discount/discountType.module.js";
 
 @Module({
-  imports: [AuthModule, ConfigModule, UsersModule, SemesterModule, SupervisionTypeModule],
+  imports: [AuthModule, ConfigModule, UsersModule, SemesterModule, SupervisionTypeModule, DiscountTypeModule],
   providers: [InitControllerService],
 })
 export class AppModule {}

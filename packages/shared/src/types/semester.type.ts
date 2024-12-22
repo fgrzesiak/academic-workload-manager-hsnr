@@ -3,7 +3,7 @@ import { SemesterPeriod as ISemesterPeriod } from "@workspace/database";
 type OptionalExceptFor<T, TRequired extends keyof T> = Partial<T> &
   Pick<T, TRequired>;
 
-export type ISemesterResponse = Omit<ISemesterPeriod, "active">;
+export type ISemesterResponse = Pick<ISemesterPeriod, "id" | "name" | "active">;
 
 export type ICreateSemesterRequest = Pick<
   ISemesterPeriod,
@@ -30,9 +30,6 @@ export class SemesterPeriod implements ISemesterPeriod {
   }
 
   static fromJSON(data: ISemesterResponse) {
-    return new SemesterPeriod({
-      ...data,
-      active: true,
-    });
+    return new SemesterPeriod({...data});
   }
 }

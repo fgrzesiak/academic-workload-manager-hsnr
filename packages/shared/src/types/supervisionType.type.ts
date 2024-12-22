@@ -3,7 +3,7 @@ import { SupervisionType as ISupervisionType } from "@workspace/database";
 type OptionalExceptFor<T, TRequired extends keyof T> = Partial<T> &
   Pick<T, TRequired>;
 
-export type ISupervisionTypeResponse = Omit<ISupervisionType, "validFrom">;
+export type ISupervisionTypeResponse = Pick<ISupervisionType, "typeOfSupervisionId" | "typeOfSupervision" | "calculationFactor" | "validFrom">;
 
 export type ICreateSupervisionTypeRequest = Pick<
   ISupervisionType,
@@ -31,9 +31,6 @@ export class SupervisionType implements ISupervisionType {
   }
 
   static fromJSON(data: ISupervisionTypeResponse) {
-    return new SupervisionType({
-      ...data,
-      validFrom: 0
-    });
+    return new SupervisionType(data);
   }
 }
