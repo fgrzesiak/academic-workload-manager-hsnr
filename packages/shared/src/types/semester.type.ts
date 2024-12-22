@@ -25,7 +25,7 @@ export class SemesterPeriod implements ISemesterPeriod {
   }
 
   toJSON() {
-    const { active, ...rest } = this.data as ISemesterPeriod;
+    const { ...rest } = this.data as ISemesterPeriod;
     return rest;
   }
 

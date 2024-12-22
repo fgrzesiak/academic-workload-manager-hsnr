@@ -14,18 +14,18 @@ export class SemesterService {
   async findAll(): Promise<ISemesterResponse[]> {
     return (await semesters.findAll()).map((semester) => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { active, ...rest } = semester;
+      const { ...rest } = semester;
       return rest;
     });
   }
 
   async create(semester: ICreateSemesterRequest): Promise<ISemesterResponse> {
-    const { active, ...rest } = await semesters.create(semester);
+    const { ...rest } = await semesters.create(semester);
     return rest;
   }
 
   async update(semester: IUpdateSemesterRequest): Promise<ISemesterResponse> {
-    const { active, ...rest } = await semesters.update(semester);
+    const { ...rest } = await semesters.update(semester);
     return rest;
   }
 }

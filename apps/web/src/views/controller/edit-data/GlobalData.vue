@@ -21,18 +21,10 @@ const loading = ref(false)
 const toast = useToast()
 // const roles = reactive(getObjectAsSelectOptions(UserRole))
 
-// const updateUsers = (data: ISemesterResponse[]) => {
-//     users.value = data.map((d) => {
-//         d.createdAt = new Date(d.createdAt)
-//         d.updatedAt = new Date(d.updatedAt)
-//         return d
-//     })
-// }
-
 /**
  * New Semester Configuration
  */
- const semesters = ref<ISemesterResponse[]>([])
+const semesters = ref<ISemesterResponse[]>([])
 const filtersSemester = ref<DataTableFilterMeta>({})
 const editingRowsSemester = ref([])
 const newSemesterSubmitted = ref(false)
@@ -41,6 +33,13 @@ const newSemesterSchema = z.object({
     name: z.string().trim().min(4).max(30),
     active: z.boolean(),
 })
+
+const updateSemester = (data: ISemesterResponse[]) => {
+    semesters.value = data.map((d) => {
+        return d
+    })
+}
+
 const resolverSemester = ref(zodResolver(newSemesterSchema))
 
 const openNewSemester = () => {
@@ -64,6 +63,7 @@ const onCreateSemesterFormSubmit = async ({ valid, states }: FormSubmitEvent) =>
     if (valid) {
         newSemesterSubmitted.value = true
         const newSemester = getFormStatesAsType<ICreateSemesterRequest>(states)
+        newSemester.active = true
         SemesterService.createSemester(newSemester).then((res) => {
             const { data, error } = res
             if (error) {
@@ -74,7 +74,7 @@ const onCreateSemesterFormSubmit = async ({ valid, states }: FormSubmitEvent) =>
                     life: 5000,
                 })
             } else {
-                // updateSemester([...semesters.value, data])
+                updateSemester([...semesters.value, data])
                 toast.add({
                     severity: 'success',
                     summary: 'Erfolgreich',
@@ -100,7 +100,7 @@ const onRowEditSaveSemester = ({ newData }: DataTableRowEditSaveEvent) => {
             })
         } else {
             data
-            // updateSemester(semesters.value.map((u) => (u.id === data.id ? data : u)))
+            updateSemester(semesters.value.map((u) => (u.id === data.id ? data : u)))
             toast.add({
                 severity: 'success',
                 summary: 'Erfolgreich',
@@ -114,7 +114,7 @@ const onRowEditSaveSemester = ({ newData }: DataTableRowEditSaveEvent) => {
 // Initialize filters
 function initSemesterFilters() {
     filtersSemester.value = {
-        // global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+        global: { value: null, matchMode: FilterMatchMode.CONTAINS },
         name: {
             value: null,
             matchMode: FilterMatchMode.STARTS_WITH,
@@ -153,7 +153,7 @@ const getNewMentoringValues = (): z.infer<typeof newMentoringSchema> => {
     return {
         name: '',
         factor: 0,
-        valid: ''
+        valid: '',
     }
     // } satisfies ICreateSemesterRequest
 }
@@ -234,20 +234,20 @@ function formatDate(value: Date) {
 
 onBeforeMount(() => {
     loading.value = true
-    // SemesterService.getSemesters().then((res) => {
-    //     loading.value = false
-    //     const { data, error } = res
-    //     if (error) {
-    //         toast.add({
-    //             severity: 'error',
-    //             summary: 'Fehler',
-    //             detail: error,
-    //             life: 5000,
-    //         })
-    //     } else {
-    //         // updateSemester(data)
-    //     }
-    // })
+    SemesterService.getSemesters().then((res) => {
+        loading.value = false
+        const { data, error } = res
+        if (error) {
+            toast.add({
+                severity: 'error',
+                summary: 'Fehler',
+                detail: error,
+                life: 5000,
+            })
+        } else {
+            updateSemester(data)
+        }
+    })
     initSemesterFilters()
     initMentoringFilters()
 })

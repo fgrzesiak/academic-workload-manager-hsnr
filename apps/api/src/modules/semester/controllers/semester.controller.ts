@@ -15,7 +15,7 @@ import { Auth } from "../../../common/decorators/auth.decorator";
 import { Role } from "../../../common/enums/role.enum";
 import { SemesterService } from "../services/semester.service";
 
-@Controller("semesters")
+@Controller("semester")
 export class SemesterController {
   constructor(private readonly semesterService: SemesterService) {}
 
