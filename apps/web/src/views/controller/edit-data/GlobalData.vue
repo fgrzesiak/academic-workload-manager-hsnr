@@ -400,6 +400,14 @@ onBeforeMount(() => {
     })
     initReductionFilters()
 })
+
+const formatNumber = (value: number) => {
+    if (value == null) return ''; // Leere Anzeige, falls der Wert null oder undefined ist
+    return value.toLocaleString('de-DE', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    });
+};
 </script>
 
 <template>
@@ -475,9 +483,9 @@ onBeforeMount(() => {
                 header="Multiplikationsfaktor"
                 style="min-width: 10rem"
             >
-                <template #body="{ data }">{{ data.calculationFactor }}</template>
+                <template #body="{ data }">{{ formatNumber(data.calculationFactor) }}</template>
                 <template #editor="{ data, field }">
-                    <InputNumber v-model="data[field]" :step="0.1" :min="0.1" fluid />
+                    <InputNumber v-model="data[field]" :step="0.05" :min="0.1" fluid />
                 </template>
             </Column>
 
