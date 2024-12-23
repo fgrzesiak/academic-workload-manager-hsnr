@@ -1,33 +1,28 @@
 <script setup lang="ts">
 import { FilterMatchMode } from '@primevue/core/api'
-import { onBeforeMount, reactive, ref } from 'vue'
+import { onBeforeMount, ref } from 'vue'
 import SemesterService from '@/service/semester.service'
 import { ISemesterResponse, ICreateSemesterRequest } from '@workspace/shared'
 import SupervisionTypeService from '@/service/supervisionType.service'
 import { ISupervisionTypeResponse, ICreateSupervisionTypeRequest } from '@workspace/shared'
-// import DiscountTypeService from '@/service/discountType.service'
-// import {  IDiscountTypeResponse, ICreateDiscountTypeRequest } from '@workspace/shared'
+import DiscountTypeService from '@/service/discountType.service'
+import {  IDiscountTypeResponse, ICreateDiscountTypeRequest } from '@workspace/shared'
 import {
     DataTableFilterMeta,
     DataTableRowEditSaveEvent,
     useToast,
 } from 'primevue'
-// import { UserRole } from '@workspace/shared'
-import {
-    getFormStatesAsType,
-    getObjectAsSelectOptions,
-} from '@/helpers/functions'
+import { getFormStatesAsType } from '@/helpers/functions'
 import { z } from 'zod'
 import { zodResolver } from '@primevue/forms/resolvers/zod'
 import { Form, FormSubmitEvent } from '@primevue/forms'
 
-const loading = ref(false)
 const toast = useToast()
-// const roles = reactive(getObjectAsSelectOptions(UserRole))
 
 /**
  * New Semester Configuration
  */
+const loadingSemester = ref(false)
 const semesters = ref<ISemesterResponse[]>([])
 const filtersSemester = ref<DataTableFilterMeta>({})
 const editingRowsSemester = ref([])
@@ -136,6 +131,7 @@ interface SelectOption {
     value: number;
 }
 
+const loadingSupervision = ref(false)
 const mentorings = ref<ISupervisionTypeResponse[]>([])
 const semesterSelect = ref<SelectOption[]>([])
 const filtersMentoring = ref<DataTableFilterMeta>({})
@@ -227,7 +223,7 @@ const onRowEditSaveMentoring = ({ newData }: DataTableRowEditSaveEvent) => {
 // Initialize filters
 function initMentoringFilters() {
     filtersMentoring.value = {
-        // global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+        //global: { value: null, matchMode: FilterMatchMode.CONTAINS },
         typeOfSupervision: {
             value: null,
             matchMode: FilterMatchMode.STARTS_WITH,
@@ -241,20 +237,109 @@ function initMentoringFilters() {
 
 
 /**
- * Global Configuration
+ * New Reduction/Discount Configuration
  */
+const loadingReduction = ref(false)
+const reductions = ref<IDiscountTypeResponse[]>([])
+const filtersReduction = ref<DataTableFilterMeta>({})
+const editingRowsReduction = ref([])
+const newReductionSubmitted = ref(false)
+const newReductionDialog = ref(false)
+const newReductionSchema = z.object({
+    discountType: z.string().trim().min(10).max(30),
+})
+const resolverReduction = ref(zodResolver(newReductionSchema))
 
-// Utility to format dates
-function formatDate(value: Date) {
-    return value.toLocaleDateString('de-DE', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
+const updateDiscountType = (data: IDiscountTypeResponse[]) => {
+    reductions.value = data.map((d) => {
+        return d
     })
 }
 
+const openNewReduction = () => {
+    newReductionSubmitted.value = false
+    newReductionDialog.value = true
+}
+
+const hideReductionDialog = () => {
+    newReductionDialog.value = false
+    newReductionSubmitted.value = false
+}
+
+const getNewReductionValues = (): z.infer<typeof newReductionSchema> => {
+    return {
+        discountType: '',
+    } satisfies ICreateDiscountTypeRequest
+}
+
+const onCreateReductionFormSubmit = async ({ valid, states }: FormSubmitEvent) => {
+    if (valid) {
+        newReductionSubmitted.value = true
+        const newReduction = getFormStatesAsType<ICreateDiscountTypeRequest>(states)
+        DiscountTypeService.createDiscountType(newReduction).then((res) => {
+            const { data, error } = res
+            if (error) {
+                toast.add({
+                    severity: 'error',
+                    summary: 'Fehler',
+                    detail: error,
+                    life: 5000,
+                })
+            } else {
+                updateDiscountType([...reductions.value, data])
+                toast.add({
+                    severity: 'success',
+                    summary: 'Erfolgreich',
+                    detail: 'Ermäßigung erstellt',
+                    life: 3000,
+                })
+            }
+        })
+
+        newReductionDialog.value = false
+    }
+}
+
+const onRowEditSaveReduction = ({ newData }: DataTableRowEditSaveEvent) => {
+    DiscountTypeService.updateDiscountType(newData).then((res) => {
+        const { data, error } = res
+        if (error) {
+            toast.add({
+                severity: 'error',
+                summary: 'Fehler',
+                detail: error,
+                life: 5000,
+            })
+        } else {
+            data
+            updateDiscountType(reductions.value.map((u) => (u.discountTypeId === data.discountTypeId ? data : u)))
+            toast.add({
+                severity: 'success',
+                summary: 'Erfolgreich',
+                detail: 'Ermäßigung aktualisiert',
+                life: 3000,
+            })
+        }
+    })
+}
+
+// Initialize filters
+function initReductionFilters() {
+    filtersReduction.value = {
+        //global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+        discountType: {
+            value: null,
+            matchMode: FilterMatchMode.STARTS_WITH,
+        },
+    }
+}
+
+/**
+ * Global Configuration
+ */
+
 onBeforeMount(() => {
-    loading.value = true
+    loadingSemester.value = true
     SemesterService.getSemesters().then((res) => {
         const { data, error } = res
         if (error) {
@@ -266,16 +351,17 @@ onBeforeMount(() => {
             })
         } else {
             updateSemester(data)
-
             semesterSelect.value = res.data.map((semester: ISemesterResponse) => ({
                 label: semester.name,
                 value: semester.id,
             }));
+            loadingSemester.value = false
         }
     })
+    initSemesterFilters()
 
+    loadingSupervision.value = true
     SupervisionTypeService.getSupervisionTypes().then((res) => {
-        loading.value = false
         const { data, error } = res
         if (error) {
             toast.add({
@@ -286,11 +372,27 @@ onBeforeMount(() => {
             })
         } else {
             updateSupervisionType(data)
+            loadingSupervision.value = false
         }
     })
-
-    initSemesterFilters()
     initMentoringFilters()
+
+    loadingReduction.value = true
+    DiscountTypeService.getDiscountTypes().then((res) => {
+        const { data, error } = res
+        if (error) {
+            toast.add({
+                severity: 'error',
+                summary: 'Fehler beim Laden der Ermäßigungen',
+                detail: error,
+                life: 5000,
+            })
+        } else {
+            updateDiscountType(data)
+            loadingReduction.value = false
+        }
+    })
+    initReductionFilters()
 })
 </script>
 
@@ -312,11 +414,11 @@ onBeforeMount(() => {
         <DataTable
             :value="mentorings"
             :paginator="true"
-            :rows="5"
+            :rows="4"
             data-key="typeOfSupervisionId"
             :row-hover="true"
             filter-display="row"
-            :loading="loading"
+            :loading="loadingSupervision"
             v-model:filters="filtersMentoring"
             :global-filter-fields="['typeOfSupervision']"
             v-model:editing-rows="editingRowsMentoring"
@@ -511,11 +613,11 @@ onBeforeMount(() => {
             <DataTable
                 :value="semesters"
                 :paginator="true"
-                :rows="5"
+                :rows="3"
                 data-key="id"
                 :row-hover="true"
                 filter-display="row"
-                :loading="loading"
+                :loading="loadingSemester"
                 v-model:filters="filtersSemester"
                 :global-filter-fields="['name']"
                 v-model:editing-rows="editingRowsSemester"
@@ -624,29 +726,129 @@ onBeforeMount(() => {
         </div>
 
         <div class="card col-span-3">
-            <h2 class="mb-4 text-l font-semibold">Ermäßigungsarten</h2>
-            <table style="border-collapse: collapse; width: 100%; border: 2px solid #333;">
-                <thead>
-                    <tr style="background-color: #f2f2f2;">
-                        <th style="border: 2px solid #333; padding: 8px; text-align: center;">ID</th>
-                        <th style="border: 2px solid #333; padding: 8px; text-align: center;">Art der Ermäßigung</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td style="border: 2px solid #333; padding: 8px; text-align: center;">1</td>
-                        <td style="border: 2px solid #333; padding: 8px; text-align: center;">Funktion/Aufgabe</td>
-                    </tr>
-                    <tr>
-                        <td style="border: 2px solid #333; padding: 8px; text-align: center;">2</td>
-                        <td style="border: 2px solid #333; padding: 8px; text-align: center;">Forschung/Entwicklung</td>
-                    </tr>
-                    <tr>
-                        <td style="border: 2px solid #333; padding: 8px; text-align: center;">3</td>
-                        <td style="border: 2px solid #333; padding: 8px; text-align: center;">Gesetzlich</td>
-                    </tr>
-                </tbody>
-            </table>
+            <div class="flex justify-between mb-4">
+                <h2 class="mb-4 text-xl font-semibold">Ermäßigungsarten</h2>
+                <Button
+                    label="Neue Ermäßigung anlegen"
+                    icon="pi pi-plus"
+                    class="mr-2"
+                    @click="openNewReduction"
+                />
+            </div>
+
+            <DataTable
+            :value="reductions"
+            :paginator="true"
+            :rows="3"
+            data-key="discountTypeId"
+            :row-hover="true"
+            filter-display="row"
+            :loading="loadingReduction"
+            v-model:filters="filtersReduction"
+            :global-filter-fields="['discountType']"
+            v-model:editing-rows="editingRowsReduction"
+            editMode="row"
+            @row-edit-save="onRowEditSaveReduction"
+            :pt="{
+                table: { style: 'min-width: 50rem' },
+                column: {
+                    bodycell: ({ state }: any) => ({
+                        style:
+                            state['d_editing'] &&
+                            'padding-top: 0.75rem; padding-bottom: 0.75rem',
+                    }),
+                },
+            }"
+        >
+            <!-- Empty Table State -->
+            <template #empty>Keine Ermäßigungen gefunden.</template>
+
+            <!-- ID Column -->
+            <Column field="discountTypeId" header="ID" style="min-width: 6rem" sortable>
+                <template #body="{ data }">{{ data.discountTypeId }}</template>
+            </Column>
+
+            <!-- Reduction-Name Column -->
+            <Column
+                field="discountType"
+                header="Name der Ermäßigung"
+                style="min-width: 12rem"
+            >
+                <template #body="{ data }">{{ data.discountType }}</template>
+                <template #editor="{ data, field }">
+                    <InputText v-model="data[field]" fluid />
+                </template>
+                <template #filter="{ filterModel, filterCallback }">
+                    <InputText
+                        @input="filterCallback()"
+                        v-model="filterModel.value"
+                        type="text"
+                        placeholder="Ermäßigung suchen"
+                    />
+                </template>
+            </Column>
+
+            <Column
+                :rowEditor="true"
+                style="width: 10%; min-width: 8rem"
+                bodyStyle="text-align:center"
+            ></Column>
+        </DataTable>
+
+        <Dialog
+            v-model:visible="newReductionDialog"
+            :style="{ width: '450px' }"
+            header="Neue Ermäßigung anlegen"
+            :modal="true"
+        >
+            <!-- Form inside the dialog -->
+            <Form
+                v-slot="$form"
+                :resolverReduction
+                :initial-values="getNewReductionValues()"
+                class="flex w-full flex-col gap-4"
+                @submit="onCreateReductionFormSubmit"
+            >
+                <!-- Semester-Name Field -->
+                <div class="mt-2 flex flex-col gap-1">
+                    <FloatLabel variant="on">
+                        <InputText id="discountType" name="discountType" fluid />
+                        <label
+                            for="discountType"
+                            class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
+                            >Name der Betreuungsart</label
+                        >
+                    </FloatLabel>
+                    <!-- @vue-expect-error -->
+                    <Message
+                        v-if="$form.discountType?.invalid"
+                        severity="error"
+                        size="small"
+                        variant="simple"
+                    >
+                        <!-- @vue-expect-error -->
+                        {{ $form.discountType.error?.message }}
+                    </Message>
+                </div>
+
+                <!-- Footer -->
+                <div class="flex flex-row">
+                    <Button
+                        label="Abbrechen"
+                        icon="pi pi-times"
+                        text
+                        @click="hideReductionDialog"
+                        fluid
+                    />
+                    <Button
+                        type="submit"
+                        icon="pi pi-check"
+                        label="Erstellen"
+                        fluid
+                    />
+                </div>
+            </Form>
+        </Dialog>
         </div>
     </div>
 </template>
