@@ -335,7 +335,7 @@ function initReductionFilters() {
 }
 
 //convert semester ID into Name
-const getSemesterName = (id) => {
+const getSemesterName = (id: number) => {
     const semester = semesterSelect.value.find((s) => s.value === id);
     return semester ? semester.label : 'Unbekannt';
 };
