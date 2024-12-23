@@ -10,7 +10,6 @@ model Discount {
   supervisorId       Int
   comment            Comment @relation(fields: [commentId], references: [commentId])
   commentId          Int
-  disabilityDegree   Float
-  projectName        String
+  description        String
   scope              Float
 }
