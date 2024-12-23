@@ -9,9 +9,10 @@ import { SupervisionTypeModule } from "./modules/supervision/supervisionType.mod
 import { SupervisionModule } from "./modules/supervision/supervision.module.js";
 import { DiscountTypeModule } from "./modules/discount/discountType.module.js";
 import { DiscountModule } from "./modules/discount/discount.module.js";
+import { TeachingEventModule } from "./modules/teachingEvent/teachingEvent.module.js";
 
 @Module({
-  imports: [AuthModule, ConfigModule, UsersModule, SemesterModule, SupervisionTypeModule, SupervisionModule, DiscountTypeModule, DiscountModule],
+  imports: [AuthModule, ConfigModule, UsersModule, SemesterModule, SupervisionTypeModule, SupervisionModule, DiscountTypeModule, DiscountModule, TeachingEventModule],
   providers: [InitControllerService],
 })
 export class AppModule {}

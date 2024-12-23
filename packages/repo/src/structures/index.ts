@@ -6,3 +6,4 @@ export * from "./supervisionType.js";
 export * from "./supervision.js";
 export * from "./discountType.js";
 export * from "./discount.js";
+export * from "./teachingEvent.js";
