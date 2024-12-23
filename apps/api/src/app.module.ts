@@ -6,10 +6,11 @@ import { ConfigModule } from "./modules/config/config.module.js";
 import { UsersModule } from "./modules/users/users.module.js";
 import { SemesterModule } from "./modules/semester/semester.module.js";
 import { SupervisionTypeModule } from "./modules/supervision/supervisionType.module.js";
+import { SupervisionModule } from "./modules/supervision/supervision.module.js";
 import { DiscountTypeModule } from "./modules/discount/discountType.module.js";
 
 @Module({
-  imports: [AuthModule, ConfigModule, UsersModule, SemesterModule, SupervisionTypeModule, DiscountTypeModule],
+  imports: [AuthModule, ConfigModule, UsersModule, SemesterModule, SupervisionTypeModule, SupervisionModule, DiscountTypeModule],
   providers: [InitControllerService],
 })
 export class AppModule {}
