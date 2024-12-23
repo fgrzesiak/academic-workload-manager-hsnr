@@ -334,6 +334,12 @@ function initReductionFilters() {
     }
 }
 
+//convert semester ID into Name
+const getSemesterName = (id) => {
+    const semester = semesterSelect.value.find((s) => s.value === id);
+    return semester ? semester.label : 'Unbekannt';
+};
+
 /**
  * Global Configuration
  */
@@ -475,13 +481,13 @@ onBeforeMount(() => {
                 </template>
             </Column>
 
-            <!-- Multifactor Column -->
+            <!-- Smester (validFrom) Column -->
             <Column
                 field="validFrom"
                 header="Gültig seit"
                 style="min-width: 10rem"
             >
-                <template #body="{ data }">{{ data.validFrom }}</template>
+                <template #body="{ data }">{{ getSemesterName(data.validFrom) }}</template>
                 <template #editor="{ data, field }">
                     <Select v-model="data[field]" :options="semesterSelect" option-label="label" option-value="value" fluid />
                 </template>
@@ -816,7 +822,7 @@ onBeforeMount(() => {
                         <label
                             for="discountType"
                             class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
-                            >Name der Betreuungsart</label
+                            >Name der Ermäßigung</label
                         >
                     </FloatLabel>
                     <!-- @vue-expect-error -->
