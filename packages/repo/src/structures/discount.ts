@@ -12,6 +12,7 @@ export class Discount implements IDiscount {
   commentId!: number;
   description!: string;
   scope!: number;
+  teacherId!: number;
 
   constructor(private data: IDiscount) {
     Object.assign(this, data);
