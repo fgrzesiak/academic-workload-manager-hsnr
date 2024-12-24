@@ -173,17 +173,16 @@ function formatDate(value: Date) {
 
 <template>
     <div class="card">
-        <h1 class="mb-4 text-xl font-semibold">Nutzerverwaltung</h1>
-        <Toolbar class="mb-6">
-            <template #start>
-                <Button
-                    label="Neuer Nutzer"
-                    icon="pi pi-plus"
-                    class="mr-2"
-                    @click="openNew"
-                />
-            </template>
-        </Toolbar>
+        <div class="flex justify-between mb-4">
+            <h1 class="mb-4 text-xl font-semibold">Nutzerverwaltung</h1>
+            <Button
+                label="Neuer Nutzer"
+                icon="pi pi-plus"
+                class="mr-2"
+                @click="openNew"
+            />
+        </div>
+
         <DataTable
             :value="users"
             :paginator="true"
@@ -223,7 +222,7 @@ function formatDate(value: Date) {
                         <!-- @vue-ignore -->
                         <InputText
                             v-model="filters['global'].value"
-                            placeholder="Search"
+                            placeholder="Suche"
                         />
                     </div>
                 </div>
