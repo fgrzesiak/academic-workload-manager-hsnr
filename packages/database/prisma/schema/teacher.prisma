@@ -8,5 +8,7 @@ model Teacher {
   teachingGroups     TeachingGroup[]
   teachingDuties     TeachingDutyPerSemester[]
   supervisions       Supervision[]
+  discounts          Discount[]
+  teachingEvents     TeachingEvent[]
   user               User     @relation(fields: [userId], references: [id])
 }

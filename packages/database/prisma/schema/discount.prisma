@@ -4,6 +4,8 @@ model Discount {
   discountTypeId     Int
   semesterPeriod     SemesterPeriod @relation(fields: [semesterPeriodId], references: [id])
   semesterPeriodId   Int
+  teacher           Teacher @relation(fields: [teacherId], references: [id])
+  teacherId         Int
   ordered            Boolean
   approvalDate       DateTime
   supervisor         String

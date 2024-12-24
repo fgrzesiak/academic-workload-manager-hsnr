@@ -3,6 +3,8 @@ model TeachingEvent {
   name        String
   semester    SemesterPeriod @relation(fields: [semesterPeriodId], references: [id])
   semesterPeriodId Int
+  teacher     Teacher @relation(fields: [teacherId], references: [id])
+  teacherId   Int
   ordered     Boolean
   hours       Int
   program     Program?   @relation(fields: [programId], references: [id])
