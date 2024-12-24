@@ -5,16 +5,14 @@ import TeachingEventService from '@/service/teachingEvent.service'
 import { ITeachingEventResponse, ICreateTeachingEventRequest } from '@workspace/shared'
 import SemesterService from '@/service/semester.service'
 import { ISemesterResponse } from '@workspace/shared'
+import TeacherService from '@/service/teacher.service'
+import { ITeacherResponse } from '@workspace/shared'
 import {
     DataTableFilterMeta,
     DataTableRowEditSaveEvent,
     useToast,
 } from 'primevue'
-// import { UserRole } from '@workspace/shared'
-import {
-    getFormStatesAsType,
-    getObjectAsSelectOptions,
-} from '@/helpers/functions'
+import { getFormStatesAsType } from '@/helpers/functions'
 import { z } from 'zod'
 import { zodResolver } from '@primevue/forms/resolvers/zod'
 import { Form, FormSubmitEvent } from '@primevue/forms'
@@ -46,7 +44,7 @@ const updateTeachingEvents = (data: ITeachingEventResponse[]) => {
 const newTeachingEventSubmitted = ref(false)
 const newTeachingEventDialog = ref(false)
 const newTeachingEventSchema = z.object({
-    name: z.string().trim().min(5).max(50),
+    name: z.string().trim().min(10).max(255),
     semesterPeriodId: z.number(),
     ordered: z.boolean(),
     hours: z.number(),
@@ -279,19 +277,7 @@ const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein');
                 </template>
             </Column>
 
-            <!-- Ordered Column -->
-            <Column
-                field="ordered"
-                header="Angeordnet?"
-                style="min-width: 8rem"
-            >
-                <template #body="{ data }">{{ formatBoolean(data.ordered) }}</template>
-                <template #editor="{ data, field }">
-                    <Select v-model="data[field]" :options="booleanOptions" option-label="label" option-value="value" fluid />
-                </template>
-            </Column>
-
-            <!-- Name Column -->
+            <!-- Hours Column -->
             <Column
                 field="hours"
                 header="SWS"
@@ -307,6 +293,18 @@ const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein');
 
             <!-- Teacher Column -->
 
+            <!-- Ordered Column -->
+            <Column
+                field="ordered"
+                header="Angeordnet?"
+                style="min-width: 8rem"
+            >
+                <template #body="{ data }">{{ formatBoolean(data.ordered) }}</template>
+                <template #editor="{ data, field }">
+                    <Select v-model="data[field]" :options="booleanOptions" option-label="label" option-value="value" fluid />
+                </template>
+            </Column>
+
             <Column
                 :rowEditor="true"
                 style="width: 10%; min-width: 8rem"
@@ -314,6 +312,139 @@ const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein');
             ></Column>
         </DataTable>
 
-        
+        <Dialog
+            v-model:visible="newTeachingEventDialog"
+            :style="{ width: '450px' }"
+            header="Neue Lehrveranstaltung"
+            :modal="true"
+        >
+            <!-- Form inside the dialog -->
+            <Form
+                v-slot="$form"
+                :resolver
+                :initial-values="getNewTeachingEventValues()"
+                class="flex w-full flex-col gap-4"
+                @submit="onCreateTeachingEventFormSubmit"
+            >
+                <!-- Name Field -->
+                <div class="mt-2 flex flex-col gap-1">
+                    <FloatLabel variant="on">
+                        <InputText id="name" name="name" fluid />
+                        <label
+                            for="name"
+                            class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
+                            >Name der Lehrveranstaltung</label
+                        >
+                    </FloatLabel>
+                    <!-- @vue-expect-error -->
+                    <Message
+                        v-if="$form.name?.invalid"
+                        severity="error"
+                        size="small"
+                        variant="simple"
+                    >
+                        <!-- @vue-expect-error -->
+                        {{ $form.name.error?.message }}
+                    </Message>
+                </div>
+
+                <!-- Semester Field -->
+                <div class="flex flex-col gap-1">
+                    <FloatLabel variant="on">
+                        <Select
+                            label-id="semesterPeriodId"
+                            name="semesterPeriodId"
+                            :options="semesterSelect"
+                            option-label="label"
+                            option-value="value"
+                            fluid
+                        ></Select>
+                        <label
+                            for="semesterPeriodId"
+                            class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
+                            >Semester</label
+                        >
+                    </FloatLabel>
+                    <!-- @vue-expect-error -->
+                    <Message
+                        v-if="$form.semesterPeriodId?.invalid"
+                        severity="error"
+                        size="small"
+                        variant="simple"
+                    >
+                        <!-- @vue-expect-error -->
+                        {{ $form.semesterPeriodId.error?.message }}
+                    </Message>
+                </div>
+
+                <!-- Hours Field -->
+                <div class="flex flex-col gap-1">
+                    <FloatLabel variant="on">
+                        <InputNumber id="hours" name="hours" :min="0" fluid />
+                        <label
+                            for="hours"
+                            class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
+                            >Anzahl der SWS</label
+                        >
+                    </FloatLabel>
+                    <!-- @vue-expect-error -->
+                    <Message
+                        v-if="$form.hours?.invalid"
+                        severity="error"
+                        size="small"
+                        variant="simple"
+                    >
+                        <!-- @vue-expect-error -->
+                        {{ $form.hours.error?.message }}
+                    </Message>
+                </div>
+
+                <!-- Semester Field -->
+                <div class="flex flex-col gap-1">
+                    <FloatLabel variant="on">
+                        <Select
+                            label-id="ordered"
+                            name="ordered"
+                            :options="booleanOptions"
+                            option-label="label"
+                            option-value="value"
+                            fluid
+                        ></Select>
+                        <label
+                            for="ordered"
+                            class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
+                            >Angeordnet?</label
+                        >
+                    </FloatLabel>
+                    <!-- @vue-expect-error -->
+                    <Message
+                        v-if="$form.ordered?.invalid"
+                        severity="error"
+                        size="small"
+                        variant="simple"
+                    >
+                        <!-- @vue-expect-error -->
+                        {{ $form.ordered.error?.message }}
+                    </Message>
+                </div>
+
+                <!-- Footer -->
+                <div class="flex flex-row">
+                    <Button
+                        label="Abbrechen"
+                        icon="pi pi-times"
+                        text
+                        @click="hideDialog"
+                        fluid
+                    />
+                    <Button
+                        type="submit"
+                        icon="pi pi-check"
+                        label="Erstellen"
+                        fluid
+                    />
+                </div>
+            </Form>
+        </Dialog>
     </div>
 </template>
