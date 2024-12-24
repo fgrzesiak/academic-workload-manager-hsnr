@@ -6,11 +6,9 @@ model Discount {
   semesterPeriodId   Int
   ordered            Boolean
   approvalDate       DateTime
-  supervisor         Teacher   @relation(fields: [supervisorId], references: [id])
-  supervisorId       Int
+  supervisor         String
   comment            Comment @relation(fields: [commentId], references: [commentId])
   commentId          Int
-  disabilityDegree   Float
-  projectName        String
+  description        String
   scope              Float
 }

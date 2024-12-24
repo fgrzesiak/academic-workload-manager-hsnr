@@ -7,7 +7,6 @@ model Teacher {
   totalTeachingDuty  Float
   teachingGroups     TeachingGroup[]
   teachingDuties     TeachingDutyPerSemester[]
-  discounts          Discount[]
   supervisions       Supervision[]
   user               User     @relation(fields: [userId], references: [id])
 }
