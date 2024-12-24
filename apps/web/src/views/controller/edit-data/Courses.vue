@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import { FilterMatchMode } from '@primevue/core/api'
-import { onBeforeMount, reactive, ref } from 'vue'
+import { onBeforeMount, ref } from 'vue'
 import TeachingEventService from '@/service/teachingEvent.service'
 import { ITeachingEventResponse, ICreateTeachingEventRequest } from '@workspace/shared'
 import SemesterService from '@/service/semester.service'
-import { ISemesterResponse } from '@workspace/shared'
-import TeacherService from '@/service/teacher.service'
-import { ITeacherResponse } from '@workspace/shared'
+import { ISemesterResponse, IUserResponse } from '@workspace/shared'
+import UserService from '@/service/user.service'
 import {
     DataTableFilterMeta,
     DataTableRowEditSaveEvent,
@@ -33,9 +32,12 @@ const editingRows = ref([])
 const loading = ref(false)
 const toast = useToast()
 const semesterSelect = ref<SelectOption[]>([])
+const userSelect = ref<SelectOption[]>([])
 
 const updateTeachingEvents = (data: ITeachingEventResponse[]) => {
-    teachingEvents.value = data.map((d) => { return d })
+    teachingEvents.value = data.map((d) => { 
+        return d 
+    })
 }
 
 /**
@@ -78,6 +80,7 @@ const onCreateTeachingEventFormSubmit = async ({ valid, states }: FormSubmitEven
     if (valid) {
         newTeachingEventSubmitted.value = true
         const newTeachingEvent = getFormStatesAsType<ICreateTeachingEventRequest>(states)
+        // newTeachingEvent.programId = null
         TeachingEventService.createTeachingEvent(newTeachingEvent).then((res) => {
             const { data, error } = res
             if (error) {
@@ -144,11 +147,25 @@ onBeforeMount(() => {
     SemesterService.getSemesters().then((res) => {
         const { data, error } = res
         if (error) {
-
+            console.warn("[Course-Overview] Couldn`t load semster")
         } else {
             semesterSelect.value = data.map((semester: ISemesterResponse) => ({
                 label: semester.name,
                 value: semester.id,
+            }));
+        }
+    })
+
+    UserService.getUsers().then((res) => {
+        const { data, error } = res
+        if (error) {
+            console.warn("[Course-Overview] Couldn`t load users")
+        } else {
+            userSelect.value = data
+            .filter((user: IUserResponse) => user.role === "TEACHER")
+            .map((user: IUserResponse) => ({
+                label: user.username,
+                value: user.id,
             }));
         }
     })
@@ -175,6 +192,11 @@ function initFilters() {
 const getSemesterName = (id: number) => {
     const semester = semesterSelect.value.find((s) => s.value === id);
     return semester ? semester.label : 'Unbekannt';
+};
+
+const getUserName = (id: number) => {
+    const user = userSelect.value.find((s) => s.value === id);
+    return user ? user.label : 'Unbekannt';
 };
 
 const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein');
@@ -292,6 +314,16 @@ const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein');
             <!-- ProgramId Column -->
 
             <!-- Teacher Column -->
+            <Column
+                field="teacherId"
+                header="Lehrperson"
+                style="min-width: 8rem"
+            >
+                <template #body="{ data }">{{ getUserName(data.teacherId) }}</template>
+                <template #editor="{ data, field }">
+                    <Select v-model="data[field]" :options="userSelect" option-label="label" option-value="value" fluid />
+                </template>
+            </Column>
 
             <!-- Ordered Column -->
             <Column
@@ -399,7 +431,36 @@ const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein');
                     </Message>
                 </div>
 
-                <!-- Semester Field -->
+                <!-- Teacher Field -->
+                <div class="flex flex-col gap-1">
+                    <FloatLabel variant="on">
+                        <Select
+                            label-id="teacherId"
+                            name="teacherId"
+                            :options="userSelect"
+                            option-label="label"
+                            option-value="value"
+                            fluid
+                        ></Select>
+                        <label
+                            for="teacherId"
+                            class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
+                            >Lehrperson</label
+                        >
+                    </FloatLabel>
+                    <!-- @vue-expect-error -->
+                    <Message
+                        v-if="$form.teacherId?.invalid"
+                        severity="error"
+                        size="small"
+                        variant="simple"
+                    >
+                        <!-- @vue-expect-error -->
+                        {{ $form.teacherId.error?.message }}
+                    </Message>
+                </div>
+
+                <!-- Ordered Field -->
                 <div class="flex flex-col gap-1">
                     <FloatLabel variant="on">
                         <Select

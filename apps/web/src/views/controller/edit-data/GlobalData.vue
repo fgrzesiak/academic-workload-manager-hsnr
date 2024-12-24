@@ -62,7 +62,7 @@ const onCreateSemesterFormSubmit = async ({ valid, states }: FormSubmitEvent) =>
     if (valid) {
         newSemesterSubmitted.value = true
         const newSemester = getFormStatesAsType<ICreateSemesterRequest>(states)
-        newSemester.active = true
+        newSemester.active = true //TO-DO: when teacher can send data, this should be set bei controller
         SemesterService.createSemester(newSemester).then((res) => {
             const { data, error } = res
             if (error) {
