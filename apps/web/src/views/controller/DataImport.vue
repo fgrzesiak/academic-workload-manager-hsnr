@@ -17,7 +17,7 @@ export default defineComponent({
     ]);
 
     const reductions = ref([
-      { type: '', details: '', approvedBy: '', approvedOn: new Date(), sws: null, comment: '', },
+      { type: '', details: '', approvedBy: '', approvedOn: new Date(), sws: null, comment: '', ordered: false, },
     ]);
 
     const mentoringTypes = [
@@ -50,7 +50,7 @@ export default defineComponent({
     };
 
     const addReduction = () => {
-      reductions.value.push({ type: '', details: '', approvedBy: '', approvedOn: new Date(), sws: null, comment: '', });
+      reductions.value.push({ type: '', details: '', approvedBy: '', approvedOn: new Date(), sws: null, comment: '', ordered: false, });
     };
 
     const removeReduction = (index: number) => {

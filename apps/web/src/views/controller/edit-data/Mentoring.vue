@@ -95,7 +95,7 @@ const onCreateSupervisionFormSubmit = async ({ valid, states }: FormSubmitEvent)
                 toast.add({
                     severity: 'success',
                     summary: 'Erfolgreich',
-                    detail: 'Lehrveranstaltung erstellt',
+                    detail: 'Betreuung erstellt',
                     life: 3000,
                 })
             }
@@ -121,7 +121,7 @@ const onRowEditSave = ({ newData }: DataTableRowEditSaveEvent) => {
             toast.add({
                 severity: 'success',
                 summary: 'Erfolgreich',
-                detail: 'Lehrveranstaltung aktualisiert',
+                detail: 'Betreuung aktualisiert',
                 life: 3000,
             })
         }
@@ -147,7 +147,7 @@ onBeforeMount(() => {
     SupervisionTypeService.getSupervisionTypes().then((res) => {
         const { data, error } = res
         if (error) {
-            console.warn("[Mentoring-Overview] Couldn`t load semster")
+            console.warn("[Mentoring-Overview] Couldn`t load supervisionTypes")
         } else {
             typeSelect.value = data.map((supervisionType: ISupervisionTypeResponse) => ({
                 label: supervisionType.typeOfSupervision,
@@ -222,9 +222,9 @@ const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein');
 <template>
     <div class="card">
         <div class="flex justify-between mb-4">
-            <h1 class="mb-4 text-xl font-semibold">Übersicht der Lehrveranstaltungen</h1>
+            <h1 class="mb-4 text-xl font-semibold">Übersicht der Betreuungen</h1>
             <Button
-                label="Neue Lehrveranstaltung"
+                label="Neue Betreuung"
                 icon="pi pi-plus"
                 class="mr-2"
                 @click="openNew"
@@ -350,7 +350,7 @@ const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein');
             >
 
                 <!-- SupervisionType Field -->
-                <div class="flex flex-col gap-1 pt-2">
+                <div class="flex flex-col gap-1 mt-2">
                     <FloatLabel variant="on">
                         <Select
                             label-id="supervisionTypeId"
