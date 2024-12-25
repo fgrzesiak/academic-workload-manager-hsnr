@@ -276,7 +276,7 @@ export default defineComponent({
                             label-id="mentor-type"
                             name="type"
                             :options="mentoringTypes"
-                            :style="{ width: '180px' }"
+                            :style="{ width: '200px' }"
                         ></Select>
                         <label
                             for="mentor-type"
@@ -338,79 +338,102 @@ export default defineComponent({
 
             <div class="card discounts">
                 <h2 class="mb-4 text-xl font-semibold">Ermäßigungen</h2>
-                <div v-for="(reduction, index) in reductions" :key="index" class="course-entry flex gap-4 mb-4">
-                    <FloatLabel variant="on">
-                        <Select
-                            v-model="reduction.type"
-                            label-id="reduction-type"
-                            name="type"
-                            :options="reductionTypes"
-                            :style="{ width: '180px' }"
-                        ></Select>
-                        <label
-                            for="reduction-type"
-                            class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
-                            >Art der Ermäßigung</label
-                        >
-                    </FloatLabel>
-                    <FloatLabel variant="on">
-                        <InputText
-                            label-id="reduction-details"
-                            v-model="reduction.details"
-                            v-tooltip="'Kurze Beschreibung der Ermäßigung'"
+                <div v-for="(reduction, index) in reductions" :key="index" class="course-entry flex gap-4 mb-8">
+                    <div class="flex-col">
+                        <div class="flex gap-4 mb-4">
+                            <FloatLabel variant="on">
+                                <Select
+                                    v-model="reduction.type"
+                                    label-id="reduction-type"
+                                    name="type"
+                                    :options="reductionTypes"
+                                    :style="{ width: '200px' }"
+                                ></Select>
+                                <label
+                                    for="reduction-type"
+                                    class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
+                                    >Art der Ermäßigung</label
+                                >
+                            </FloatLabel>
+                            <FloatLabel variant="on">
+                                <InputText
+                                    label-id="reduction-details"
+                                    v-model="reduction.details"
+                                    v-tooltip="'Kurze Beschreibung der Ermäßigung'"
+                                />
+                                <label
+                                    for="reduction-details"
+                                    class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
+                                    >Beschreibung</label
+                                >
+                            </FloatLabel>
+                            <FloatLabel variant="on">
+                                <InputNumber
+                                    label-id="sws-course"
+                                    v-model="reduction.sws"
+                                />
+                                <label
+                                    for="sws-course"
+                                    class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
+                                    >Umfang (SWS)</label
+                                >
+                            </FloatLabel>
+                        </div>
+                        <div class="flex gap-4">
+                            <FloatLabel variant="on">
+                                <DatePicker
+                                    v-model="reduction.approvedOn"
+                                    date-format="dd.mm.yy"
+                                    placeholder="Datum auswählen"
+                                />
+                                <label
+                                    for="reduction-approvedBy"
+                                    class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
+                                    >Genehmigt am</label
+                                >
+                            </FloatLabel>
+                            <FloatLabel variant="on">
+                                <InputText
+                                    label-id="reduction-approvedBy"
+                                    v-model="reduction.approvedBy"
+                                />
+                                <label
+                                    for="reduction-approvedBy"
+                                    class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
+                                    >Genehmigt durch</label
+                                >
+                            </FloatLabel>
+                            <div class="flex items-center">
+                                <label for="reduction.ordered" class="mr-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
+                                    >Angeordnet?</label
+                                >
+                                <Checkbox
+                                    id="reduction.ordered"
+                                    v-model="reduction.ordered"
+                                    name="option"
+                                    value="True"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex-col">
+                        <div class="mb-4">
+                            <Button
+                            label="Entfernen"
+                            icon="pi pi-trash"
+                            class="p-button-danger"
+                            @click="removeReduction(index)"
+                            />
+                        </div>
+                        <div>
+                            <Button
+                            label="Kommentar hinzufügen"
+                            icon="pi pi-comments"
+                            class="p-button-secondary"
+                            @click="(reductionCommentOverlay = true)"
                         />
-                        <label
-                            for="reduction-details"
-                            class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
-                            >Beschreibung</label
-                        >
-                    </FloatLabel>
-                    <FloatLabel variant="on">
-                        <InputText
-                            label-id="reduction-approvedBy"
-                            v-model="reduction.approvedBy"
-                        />
-                        <label
-                            for="reduction-approvedBy"
-                            class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
-                            >Genehmigt durch</label
-                        >
-                    </FloatLabel>
-                    <FloatLabel variant="on">
-                        <DatePicker
-                            v-model="reduction.approvedOn"
-                            date-format="dd.mm.yy"
-                            placeholder="Datum auswählen"
-                        />
-                        <label
-                            for="reduction-approvedBy"
-                            class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
-                            >Genehmigt am</label
-                        >
-                    </FloatLabel>
-                    <FloatLabel variant="on">
-                        <InputNumber
-                            label-id="sws-course"
-                            v-model="reduction.sws"
-                        />
-                        <label
-                            for="sws-course"
-                            class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
-                            >Umfang (SWS)</label
-                        >
-                    </FloatLabel>
-                    <Button
-                        label="Entfernen"
-                        icon="pi pi-trash"
-                        class="p-button-danger"
-                        @click="removeReduction(index)"
-                    />
-                    <Button
-                        label="Kommentar hinzufügen"
-                        icon="pi pi-comments"
-                        class="p-button-secondary"
-                        @click="(reductionCommentOverlay = true)"
-                    />
+                        </div>
+                    </div>
                     <Drawer
                         v-model:visible="reductionCommentOverlay"
                         header="Kommentar zur Ermäßigung"
