@@ -5,8 +5,8 @@ import SupervisionService from '@/service/supervision.service'
 import { ISupervisionResponse, ICreateSupervisionRequest } from '@workspace/shared'
 import SupervisionTypeService from '@/service/supervisionType.service'
 import SemesterService from '@/service/semester.service'
-import UserService from '@/service/user.service'
-import { ISupervisionTypeResponse, ISemesterResponse, IUserResponse } from '@workspace/shared'
+import TeacherService from '@/service/teacher.service'
+import { ISupervisionTypeResponse, ISemesterResponse, ITeacherResponse } from '@workspace/shared'
 import {
     DataTableFilterMeta,
     DataTableRowEditSaveEvent,
@@ -21,11 +21,6 @@ interface SelectOption {
     label: string;
     value: number;
 }
-
-const booleanOptions = ref([
-    { label: 'Ja', value: true },
-    { label: 'Nein', value: false },
-]);
 
 const teachingEvents = ref<ISupervisionResponse[]>([])
 const filters = ref<DataTableFilterMeta>({})
@@ -168,16 +163,14 @@ onBeforeMount(() => {
         }
     })
 
-    UserService.getUsers().then((res) => {
+    TeacherService.getTeachers().then((res) => {
         const { data, error } = res
         if (error) {
-            console.warn("[Mentoring-Overview] Couldn`t load users")
+            console.warn("[Mentoring-Overview] Couldn`t load teachers")
         } else {
-            userSelect.value = data
-            .filter((user: IUserResponse) => user.role === "TEACHER")
-            .map((user: IUserResponse) => ({
-                label: user.username,
-                value: user.id,
+            userSelect.value = data.map((teacher: ITeacherResponse) => ({
+                label: teacher.firstName + " " + teacher.lastName,
+                value: teacher.id,
             }));
         }
     })
@@ -215,8 +208,6 @@ const getTypeName = (id: number) => {
     const type = typeSelect.value.find((s) => s.value === id);
     return type ? type.label : 'Unbekannt';
 };
-
-const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein');
 </script>
 
 <template>
@@ -240,7 +231,7 @@ const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein');
             filter-display="row"
             :loading="loading"
             v-model:filters="filters"
-            :global-filter-fields="['name']"
+            :global-filter-fields="['supervisionTypeId']"
             v-model:editing-rows="editingRows"
             editMode="row"
             @row-edit-save="onRowEditSave"
@@ -382,7 +373,7 @@ const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein');
                 <!-- Matricelnumber Field -->
                 <div class="flex flex-col gap-1">
                     <FloatLabel variant="on">
-                        <InputNumber id="studentId" name="studentId" :min="0" fluid />
+                        <InputNumber id="studentId" name="studentId" :useGrouping="false" :min="0" fluid />
                         <label
                             for="studentId"
                             class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"

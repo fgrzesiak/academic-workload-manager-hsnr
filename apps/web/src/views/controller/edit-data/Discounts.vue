@@ -5,8 +5,8 @@ import DiscountService from '@/service/discount.service'
 import { IDiscountResponse, ICreateDiscountRequest } from '@workspace/shared'
 import DiscountTypeService from '@/service/discountType.service'
 import SemesterService from '@/service/semester.service'
-import UserService from '@/service/user.service'
-import { IDiscountTypeResponse, ISemesterResponse, IUserResponse } from '@workspace/shared'
+import TeacherService from '@/service/teacher.service'
+import { IDiscountTypeResponse, ISemesterResponse, ITeacherResponse } from '@workspace/shared'
 import {
     DataTableFilterMeta,
     DataTableRowEditSaveEvent,
@@ -176,16 +176,14 @@ onBeforeMount(() => {
         }
     })
 
-    UserService.getUsers().then((res) => {
+    TeacherService.getTeachers().then((res) => {
         const { data, error } = res
         if (error) {
-            console.warn("[Discount-Overview] Couldn`t load users")
+            console.warn("[Discount-Overview] Couldn`t load teachers")
         } else {
-            userSelect.value = data
-            .filter((user: IUserResponse) => user.role === "TEACHER")
-            .map((user: IUserResponse) => ({
-                label: user.username,
-                value: user.id,
+            userSelect.value = data.map((teacher: ITeacherResponse) => ({
+                label: teacher.firstName + " " + teacher.lastName,
+                value: teacher.id,
             }));
         }
     })
@@ -260,7 +258,7 @@ function formatDate(value: Date) {
             filter-display="row"
             :loading="loading"
             v-model:filters="filters"
-            :global-filter-fields="['name']"
+            :global-filter-fields="['description', 'supervisor']"
             v-model:editing-rows="editingRows"
             editMode="row"
             @row-edit-save="onRowEditSave"
@@ -358,8 +356,9 @@ function formatDate(value: Date) {
 
             <!-- ApprovalDate Column -->
             <Column
-                field="supervisor"
-                header="Genehmigt durch"
+                header="Genehmigungsdatum"
+                filter-field="date"
+                data-type="date"
                 style="min-width: 10rem"
             >
                 <template #body="{ data }">{{ formatDate(data.approvalDate) }}</template>

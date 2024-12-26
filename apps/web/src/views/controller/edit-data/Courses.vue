@@ -4,8 +4,8 @@ import { onBeforeMount, ref } from 'vue'
 import TeachingEventService from '@/service/teachingEvent.service'
 import { ITeachingEventResponse, ICreateTeachingEventRequest } from '@workspace/shared'
 import SemesterService from '@/service/semester.service'
-import { ISemesterResponse, IUserResponse } from '@workspace/shared'
-import UserService from '@/service/user.service'
+import { ISemesterResponse, ITeacherResponse } from '@workspace/shared'
+import TeacherService from '@/service/teacher.service'
 import {
     DataTableFilterMeta,
     DataTableRowEditSaveEvent,
@@ -156,16 +156,14 @@ onBeforeMount(() => {
         }
     })
 
-    UserService.getUsers().then((res) => {
+    TeacherService.getTeachers().then((res) => {
         const { data, error } = res
         if (error) {
-            console.warn("[Course-Overview] Couldn`t load users")
+            console.warn("[Course-Overview] Couldn`t load teachers")
         } else {
-            userSelect.value = data
-            .filter((user: IUserResponse) => user.role === "TEACHER")
-            .map((user: IUserResponse) => ({
-                label: user.username,
-                value: user.id,
+            userSelect.value = data.map((teacher: ITeacherResponse) => ({
+                label: teacher.firstName + " " + teacher.lastName,
+                value: teacher.id,
             }));
         }
     })

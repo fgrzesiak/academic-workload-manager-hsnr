@@ -25,7 +25,7 @@ export const CONTROLLER_MENU: MenuItem[] = [
                 to: '/controlling/edit-data/courses',
             },
             {
-                label: 'Betreuung',
+                label: 'Betreuungen',
                 icon: 'pi pi-fw pi-users',
                 to: '/controlling/edit-data/mentoring',
             },
