@@ -41,6 +41,13 @@ export class TeacherManager {
   }
 
   /***
+   * Get all
+   */
+  async findAll(): Promise<ITeacher[]> {
+    return await this.prisma.teacher.findMany();
+  }
+
+  /***
    * Create
    */
   async create(user: Omit<ITeacher, "id" | "createdAt">): Promise<Teacher> {
