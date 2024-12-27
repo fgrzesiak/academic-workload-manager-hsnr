@@ -22,7 +22,7 @@ interface SelectOption {
     value: number;
 }
 
-const teachingEvents = ref<ISupervisionResponse[]>([])
+const supervisions = ref<ISupervisionResponse[]>([])
 const filters = ref<DataTableFilterMeta>({})
 const editingRows = ref([])
 const loading = ref(false)
@@ -32,7 +32,7 @@ const semesterSelect = ref<SelectOption[]>([])
 const userSelect = ref<SelectOption[]>([])
 
 const updateSupervisions = (data: ISupervisionResponse[]) => {
-    teachingEvents.value = data.map((d) => { 
+    supervisions.value = data.map((d) => { 
         return d 
     })
 }
@@ -61,6 +61,28 @@ const hideDialog = () => {
     newSupervisionSubmitted.value = false
 }
 
+const deleteEntry = (id: number) => {
+    try {
+        SupervisionService.deleteSupervision(id);
+
+        toast.add({
+            severity: 'success',
+            summary: 'Erfolgreich',
+            detail: 'Betreuung gelöscht',
+            life: 3000,
+        })
+            
+        supervisions.value = supervisions.value.filter(event => event.id !== id);
+    } catch (error) {
+        toast.add({
+            severity: 'error',
+            summary: 'Fehler',
+            detail: error,
+            life: 5000,
+        })
+    }
+}
+
 const getNewSupervisionValues = (): z.infer<typeof newSupervisionSchema> => {
     return {
         studentId: 0,
@@ -86,7 +108,7 @@ const onCreateSupervisionFormSubmit = async ({ valid, states }: FormSubmitEvent)
                     life: 5000,
                 })
             } else {
-                updateSupervisions([...teachingEvents.value, data])
+                updateSupervisions([...supervisions.value, data])
                 toast.add({
                     severity: 'success',
                     summary: 'Erfolgreich',
@@ -112,7 +134,7 @@ const onRowEditSave = ({ newData }: DataTableRowEditSaveEvent) => {
             })
         } else {
             data
-            updateSupervisions(teachingEvents.value.map((u) => (u.id === data.id ? data : u)))
+            updateSupervisions(supervisions.value.map((u) => (u.id === data.id ? data : u)))
             toast.add({
                 severity: 'success',
                 summary: 'Erfolgreich',
@@ -223,7 +245,7 @@ const getTypeName = (id: number) => {
         </div>
 
         <DataTable
-            :value="teachingEvents"
+            :value="supervisions"
             :paginator="true"
             :rows="10"
             data-key="id"
@@ -320,6 +342,25 @@ const getTypeName = (id: number) => {
                 <template #body="{ data }">{{ getUserName(data.teacherId) }}</template>
                 <template #editor="{ data, field }">
                     <Select v-model="data[field]" :options="userSelect" option-label="label" option-value="value" fluid />
+                </template>
+            </Column>
+
+            <Column
+                :rowEditor="true"
+                style="width: 10%; min-width: 8rem"
+                bodyStyle="text-align:center"
+            ></Column>
+
+            <Column
+            style="width: 4rem; text-align: center"
+            :headerStyle="{ textAlign: 'center' }"
+            >
+                <template #body="{ data }">
+                    <Button
+                        icon="pi pi-trash"
+                        class="p-button-rounded p-button-danger"
+                        @click="deleteEntry(data.id)"
+                    />
                 </template>
             </Column>
 

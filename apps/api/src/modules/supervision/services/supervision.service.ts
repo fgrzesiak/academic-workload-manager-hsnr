@@ -28,4 +28,8 @@ export class SupervisionService {
     const { ...rest } = await supervisions.update(supervision);
     return rest;
   }
+
+  async delete(id: number) {
+    await supervisions.delete(id);
+  }
 }

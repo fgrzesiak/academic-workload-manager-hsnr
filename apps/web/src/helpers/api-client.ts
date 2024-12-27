@@ -109,6 +109,15 @@ class ApiClient {
                 }
             })
     }
+
+    delete<T>(url: string, id: number) {
+        if (typeof id !== 'number') {
+            throw new Error('Invalid ID: ID must be a number');
+        }
+        return this.networkClient(`${url}/${id}`, {
+            afterFetch: (ctx) => ctx.data,
+        })
+    }
 }
 
 export const apiClient = new ApiClient(networkFetchClient)

@@ -40,4 +40,12 @@ export class SupervisionManager {
     const result = await this.prisma.supervision.create({ data: supervision });
     return new Supervision(result);
   }
+
+  async delete(id: number) {
+    await this.prisma.supervision.delete({
+      where: { 
+        id: id,
+      },
+    });
+  }
 }

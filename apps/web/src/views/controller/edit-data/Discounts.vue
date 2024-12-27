@@ -27,7 +27,7 @@ const booleanOptions = ref([
     { label: 'Nein', value: false },
 ]);
 
-const teachingEvents = ref<IDiscountResponse[]>([])
+const discounts = ref<IDiscountResponse[]>([])
 const filters = ref<DataTableFilterMeta>({})
 const editingRows = ref([])
 const loading = ref(false)
@@ -37,7 +37,7 @@ const semesterSelect = ref<SelectOption[]>([])
 const userSelect = ref<SelectOption[]>([])
 
 const updateDiscounts = (data: IDiscountResponse[]) => {
-    teachingEvents.value = data.map((d) => { 
+    discounts.value = data.map((d) => { 
         return d 
     })
 }
@@ -70,6 +70,16 @@ const hideDialog = () => {
     newDiscountSubmitted.value = false
 }
 
+const deleteEntry = (id: number) => {
+    discounts.value = discounts.value.filter(event => event.id !== id);
+    toast.add({
+        severity: 'success',
+        summary: 'Successful',
+        detail: 'Betreuung erfolgreich gelöscht',
+        life: 3000,
+    })
+}
+
 const getNewDiscountValues = (): z.infer<typeof newDiscountSchema> => {
     return {
         discountTypeId: 0,
@@ -99,7 +109,7 @@ const onCreateDiscountFormSubmit = async ({ valid, states }: FormSubmitEvent) =>
                     life: 5000,
                 })
             } else {
-                updateDiscounts([...teachingEvents.value, data])
+                updateDiscounts([...discounts.value, data])
                 toast.add({
                     severity: 'success',
                     summary: 'Erfolgreich',
@@ -125,7 +135,7 @@ const onRowEditSave = ({ newData }: DataTableRowEditSaveEvent) => {
             })
         } else {
             data
-            updateDiscounts(teachingEvents.value.map((u) => (u.id === data.id ? data : u)))
+            updateDiscounts(discounts.value.map((u) => (u.id === data.id ? data : u)))
             toast.add({
                 severity: 'success',
                 summary: 'Erfolgreich',
@@ -251,7 +261,7 @@ const formatDate = (value: string) => {
         </div>
 
         <DataTable
-            :value="teachingEvents"
+            :value="discounts"
             :paginator="true"
             :rows="10"
             data-key="id"
@@ -413,6 +423,25 @@ const formatDate = (value: string) => {
                 <template #body="{ data }">{{ formatBoolean(data.ordered) }}</template>
                 <template #editor="{ data, field }">
                     <Select v-model="data[field]" :options="booleanOptions" option-label="label" option-value="value" fluid />
+                </template>
+            </Column>
+
+            <Column
+                :rowEditor="true"
+                style="width: 10%; min-width: 2rem;"
+                bodyStyle="text-align:center"
+            ></Column>
+
+            <Column
+            style="width: 4rem; text-align: center"
+            :headerStyle="{ textAlign: 'center' }"
+            >
+                <template #body="{ data }">
+                    <Button
+                        icon="pi pi-trash"
+                        class="p-button-rounded p-button-danger"
+                        @click="deleteEntry(data.id)"
+                    />
                 </template>
             </Column>
 

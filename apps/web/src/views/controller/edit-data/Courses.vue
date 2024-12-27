@@ -52,6 +52,7 @@ const newTeachingEventSchema = z.object({
     hours: z.number(),
     programId: z.number(),
     teacherId: z.number(),
+    commentId: z.number(),
 })
 const resolver = ref(zodResolver(newTeachingEventSchema))
 
@@ -65,6 +66,16 @@ const hideDialog = () => {
     newTeachingEventSubmitted.value = false
 }
 
+const deleteEntry = (id: number) => {
+    teachingEvents.value = teachingEvents.value.filter(event => event.id !== id);
+    toast.add({
+        severity: 'success',
+        summary: 'Successful',
+        detail: 'Betreuung erfolgreich gelöscht',
+        life: 3000,
+    })
+}
+
 const getNewTeachingEventValues = (): z.infer<typeof newTeachingEventSchema> => {
     return {
         name: '',
@@ -73,6 +84,7 @@ const getNewTeachingEventValues = (): z.infer<typeof newTeachingEventSchema> => 
         hours: 0,
         programId: 0,
         teacherId: 0,
+        commentId: 0,
     } satisfies ICreateTeachingEventRequest
 }
 
@@ -340,6 +352,19 @@ const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein');
                 style="width: 10%; min-width: 8rem"
                 bodyStyle="text-align:center"
             ></Column>
+
+            <Column
+            style="width: 4rem; text-align: center"
+            :headerStyle="{ textAlign: 'center' }"
+            >
+                <template #body="{ data }">
+                    <Button
+                        icon="pi pi-trash"
+                        class="p-button-rounded p-button-danger"
+                        @click="deleteEntry(data.id)"
+                    />
+                </template>
+            </Column>            
         </DataTable>
 
         <Dialog

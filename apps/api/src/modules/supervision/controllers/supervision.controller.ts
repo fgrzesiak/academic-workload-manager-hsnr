@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Post,
   Put,
@@ -35,5 +36,12 @@ export class SupervisionController {
   @Auth(Role.CONTROLLER)
   async updateSupervision(@Body() supervision: IUpdateSupervisionRequest): Promise<ISupervisionResponse> {
     return await this.supervisionService.update(supervision);
+  }
+
+  @Delete("/delete/")
+  @Auth(Role.CONTROLLER)
+  async deleteSupervision(@Body() id: number) {
+    console.warn(`Type of ID: ${typeof id}`, id);
+    return await this.supervisionService.delete(id);
   }
 }

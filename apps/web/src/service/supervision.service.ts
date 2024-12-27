@@ -13,11 +13,15 @@ const createSupervision = (data: ICreateSupervisionRequest) =>
 const updateSupervision = (data: IUpdateSupervisionRequest) =>
     apiClient.put<ISupervisionResponse>('/supervision', data)
 
+const deleteSupervision = (id: number) =>
+    apiClient.delete('/supervision/delete', id)
+
 const supervisionService = {
     getProfile,
     getSupervisions,
     createSupervision,
     updateSupervision,
+    deleteSupervision,
 }
 
 export default supervisionService
