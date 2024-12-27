@@ -7,6 +7,8 @@ model TeachingEvent {
   teacherId   Int
   ordered     Boolean
   hours       Int
+  comment     Comment? @relation(fields: [commentId], references: [commentId])
+  commentId   Int?
   program     Program?   @relation(fields: [programId], references: [id])
   programId   Int?
 }

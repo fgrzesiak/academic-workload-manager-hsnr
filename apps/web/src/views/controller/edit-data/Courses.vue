@@ -305,7 +305,7 @@ const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein');
             >
                 <template #body="{ data }">{{ data.hours }}</template>
                 <template #editor="{ data, field }">
-                    <InputNumber v-model="data[field]" fluid :min="0" />
+                    <InputNumber v-model="data[field]" fluid style="max-width: 6rem" :min="0" />
                 </template>
             </Column>
 

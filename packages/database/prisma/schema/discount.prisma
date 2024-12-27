@@ -4,13 +4,13 @@ model Discount {
   discountTypeId     Int
   semesterPeriod     SemesterPeriod @relation(fields: [semesterPeriodId], references: [id])
   semesterPeriodId   Int
-  teacher           Teacher @relation(fields: [teacherId], references: [id])
-  teacherId         Int
+  teacher            Teacher @relation(fields: [teacherId], references: [id])
+  teacherId          Int
   ordered            Boolean
   approvalDate       DateTime
   supervisor         String
-  comment            Comment @relation(fields: [commentId], references: [commentId])
-  commentId          Int
+  comment            Comment? @relation(fields: [commentId], references: [commentId])
+  commentId          Int?
   description        String
   scope              Float
 }

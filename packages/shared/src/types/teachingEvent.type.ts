@@ -3,16 +3,16 @@ import { TeachingEvent as ITeachingEvent } from "@workspace/database";
 type OptionalExceptFor<T, TRequired extends keyof T> = Partial<T> &
   Pick<T, TRequired>;
 
-export type ITeachingEventResponse = Pick<ITeachingEvent, "id" | "name" | "semesterPeriodId" | "ordered" | "hours" | "programId" | "teacherId">;
+export type ITeachingEventResponse = Pick<ITeachingEvent, "id" | "name" | "semesterPeriodId" | "ordered" | "hours" | "programId" | "teacherId" | "commentId">;
 
 export type ICreateTeachingEventRequest = Pick<
   ITeachingEvent,
-  "name" | "semesterPeriodId" | "ordered" | "hours" | "programId" | "teacherId"
+  "name" | "semesterPeriodId" | "ordered" | "hours" | "programId" | "teacherId" | "commentId"
 >;
 
 export type IUpdateTeachingEventRequest = OptionalExceptFor<
-  Pick<ITeachingEvent, "id" | "name" | "semesterPeriodId" | "ordered" | "hours" | "programId" | "teacherId">,
-  "id" | "programId"
+  Pick<ITeachingEvent, "id" | "name" | "semesterPeriodId" | "ordered" | "hours" | "programId" | "teacherId" | "commentId">,
+  "id" | "programId" | "commentId"
 >;
 
 export class TeachingEvent implements ITeachingEvent {
@@ -23,6 +23,7 @@ export class TeachingEvent implements ITeachingEvent {
   hours!: number;
   programId!: number;
   teacherId!: number;
+  commentId!: number;
 
   constructor(private data: ITeachingEvent) {
     Object.assign(this, data);

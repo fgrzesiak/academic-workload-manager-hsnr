@@ -12,7 +12,7 @@ export type ICreateSupervisionRequest = Pick<
 
 export type IUpdateSupervisionRequest = OptionalExceptFor<
   Pick<ISupervision, "id" | "studentId" | "semesterPeriodId" | "supervisionTypeId" | "teacherId" | "commentId">,
-  "id"
+  "id" | "commentId"
 >;
 
 export class Supervision implements ISupervision {

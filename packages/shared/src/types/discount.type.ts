@@ -12,7 +12,7 @@ export type ICreateDiscountRequest = Pick<
 
 export type IUpdateDiscountRequest = OptionalExceptFor<
   Pick<IDiscount, "id" | "discountTypeId" | "semesterPeriodId" | "ordered" | "approvalDate" | "supervisor" | "commentId" | "description" | "scope" | "teacherId">,
-  "id"
+  "id" | "commentId"
 >;
 
 export class Discount implements IDiscount {

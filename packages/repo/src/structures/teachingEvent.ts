@@ -10,6 +10,7 @@ export class TeachingEvent implements ITeachingEvent {
   hours!: number;
   programId!: number;
   teacherId!: number;
+  commentId!: number;
 
   constructor(private data: ITeachingEvent) {
     Object.assign(this, data);
