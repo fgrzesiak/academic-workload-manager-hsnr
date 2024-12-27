@@ -1,117 +1,145 @@
 <script lang="ts">
-// import { Form } from '@primevue/forms'
-// import { Checkbox } from 'primevue';
-import { defineComponent, ref } from 'vue';
+import { ComponentOptions } from 'vue';
+import { ISupervisionTypeResponse, IDiscountTypeResponse, ISemesterResponse, ITeacherResponse } from '@workspace/shared'
+import SupervisionTypeService from '@/service/supervisionType.service'
+import SemesterService from '@/service/semester.service'
+import TeacherService from '@/service/teacher.service'
+import DiscountTypeService from '@/service/discountType.service'
 
-export default defineComponent({
+interface SelectOption {
+    label: string;
+    value: number;
+}
+
+export default {
   name: 'DeputatsAbrechnung',
-  setup() {
-    const individualDeputat = ref<number | null>(null);
-
-    const courses = ref([
-      { name: '', sws: null, ordered: false, comment: '', },
-    ]);
-
-    const mentoring = ref([
-      { type: '', matriculationNumber: '', comment: '', },
-    ]);
-
-    const reductions = ref([
-      { type: '', details: '', approvedBy: '', approvedOn: new Date(), sws: null, comment: '', ordered: false, },
-    ]);
-
-    const mentoringTypes = [
-      'Bachelorarbeit',
-      'Masterarbeit',
-      'Zweitprüfer',
-      'Praxissemester',
-    ];
-
-    const reductionTypes = [
-      'Funktion/Aufgabe',
-      'Forschung/Entwicklung',
-      'Gesetzlich',
-    ];
-
-    const addCourse = () => {
-      courses.value.push({ name: '', sws: null, ordered: false, comment: '', });
-    };
-
-    const removeCourse = (index: number) => {
-      courses.value.splice(index, 1);
-    };
-
-    const addMentoring = () => {
-      mentoring.value.push({ type: '', matriculationNumber: '', comment: '', });
-    };
-
-    const removeMentoring = (index: number) => {
-      mentoring.value.splice(index, 1);
-    };
-
-    const addReduction = () => {
-      reductions.value.push({ type: '', details: '', approvedBy: '', approvedOn: new Date(), sws: null, comment: '', ordered: false, });
-    };
-
-    const removeReduction = (index: number) => {
-      reductions.value.splice(index, 1);
-    };
-
-    const display = ref(false);
-    const courseCommentOverlay = ref(false);
-    const mentorCommentOverlay = ref(false);
-    const reductionCommentOverlay = ref(false);
-
-    const openDialog = () => {
-        display.value = true;
-    };
-
-    const closeDialog = () => {
-        const formData = {
-            individualDeputat: individualDeputat.value,
-            courses: courses.value,
-            mentoring: mentoring.value,
-            reductions: reductions.value,
-        };
-        console.log('Form Data:', formData);
-
-        display.value = false;
-    };
-
-    const submitForm = () => {
-      const formData = {
-        individualDeputat: individualDeputat.value,
-        courses: courses.value,
-        mentoring: mentoring.value,
-        reductions: reductions.value,
-      };
-      console.log('Form Data:', formData);
-    };
-
+  data(): {
+    individualDeputat: number;
+    semester: number;
+    teacher: number;
+    courses: { name: string; sws: number; ordered: boolean; comment: string }[];
+    mentoring: { type: string; matriculationNumber: string; comment: string }[];
+    reductions: { type: string; details: string; approvedBy: string; approvedOn: Date; sws: number; comment: string; ordered: boolean }[];
+    display: boolean;
+    mentoringTypes: SelectOption[];
+    reductionTypes: SelectOption[];
+    semesterSelect: SelectOption[];
+    teacherSelect: SelectOption[];
+    courseCommentOverlay: boolean;
+    mentorCommentOverlay: boolean;
+    reductionCommentOverlay: boolean;
+  } {
     return {
-      individualDeputat,
-      courses,
-      mentoring,
-      reductions,
-      mentoringTypes,
-      reductionTypes,
-      addCourse,
-      removeCourse,
-      addMentoring,
-      removeMentoring,
-      addReduction,
-      removeReduction,
-      openDialog,
-      closeDialog,
-      display,
-      courseCommentOverlay,
-      mentorCommentOverlay,
-      reductionCommentOverlay,
-      submitForm,
+      individualDeputat: 0,
+      semester: 0,
+      teacher: 0,
+      courses: [{ name: '', sws: 0, ordered: false, comment: '' }],
+      mentoring: [{ type: '', matriculationNumber: '', comment: '' }],
+      reductions: [{ type: '', details: '', approvedBy: '', approvedOn: new Date(), sws: 0, comment: '', ordered: false }],
+      display: false,
+      courseCommentOverlay: false,
+      mentorCommentOverlay: false,
+      reductionCommentOverlay: false,
+      mentoringTypes: [] as SelectOption[],
+      reductionTypes: [] as SelectOption[],
+      semesterSelect: [] as SelectOption[],
+      teacherSelect: [] as SelectOption[],
     };
   },
-});
+  methods: {
+    addCourse() {
+      this.courses.push({ name: '', sws: 0, ordered: false, comment: '' });
+    },
+    removeCourse(index: number) {
+      this.courses.splice(index, 1);
+    },
+    addMentoring() {
+      this.mentoring.push({ type: '', matriculationNumber: '', comment: '' });
+    },
+    removeMentoring(index: number) {
+      this.mentoring.splice(index, 1);
+    },
+    addReduction() {
+      this.reductions.push({ type: '', details: '', approvedBy: '', approvedOn: new Date(), sws: 0, comment: '', ordered: false });
+    },
+    removeReduction(index: number) {
+      this.reductions.splice(index, 1);
+    },
+    openDialog() {
+      this.display = true;
+    },
+    submitForm() {
+      const formData = {
+        individualDeputat: this.individualDeputat,
+        courses: this.courses,
+        mentoring: this.mentoring,
+        reductions: this.reductions,
+      };
+      console.log('Form Data:', formData);
+      this.display = false;
+    },
+    async loadMentoringTypes() {
+        SupervisionTypeService.getSupervisionTypes().then((res) => {
+            const { data, error } = res
+            if (error) {
+                console.warn("Couldn`t load supervisionTypes")
+            } else {
+                this.mentoringTypes = data.map((supervisionType: ISupervisionTypeResponse) => ({
+                    label: supervisionType.typeOfSupervision,
+                    value: supervisionType.typeOfSupervisionId,
+                }));
+            }
+        }) 
+    },
+    async loadReductionTypes() {
+        DiscountTypeService.getDiscountTypes().then((res) => {
+            const { data, error } = res
+            if (error) {
+                console.warn("Couldn`t load reductionTypes")
+            } else {
+                this.reductionTypes = data.map((reductionType: IDiscountTypeResponse) => ({
+                    label: reductionType.discountType,
+                    value: reductionType.discountTypeId,
+                }));
+            }
+        }) 
+    },
+    async loadSemesters() {
+        SemesterService.getSemesters().then((res) => {
+            const { data, error } = res
+            if (error) {
+                console.warn("[Discount-Overview] Couldn`t load semster")
+            } else {
+                this.semesterSelect = data.map((semester: ISemesterResponse) => ({
+                    label: semester.name,
+                    value: semester.id,
+                }));
+            }
+        }) 
+    },
+    async loadTeachers() {
+        TeacherService.getTeachers().then((res) => {
+            const { data, error } = res
+            if (error) {
+                console.warn("[Discount-Overview] Couldn`t load teachers")
+            } else {
+                this.teacherSelect = data.map((teacher: ITeacherResponse) => ({
+                    label: teacher.firstName + " " + teacher.lastName,
+                    value: teacher.id,
+                }));
+            }
+        })
+    },
+  },
+  async mounted() {
+    await this.loadMentoringTypes();
+    await this.loadReductionTypes();
+    await this.loadSemesters();
+    await this.loadTeachers();
+  },
+} as ComponentOptions;
 </script>
+
 
 <template>
     <div>
@@ -121,7 +149,40 @@ export default defineComponent({
             @submit="submitForm"
         >
             <div class="card flex flex-wrap items-start items-center justify-between">
-                <h1 class="mb-4 text-xl font-semibold">Deputatsmeldung für SS24</h1>
+                <div class="flex items-center gap-2">
+                    <h1 class="text-xl font-semibold">Deputatsmeldung für </h1>
+                    <FloatLabel variant="on">
+                        <Select
+                            v-model="teacher"
+                            option-label="label" 
+                            option-value="value"
+                            name="type"
+                            :options="teacherSelect"
+                            :style="{ width: '180px' }"
+                        ></Select>
+                        <label
+                            for="mentor-type"
+                            class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
+                            >Lehrperson</label
+                        >
+                    </FloatLabel>
+                    <h1 class="text-xl font-semibold"> im </h1>
+                    <FloatLabel variant="on">
+                        <Select
+                            v-model="semester"
+                            option-label="label" 
+                            option-value="value"
+                            name="type"
+                            :options="semesterSelect"
+                            :style="{ width: '180px' }"
+                        ></Select>
+                        <label
+                            for="mentor-type"
+                            class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
+                            >Semester</label
+                        >
+                    </FloatLabel>
+                </div>
                 <div class="flex items-center gap-2">
                     <p class="text-m font-semibold">Individuelles Lehrdeputat: </p>
                     <FloatLabel variant="on">
@@ -149,7 +210,7 @@ export default defineComponent({
                         :modal="true"
                     >
                         <p class="m-0 leading-normal">
-                            Bitte überprüfen Sie ihre EIngaben sorgfältig! Sind sie sicher, dass alle Angaben korrekt sind? 
+                            Bitte überprüfen Sie ihre Eingaben sorgfältig! Sind sie sicher, dass alle Angaben korrekt sind? 
                         </p>
                         <p class="m-0 leading-normal">
                             Falls alles korrekt ist, klicken Sie auf "Abschicken", um fortzufahren. Andernfalls, korrigieren Sie bitte Ihre Eingaben vor dem Abschicken.
@@ -160,7 +221,7 @@ export default defineComponent({
                             label="Abschicken"
                             class="p-button-success"
                             icon="pi pi-send"
-                            @click="closeDialog"
+                            @click="submitForm"
                             />
                         </template>
                     </Dialog>
@@ -273,7 +334,8 @@ export default defineComponent({
                     <FloatLabel variant="on">
                         <Select
                             v-model="mentor.type"
-                            label-id="mentor-type"
+                            option-label="label" 
+                            option-value="value"
                             name="type"
                             :options="mentoringTypes"
                             :style="{ width: '200px' }"
@@ -344,7 +406,8 @@ export default defineComponent({
                             <FloatLabel variant="on">
                                 <Select
                                     v-model="reduction.type"
-                                    label-id="reduction-type"
+                                    option-label="label" 
+                                    option-value="value"
                                     name="type"
                                     :options="reductionTypes"
                                     :style="{ width: '200px' }"
