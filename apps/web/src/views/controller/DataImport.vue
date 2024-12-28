@@ -1,6 +1,6 @@
 <script lang="ts">
 import { ComponentOptions } from 'vue';
-import { ISupervisionTypeResponse, IDiscountTypeResponse, ISemesterResponse, ITeacherResponse, ICreateTeachingEventRequest, ICreateSupervisionRequest, ICreateDiscountRequest } from '@workspace/shared'
+import { ISupervisionTypeResponse, IDiscountTypeResponse, ISemesterResponse, ITeacherResponse, ICreateTeachingEventRequest, ICreateSupervisionRequest, ICreateDiscountRequest, ICreateTeachingDutyRequest, ITeachingDutyResponse } from '@workspace/shared'
 import SupervisionTypeService from '@/service/supervisionType.service'
 import SemesterService from '@/service/semester.service'
 import TeacherService from '@/service/teacher.service'
@@ -8,6 +8,7 @@ import DiscountTypeService from '@/service/discountType.service'
 import TeachingEventService from '@/service/teachingEvent.service'
 import SupervisionService from '@/service/supervision.service'
 import DiscountService from '@/service/discount.service'
+import TeachingDutyService from '@/service/teachingDuty.service'
 import { useToast } from 'primevue/usetoast'
 
 interface SelectOption {
@@ -80,81 +81,126 @@ export default {
         this.mentoring = [{ type: 0, matriculationNumber: 0, comment: '' }];
         this.reductions = [{ type: 0, details: '', approvedBy: '', approvedOn: new Date(), sws: 0, comment: '', ordered: false }];
     },
+    async checkTeachingDuty(semesterId: number, teacher: number): Promise<boolean> {
+        try {
+            const res = await teachingDutyService.getTeachingDuties();
+            const { data, error } = res;
+            if (error) {
+                console.warn("Couldn't load teachingDuties");
+                return false;
+            }
+            return data.some((item) => item.semesterPeriodId === semesterId && item.teacherId === teacher);
+        } catch (error) {
+            console.error("Error while checking teaching duties:", error);
+            return false;
+        }
+    },
     submitForm() {
         if(this.semester && this.teacher && this.individualDeputat > 0) {
-            for (const course of this.courses) {
-                if (course.name && course.sws !== null) {
+            this.checkTeachingDuty(this.semester, this.teacher).then((exists) => {
+                console.log(exists);
 
-                    const orderedBoolean = Array.isArray(course.ordered) && course.ordered[0] === "True";
-
-                    const newTeachingEvent: ICreateTeachingEventRequest = {
-                        name: course.name,
+                if(!exists) {
+                    const newTeachingDuty: ICreateTeachingDutyRequest = {
+                        individualDuty: this.individualDeputat,
+                        sumBalance: 0,
+                        sumOrderedBalance: 0,
                         semesterPeriodId: this.semester,
                         teacherId: this.teacher,
-                        hours: course.sws,
-                        ordered: orderedBoolean,
-                        commentId: null,
-                        programId: null,
                     }
 
-                    TeachingEventService.createTeachingEvent(newTeachingEvent).then((res) => {
+                    TeachingDutyService.createTeachingDuty(newTeachingDuty).then((res) => {
                         const { data, error } = res;
                         if (error)
-                            console.log("Fehler beim Erstellen von " + course.name)
+                            console.log("Fehler beim Übermitteln von Deputat indv.")
                     })
-                }
-            }
 
-            for (const mentoring of this.mentoring) {
-                if (mentoring.matriculationNumber && mentoring.type !== null) {
+                    for (const course of this.courses) {
+                        if (course.name && course.sws !== null) {
 
-                    const newSupervision: ICreateSupervisionRequest = {
-                        studentId: mentoring.matriculationNumber,
-                        semesterPeriodId: this.semester,
-                        supervisionTypeId: mentoring.type,
-                        teacherId: this.teacher,
-                        commentId: null,
+                            const orderedBoolean = Array.isArray(course.ordered) && course.ordered[0] === "True";
+
+                            const newTeachingEvent: ICreateTeachingEventRequest = {
+                                name: course.name,
+                                semesterPeriodId: this.semester,
+                                teacherId: this.teacher,
+                                hours: course.sws,
+                                ordered: orderedBoolean,
+                                commentId: null,
+                                programId: null,
+                            }
+
+                            TeachingEventService.createTeachingEvent(newTeachingEvent).then((res) => {
+                                const { data, error } = res;
+                                if (error)
+                                    console.log("Fehler beim Erstellen von " + course.name)
+                            })
+                        }
                     }
 
-                    SupervisionService.createSupervision(newSupervision).then((res) => {
-                        const { data, error } = res
-                        if (error)
-                        console.log("Fehler beim Erstellen von " + mentoring.matriculationNumber)
-                    })
-                }
-            }
+                    for (const mentoring of this.mentoring) {
+                        if (mentoring.matriculationNumber && mentoring.type !== null) {
 
-            for (const reduction of this.reductions) {
-                if (reduction.details && reduction.type && reduction.approvedBy !== null) {
+                            const newSupervision: ICreateSupervisionRequest = {
+                                studentId: mentoring.matriculationNumber,
+                                semesterPeriodId: this.semester,
+                                supervisionTypeId: mentoring.type,
+                                teacherId: this.teacher,
+                                commentId: null,
+                            }
 
-                    const orderedBoolean = Array.isArray(reduction.ordered) && reduction.ordered[0] === "True";
-
-                    const newDiscount: ICreateDiscountRequest = {
-                        semesterPeriodId: this.semester,
-                        teacherId: this.teacher,
-                        commentId: null,
-                        discountTypeId: reduction.type,
-                        ordered: orderedBoolean,
-                        approvalDate: reduction.approvedOn,
-                        supervisor: reduction.approvedBy,
-                        description: reduction.details,
-                        scope: reduction.sws,
+                            SupervisionService.createSupervision(newSupervision).then((res) => {
+                                const { data, error } = res
+                                if (error)
+                                console.log("Fehler beim Erstellen von " + mentoring.matriculationNumber)
+                            })
+                        }
                     }
 
-                    DiscountService.createDiscount(newDiscount).then((res) => {
-                        const { data, error } = res
-                        if (error)
-                        console.log("Fehler beim Erstellen von " + reduction.details)
-                    })
-                }
-            }
+                    for (const reduction of this.reductions) {
+                        if (reduction.details && reduction.type && reduction.approvedBy !== null) {
 
-            // toast.add({
-            //     severity: 'success',
-            //     summary: 'Successful',
-            //     detail: 'Deputatmeldung erfolgreich übermittelt',
-            //     life: 3000,
-            // })
+                            const orderedBoolean = Array.isArray(reduction.ordered) && reduction.ordered[0] === "True";
+
+                            const newDiscount: ICreateDiscountRequest = {
+                                semesterPeriodId: this.semester,
+                                teacherId: this.teacher,
+                                commentId: null,
+                                discountTypeId: reduction.type,
+                                ordered: orderedBoolean,
+                                approvalDate: reduction.approvedOn,
+                                supervisor: reduction.approvedBy,
+                                description: reduction.details,
+                                scope: reduction.sws,
+                            }
+
+                            DiscountService.createDiscount(newDiscount).then((res) => {
+                                const { data, error } = res
+                                if (error)
+                                console.log("Fehler beim Erstellen von " + reduction.details)
+                            })
+                        }
+                    }
+
+                    // this.resetForm();
+
+                    // toast.add({
+                    //     severity: 'success',
+                    //     summary: 'Successful',
+                    //     detail: 'Deputatmeldung erfolgreich übermittelt',
+                    //     life: 3000,
+                    // })
+
+                } else {
+                    // toast.add({
+                    //     severity: 'error',
+                    //     summary: 'Fehler',
+                    //     detail: 'Für dieses Semester und die Lehrperson wurde bereits eine Deputatsmeldung übermittelt',
+                    //     life: 5000,
+                    // })
+                    console.log("Gibt bereits eine Meldung");
+                }    
+            });
         } else {
             // toast.add({
             //     severity: 'error',
@@ -162,8 +208,8 @@ export default {
             //     detail: 'Deputatmeldung konnte nicht übermittelt werden',
             //     life: 5000,
             // })
+            console.log("Nicht alle Felder ausgefüllt");
         }
-        this.resetForm();
         this.display = false;
     },
     async loadMentoringTypes() {
