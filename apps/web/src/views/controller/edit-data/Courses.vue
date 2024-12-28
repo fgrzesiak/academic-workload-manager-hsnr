@@ -230,7 +230,6 @@ const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein');
             :rows="10"
             data-key="id"
             :row-hover="true"
-            filter-display="row"
             :loading="loading"
             v-model:filters="filters"
             :global-filter-fields="['name']"
@@ -286,14 +285,6 @@ const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein');
                 <template #body="{ data }">{{ data.name }}</template>
                 <template #editor="{ data, field }">
                     <InputText v-model="data[field]" fluid />
-                </template>
-                <template #filter="{ filterModel, filterCallback }">
-                    <InputText
-                        @input="filterCallback()"
-                        v-model="filterModel.value"
-                        type="text"
-                        placeholder="Lehrveranstaltung suchen"
-                    />
                 </template>
             </Column>
 

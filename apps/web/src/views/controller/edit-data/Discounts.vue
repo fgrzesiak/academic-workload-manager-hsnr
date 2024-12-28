@@ -266,7 +266,6 @@ const formatDate = (value: string) => {
             :rows="10"
             data-key="id"
             :row-hover="true"
-            filter-display="row"
             :loading="loading"
             v-model:filters="filters"
             :global-filter-fields="['description', 'supervisor']"
@@ -335,14 +334,6 @@ const formatDate = (value: string) => {
                 <template #editor="{ data, field }">
                     <InputText v-model="data[field]" fluid />
                 </template>
-                <template #filter="{ filterModel, filterCallback }">
-                    <InputText
-                        @input="filterCallback()"
-                        v-model="filterModel.value"
-                        type="text"
-                        placeholder="Ermäßigung suchen"
-                    />
-                </template>
             </Column>
 
             <!-- Supervisor Column -->
@@ -354,14 +345,6 @@ const formatDate = (value: string) => {
                 <template #body="{ data }">{{ data.supervisor }}</template>
                 <template #editor="{ data, field }">
                     <InputText v-model="data[field]" fluid />
-                </template>
-                <template #filter="{ filterModel, filterCallback }">
-                    <InputText
-                        @input="filterCallback()"
-                        v-model="filterModel.value"
-                        type="text"
-                        placeholder="Vorgesetzten suchen"
-                    />
                 </template>
             </Column>
 
