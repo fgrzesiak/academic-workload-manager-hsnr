@@ -1,10 +1,14 @@
 <script lang="ts">
 import { ComponentOptions } from 'vue';
-import { ISupervisionTypeResponse, IDiscountTypeResponse, ISemesterResponse, ITeacherResponse } from '@workspace/shared'
+import { ISupervisionTypeResponse, IDiscountTypeResponse, ISemesterResponse, ITeacherResponse, ICreateTeachingEventRequest, ICreateSupervisionRequest, ICreateDiscountRequest } from '@workspace/shared'
 import SupervisionTypeService from '@/service/supervisionType.service'
 import SemesterService from '@/service/semester.service'
 import TeacherService from '@/service/teacher.service'
 import DiscountTypeService from '@/service/discountType.service'
+import TeachingEventService from '@/service/teachingEvent.service'
+import SupervisionService from '@/service/supervision.service'
+import DiscountService from '@/service/discount.service'
+import { useToast } from 'primevue/usetoast'
 
 interface SelectOption {
     label: string;
@@ -18,8 +22,8 @@ export default {
     semester: number;
     teacher: number;
     courses: { name: string; sws: number; ordered: boolean; comment: string }[];
-    mentoring: { type: string; matriculationNumber: string; comment: string }[];
-    reductions: { type: string; details: string; approvedBy: string; approvedOn: Date; sws: number; comment: string; ordered: boolean }[];
+    mentoring: { type: number; matriculationNumber: number; comment: string }[];
+    reductions: { type: number; details: string; approvedBy: string; approvedOn: Date; sws: number; comment: string; ordered: boolean }[];
     display: boolean;
     mentoringTypes: SelectOption[];
     reductionTypes: SelectOption[];
@@ -34,8 +38,8 @@ export default {
       semester: 0,
       teacher: 0,
       courses: [{ name: '', sws: 0, ordered: false, comment: '' }],
-      mentoring: [{ type: '', matriculationNumber: '', comment: '' }],
-      reductions: [{ type: '', details: '', approvedBy: '', approvedOn: new Date(), sws: 0, comment: '', ordered: false }],
+      mentoring: [{ type: 0, matriculationNumber: 0, comment: '' }],
+      reductions: [{ type: 0, details: '', approvedBy: '', approvedOn: new Date(), sws: 0, comment: '', ordered: false }],
       display: false,
       courseCommentOverlay: false,
       mentorCommentOverlay: false,
@@ -54,13 +58,13 @@ export default {
       this.courses.splice(index, 1);
     },
     addMentoring() {
-      this.mentoring.push({ type: '', matriculationNumber: '', comment: '' });
+      this.mentoring.push({ type: 0, matriculationNumber: 0, comment: '' });
     },
     removeMentoring(index: number) {
       this.mentoring.splice(index, 1);
     },
     addReduction() {
-      this.reductions.push({ type: '', details: '', approvedBy: '', approvedOn: new Date(), sws: 0, comment: '', ordered: false });
+      this.reductions.push({ type: 0, details: '', approvedBy: '', approvedOn: new Date(), sws: 0, comment: '', ordered: false });
     },
     removeReduction(index: number) {
       this.reductions.splice(index, 1);
@@ -68,15 +72,99 @@ export default {
     openDialog() {
       this.display = true;
     },
+    resetForm() {
+        this.individualDeputat = 0;
+        this.teacher = 0;
+        this.semester = 0;
+        this.courses = [{ name: '', sws: 0, ordered: false, comment: '' }];
+        this.mentoring = [{ type: 0, matriculationNumber: 0, comment: '' }];
+        this.reductions = [{ type: 0, details: '', approvedBy: '', approvedOn: new Date(), sws: 0, comment: '', ordered: false }];
+    },
     submitForm() {
-      const formData = {
-        individualDeputat: this.individualDeputat,
-        courses: this.courses,
-        mentoring: this.mentoring,
-        reductions: this.reductions,
-      };
-      console.log('Form Data:', formData);
-      this.display = false;
+        if(this.semester && this.teacher > 0) {
+            for (const course of this.courses) {
+                if (course.name && course.sws !== null) {
+
+                    const orderedBoolean = Array.isArray(course.ordered) && course.ordered[0] === "True";
+
+                    const newTeachingEvent: ICreateTeachingEventRequest = {
+                        name: course.name,
+                        semesterPeriodId: this.semester,
+                        teacherId: this.teacher,
+                        hours: course.sws,
+                        ordered: orderedBoolean,
+                        commentId: null,
+                        programId: null,
+                    }
+
+                    TeachingEventService.createTeachingEvent(newTeachingEvent).then((res) => {
+                        const { data, error } = res;
+                        if (error)
+                            console.log("Fehler beim Erstellen von " + course.name)
+                    })
+                }
+            }
+
+            for (const mentoring of this.mentoring) {
+                if (mentoring.matriculationNumber && mentoring.type !== null) {
+
+                    const newSupervision: ICreateSupervisionRequest = {
+                        studentId: mentoring.matriculationNumber,
+                        semesterPeriodId: this.semester,
+                        supervisionTypeId: mentoring.type,
+                        teacherId: this.teacher,
+                        commentId: null,
+                    }
+
+                    SupervisionService.createSupervision(newSupervision).then((res) => {
+                        const { data, error } = res
+                        if (error)
+                        console.log("Fehler beim Erstellen von " + mentoring.matriculationNumber)
+                    })
+                }
+            }
+
+            for (const reduction of this.reductions) {
+                if (reduction.details && reduction.type && reduction.approvedBy !== null) {
+
+                    const orderedBoolean = Array.isArray(reduction.ordered) && reduction.ordered[0] === "True";
+
+                    const newDiscount: ICreateDiscountRequest = {
+                        semesterPeriodId: this.semester,
+                        teacherId: this.teacher,
+                        commentId: null,
+                        discountTypeId: reduction.type,
+                        ordered: orderedBoolean,
+                        approvalDate: reduction.approvedOn,
+                        supervisor: reduction.approvedBy,
+                        description: reduction.details,
+                        scope: reduction.sws,
+                    }
+
+                    DiscountService.createDiscount(newDiscount).then((res) => {
+                        const { data, error } = res
+                        if (error)
+                        console.log("Fehler beim Erstellen von " + reduction.details)
+                    })
+                }
+            }
+
+            // toast.add({
+            //     severity: 'success',
+            //     summary: 'Successful',
+            //     detail: 'Deputatmeldung erfolgreich übermittelt',
+            //     life: 3000,
+            // })
+        } else {
+            // toast.add({
+            //     severity: 'error',
+            //     summary: 'Fehler',
+            //     detail: 'Deputatmeldung konnte nicht übermittelt werden',
+            //     life: 5000,
+            // })
+        }
+        this.resetForm();
+        this.display = false;
     },
     async loadMentoringTypes() {
         SupervisionTypeService.getSupervisionTypes().then((res) => {
@@ -189,6 +277,7 @@ export default {
                         <InputNumber
                             v-model="individualDeputat"
                             label-id="indvDeputat"
+                            :min="0"
                         />
                         <label
                             for="indvDeputat"
@@ -258,6 +347,7 @@ export default {
                         <InputNumber
                             label-id="sws-course"
                             v-model="course.sws"
+                            :min="0"
                         />
                         <label
                             for="sws-course"
@@ -347,10 +437,12 @@ export default {
                         >
                     </FloatLabel>
                     <FloatLabel variant="on">
-                        <InputText
+                        <InputNumber
                             label-id="mentor-matriculationNumber"
                             v-model="mentor.matriculationNumber"
                             v-tooltip="'Matrikelnummer des betreuten Studenten'"
+                            :useGrouping="false"
+                            :min="0"
                         />
                         <label
                             for="mentor-matriculationNumber"
@@ -434,6 +526,7 @@ export default {
                                 <InputNumber
                                     label-id="sws-course"
                                     v-model="reduction.sws"
+                                    :min="0"
                                 />
                                 <label
                                     for="sws-course"
