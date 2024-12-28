@@ -81,7 +81,7 @@ export default {
         this.reductions = [{ type: 0, details: '', approvedBy: '', approvedOn: new Date(), sws: 0, comment: '', ordered: false }];
     },
     submitForm() {
-        if(this.semester && this.teacher > 0) {
+        if(this.semester && this.teacher && this.individualDeputat > 0) {
             for (const course of this.courses) {
                 if (course.name && course.sws !== null) {
 
@@ -196,7 +196,7 @@ export default {
         SemesterService.getSemesters().then((res) => {
             const { data, error } = res
             if (error) {
-                console.warn("[Discount-Overview] Couldn`t load semster")
+                console.warn("Couldn`t load semster")
             } else {
                 this.semesterSelect = data.map((semester: ISemesterResponse) => ({
                     label: semester.name,
@@ -209,7 +209,7 @@ export default {
         TeacherService.getTeachers().then((res) => {
             const { data, error } = res
             if (error) {
-                console.warn("[Discount-Overview] Couldn`t load teachers")
+                console.warn("Couldn`t load teachers")
             } else {
                 this.teacherSelect = data.map((teacher: ITeacherResponse) => ({
                     label: teacher.firstName + " " + teacher.lastName,

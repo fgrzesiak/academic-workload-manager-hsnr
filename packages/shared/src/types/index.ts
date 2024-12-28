@@ -7,3 +7,5 @@ export * from "./http.type";
 export * from "./semester.type";
 export * from "./supervisionType.type";
 export * from "./discountType.type";
+export * from "./teachingDuty.type";
+export * from "./comment.type";
