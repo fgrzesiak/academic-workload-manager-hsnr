@@ -8,7 +8,8 @@ import {
     ICreateTeachingEventRequest, 
     ICreateSupervisionRequest, 
     ICreateDiscountRequest, 
-    ICreateTeachingDutyRequest 
+    ICreateTeachingDutyRequest, 
+    ICreateCommentRequest
 } from '@workspace/shared'
 import SupervisionTypeService from '@/service/supervisionType.service'
 import SemesterService from '@/service/semester.service'
@@ -18,7 +19,9 @@ import TeachingEventService from '@/service/teachingEvent.service'
 import SupervisionService from '@/service/supervision.service'
 import DiscountService from '@/service/discount.service'
 import TeachingDutyService from '@/service/teachingDuty.service'
+import CommentService from '@/service/comment.service';
 import { useToast } from 'primevue/usetoast'
+import Mentoring from './edit-data/Mentoring.vue';
 
 interface SelectOption {
     label: string;
@@ -37,30 +40,24 @@ export default {
     individualDeputat: number;
     semester: number;
     teacher: number;
-    courses: { name: string; sws: number; ordered: boolean; comment: string }[];
-    mentoring: { type: number; matriculationNumber: number; comment: string }[];
-    reductions: { type: number; details: string; approvedBy: string; approvedOn: Date; sws: number; comment: string; ordered: boolean }[];
+    courses: { name: string; sws: number; ordered: boolean; comment: string; showComment: boolean; }[];
+    mentoring: { type: number; matriculationNumber: number; comment: string; showComment: boolean; }[];
+    reductions: { type: number; details: string; approvedBy: string; approvedOn: Date; sws: number; comment: string; showComment: boolean; ordered: boolean;}[];
     display: boolean;
     mentoringTypes: SelectOptionCalculation[];
     reductionTypes: SelectOption[];
     semesterSelect: SelectOption[];
     teacherSelect: SelectOption[];
-    courseCommentOverlay: boolean;
-    mentorCommentOverlay: boolean;
-    reductionCommentOverlay: boolean;
     mentoringSum: number;
   } {
     return {
       individualDeputat: 0,
       semester: 0,
       teacher: 0,
-      courses: [{ name: '', sws: 0, ordered: false, comment: '' }],
-      mentoring: [{ type: 0, matriculationNumber: 0, comment: '' }],
-      reductions: [{ type: 0, details: '', approvedBy: '', approvedOn: new Date(), sws: 0, comment: '', ordered: false }],
+      courses: [{ name: '', sws: 0, ordered: false, comment: '', showComment: false, }],
+      mentoring: [{ type: 0, matriculationNumber: 0, comment: '', showComment: false, }],
+      reductions: [{ type: 0, details: '', approvedBy: '', approvedOn: new Date(), sws: 0, comment: '', showComment: false, ordered: false, }],
       display: false,
-      courseCommentOverlay: false,
-      mentorCommentOverlay: false,
-      reductionCommentOverlay: false,
       mentoringTypes: [] as SelectOptionCalculation[],
       reductionTypes: [] as SelectOption[],
       semesterSelect: [] as SelectOption[],
@@ -71,26 +68,26 @@ export default {
   watch: {
     mentoring: {
         handler() {
-            this.calculateMentoringSum(); // Aktualisiere mentoringSum bei Änderungen
+            this.calculateMentoringSum();
         },
-        deep: true, // Überwacht auch Änderungen innerhalb der Array-Objekte
+        deep: true,
     },
   },
   methods: {
     addCourse() {
-      this.courses.push({ name: '', sws: 0, ordered: false, comment: '' });
+      this.courses.push({ name: '', sws: 0, ordered: false, comment: '', showComment: false, });
     },
     removeCourse(index: number) {
       this.courses.splice(index, 1);
     },
     addMentoring() {
-      this.mentoring.push({ type: 0, matriculationNumber: 0, comment: '' });
+      this.mentoring.push({ type: 0, matriculationNumber: 0, comment: '', showComment: false, });
     },
     removeMentoring(index: number) {
       this.mentoring.splice(index, 1);
     },
     addReduction() {
-      this.reductions.push({ type: 0, details: '', approvedBy: '', approvedOn: new Date(), sws: 0, comment: '', ordered: false });
+      this.reductions.push({ type: 0, details: '', approvedBy: '', approvedOn: new Date(), sws: 0, comment: '', showComment: false, ordered: false, });
     },
     removeReduction(index: number) {
       this.reductions.splice(index, 1);
@@ -102,9 +99,9 @@ export default {
         this.individualDeputat = 0;
         this.teacher = 0;
         this.semester = 0;
-        this.courses = [{ name: '', sws: 0, ordered: false, comment: '' }];
-        this.mentoring = [{ type: 0, matriculationNumber: 0, comment: '' }];
-        this.reductions = [{ type: 0, details: '', approvedBy: '', approvedOn: new Date(), sws: 0, comment: '', ordered: false }];
+        this.courses = [{ name: '', sws: 0, ordered: false, comment: '', showComment: false, }];
+        this.mentoring = [{ type: 0, matriculationNumber: 0, comment: '', showComment: false, }];
+        this.reductions = [{ type: 0, details: '', approvedBy: '', approvedOn: new Date(), sws: 0, comment: '', showComment: false, ordered: false, }];
         this.mentoringSum = 0;
     },
     async checkTeachingDuty(semesterId: number, teacher: number): Promise<boolean> {
@@ -127,7 +124,6 @@ export default {
             return;
         }
 
-        // Berechne die Summe der `calculation`-Werte der ausgewählten Typen
         this.mentoringSum = this.mentoring.reduce((sum, mentor) => {
             const selectedType = this.mentoringTypes.find(
                 (type) => type.value === mentor.type
@@ -138,7 +134,6 @@ export default {
     submitForm() {
         if(this.semester && this.teacher && this.individualDeputat > 0) {
             this.checkTeachingDuty(this.semester, this.teacher).then((exists) => {
-                console.log(exists);
 
                 if(!exists) {
                     const newTeachingDuty: ICreateTeachingDutyRequest = {
@@ -149,14 +144,30 @@ export default {
                         teacherId: this.teacher,
                     }
 
-                    TeachingDutyService.createTeachingDuty(newTeachingDuty).then((res) => {
-                        const { error } = res;
-                        if (error)
-                            console.log("Fehler beim Übermitteln von Deputat indv.")
-                    })
+                    // TeachingDutyService.createTeachingDuty(newTeachingDuty).then((res) => {
+                    //     const { error } = res;
+                    //     if (error)
+                    //         console.log("Fehler beim Übermitteln von Deputat indv.")
+                    // })
 
                     for (const course of this.courses) {
                         if (course.name && course.sws !== null) {
+                            var commentId = null;
+
+                            const newComment: ICreateCommentRequest = {
+                                userId: 1,
+                                commentContent: course.comment,
+                                commentDate: new Date(),       
+                            }
+
+                            CommentService.createComment(newComment).then((res) => {
+                                const { data, error } = res;
+                                if (error) {
+                                    console.log("Fehler beim Erstellen von Kommentar zu " + course.name)
+                                } else {
+                                    commentId = data.commentId;
+                                }
+                            })
 
                             const orderedBoolean = Array.isArray(course.ordered) && course.ordered[0] === "True";
 
@@ -166,7 +177,7 @@ export default {
                                 teacherId: this.teacher,
                                 hours: course.sws,
                                 ordered: orderedBoolean,
-                                commentId: null,
+                                commentId: commentId,
                                 programId: null,
                             }
 
@@ -181,12 +192,29 @@ export default {
                     for (const mentoring of this.mentoring) {
                         if (mentoring.matriculationNumber && mentoring.type !== null) {
 
+                            var commentId = null;
+
+                            const newComment: ICreateCommentRequest = {
+                                userId: 1,
+                                commentContent: mentoring.comment,
+                                commentDate: new Date(),       
+                            }
+
+                            CommentService.createComment(newComment).then((res) => {
+                                const { data, error } = res;
+                                if (error) {
+                                    console.log("Fehler beim Erstellen von Kommentar zu " + mentoring.matriculationNumber)
+                                } else {
+                                    commentId = data.commentId
+                                }
+                            })
+
                             const newSupervision: ICreateSupervisionRequest = {
                                 studentId: mentoring.matriculationNumber,
                                 semesterPeriodId: this.semester,
                                 supervisionTypeId: mentoring.type,
                                 teacherId: this.teacher,
-                                commentId: null,
+                                commentId: commentId,
                             }
 
                             SupervisionService.createSupervision(newSupervision).then((res) => {
@@ -200,12 +228,29 @@ export default {
                     for (const reduction of this.reductions) {
                         if (reduction.details && reduction.type && reduction.approvedBy !== null) {
 
+                            var commentId = null;
+
+                            const newComment: ICreateCommentRequest = {
+                                userId: 1,
+                                commentContent: reduction.comment,
+                                commentDate: new Date(),       
+                            }
+
+                            CommentService.createComment(newComment).then((res) => {
+                                const { data, error } = res;
+                                if (error) {
+                                    console.log("Fehler beim Erstellen von Kommentar zu " + reduction.details)
+                                } else {
+                                    commentId = data.commentId
+                                }
+                            })
+
                             const orderedBoolean = Array.isArray(reduction.ordered) && reduction.ordered[0] === "True";
 
                             const newDiscount: ICreateDiscountRequest = {
                                 semesterPeriodId: this.semester,
                                 teacherId: this.teacher,
-                                commentId: null,
+                                commentId: commentId,
                                 discountTypeId: reduction.type,
                                 ordered: orderedBoolean,
                                 approvalDate: reduction.approvedOn,
@@ -222,7 +267,7 @@ export default {
                         }
                     }
 
-                    // this.resetForm();
+                    this.resetForm();
 
                     // toast.add({
                     //     severity: 'success',
@@ -405,19 +450,8 @@ export default {
             </div>
 
             <div class="card courses">
-                <div class="flex mb-4 gap-4 items-center">
-                    <h2 class="text-xl font-semibold">Lehrveranstaltungen</h2>
-                    <Button
-                        icon="pi pi-info-circle"
-                        severity="info"
-                        type="button"
-                        v-tooltip="'*Lehrveranstaltungen, die nicht in jeder Woche der Vorlesungszeit stattfinden, sind in SWS umzurechnen (Gesamtstunden geteilt durch 15)'"
-                        raised
-                        rounded
-                        outlined
-                    />
-                </div>
-                <!-- <p class="mb-4 text-xs">*Lehrveranstaltungen, die nicht in jeder Woche der Vorlesungszeit stattfinden, sind in SWS umzurechnen (Gesamtstunden geteilt durch 15)</p> -->
+                <h2 class="text-xl mb-1 font-semibold">Lehrveranstaltungen</h2>
+                <p class="mb-6 text-xs">*Lehrveranstaltungen, die nicht in jeder Woche der Vorlesungszeit stattfinden, sind in SWS umzurechnen (Gesamtstunden geteilt durch 15)</p>
                 <div v-for="(course, index) in courses" :key="index" class="course-entry flex items-center gap-4 mb-4">
                     <FloatLabel variant="on">
                         <InputText
@@ -463,10 +497,10 @@ export default {
                         label="Kommentar hinzufügen"
                         icon="pi pi-comments"
                         class="p-button-secondary"
-                        @click="(courseCommentOverlay = true)"
+                        @click="(course.showComment = true)"
                     />
                     <Drawer
-                        v-model:visible="courseCommentOverlay"
+                        v-model:visible="course.showComment"
                         header="Kommentar zur Lehrveranstaltung"
                         position="right"
                     >
@@ -480,7 +514,7 @@ export default {
                                 label="Speichern"
                                 class="p-button-success"
                                 icon="pi pi-save"
-                                @click=""
+                                @click="(course.showComment = false)"
                             />
                         </div>
                     </Drawer>
@@ -495,18 +529,7 @@ export default {
             </div>
 
             <div class="card mentoring">
-                <div class="flex mb-4 gap-4 items-center">
-                    <h2 class="text-xl font-semibold">Betreuungen</h2>
-                    <Button
-                        icon="pi pi-info-circle"
-                        severity="info"
-                        type="button"
-                        v-tooltip="'gemäß §4 Abs. 5 LVV max. 3 SWS anrechenbar'"
-                        raised
-                        rounded
-                        outlined
-                    />
-                </div>
+                <h2 class="text-xl font-semibold mb-4">Betreuungen</h2>
                 <div v-for="(mentor, index) in mentoring" :key="index" class="course-entry flex flex-wrap gap-4 mb-4">
                     <FloatLabel variant="on">
                         <Select
@@ -547,10 +570,10 @@ export default {
                         label="Kommentar hinzufügen"
                         icon="pi pi-comments"
                         class="p-button-secondary"
-                        @click="(mentorCommentOverlay = true)"
+                        @click="(mentor.showComment = true)"
                     />
                     <Drawer
-                        v-model:visible="mentorCommentOverlay"
+                        v-model:visible="mentor.showComment"
                         header="Kommentar zur Betreuung"
                         position="right"
                     >
@@ -564,7 +587,7 @@ export default {
                                 label="Speichern"
                                 class="p-button-success"
                                 icon="pi pi-save"
-                                @click=""
+                                @click="(mentor.showComment = false)"
                             />
                         </div>
                     </Drawer>
@@ -677,12 +700,12 @@ export default {
                             label="Kommentar hinzufügen"
                             icon="pi pi-comments"
                             class="p-button-secondary"
-                            @click="(reductionCommentOverlay = true)"
+                            @click="(reduction.showComment = true)"
                         />
                         </div>
                     </div>
                     <Drawer
-                        v-model:visible="reductionCommentOverlay"
+                        v-model:visible="reduction.showComment"
                         header="Kommentar zur Ermäßigung"
                         position="right"
                     >
@@ -696,7 +719,7 @@ export default {
                                 label="Speichern"
                                 class="p-button-success"
                                 icon="pi pi-save"
-                                @click=""
+                                @click="(reduction.showComment = false)"
                             />
                         </div>
                     </Drawer>

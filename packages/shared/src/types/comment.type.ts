@@ -7,7 +7,7 @@ export type ICommentResponse = Pick<IComment, "commentId" | "commentContent" | "
 
 export type ICreateCommentRequest = Pick<
   IComment,
-  "commentId" | "commentContent" | "commentDate" | "userId"
+  "commentContent" | "commentDate" | "userId"
 >;
 
 export type IUpdateCommentRequest = OptionalExceptFor<
