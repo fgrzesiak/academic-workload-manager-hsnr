@@ -131,161 +131,155 @@ export default {
             return sum + (selectedType?.calculation || 0);
         }, 0);
     },
-    submitForm() {
+    async createComment(content: string): Promise<number> {
+        const newComment: ICreateCommentRequest = {
+            userId: 1,
+            commentContent: content,
+            commentDate: new Date(),
+        };
+
+        try {
+            const res = await CommentService.createComment(newComment);
+            const { data, error } = res;
+
+            if (error) {
+                console.log("Fehler beim Erstellen von Kommentar zu " + content);
+                return 0;
+            } else {
+                return data.commentId || 0;
+            }
+        } catch (error) {
+            console.error("Fehler beim Erstellen des Kommentars:", error);
+            return 0;
+        }
+    },
+    async submitForm() {
         if(this.semester && this.teacher && this.individualDeputat > 0) {
-            this.checkTeachingDuty(this.semester, this.teacher).then((exists) => {
 
-                if(!exists) {
-                    const newTeachingDuty: ICreateTeachingDutyRequest = {
-                        individualDuty: this.individualDeputat,
-                        sumBalance: 0,
-                        sumOrderedBalance: 0,
-                        semesterPeriodId: this.semester,
-                        teacherId: this.teacher,
-                    }
+            const exists = await this.checkTeachingDuty(this.semester, this.teacher)
 
-                    // TeachingDutyService.createTeachingDuty(newTeachingDuty).then((res) => {
-                    //     const { error } = res;
-                    //     if (error)
-                    //         console.log("Fehler beim Übermitteln von Deputat indv.")
-                    // })
+            if(!exists) {
+                const newTeachingDuty: ICreateTeachingDutyRequest = {
+                    individualDuty: this.individualDeputat,
+                    sumBalance: 0,
+                    sumOrderedBalance: 0,
+                    semesterPeriodId: this.semester,
+                    teacherId: this.teacher,
+                }
 
-                    for (const course of this.courses) {
-                        if (course.name && course.sws !== null) {
-                            var commentId = null;
+                // TeachingDutyService.createTeachingDuty(newTeachingDuty).then((res) => {
+                //     const { error } = res;
+                //     if (error)
+                //         console.log("Fehler beim Übermitteln von Deputat indv.")
+                // })
 
-                            const newComment: ICreateCommentRequest = {
-                                userId: 1,
-                                commentContent: course.comment,
-                                commentDate: new Date(),       
-                            }
+                for (const course of this.courses) {
+                    if (course.name !=="" && course.sws !== null) {
+                        
+                        let commentId: number | null = null;
 
-                            CommentService.createComment(newComment).then((res) => {
-                                const { data, error } = res;
-                                if (error) {
-                                    console.log("Fehler beim Erstellen von Kommentar zu " + course.name)
-                                } else {
-                                    commentId = data.commentId;
-                                }
-                            })
-
-                            const orderedBoolean = Array.isArray(course.ordered) && course.ordered[0] === "True";
-
-                            const newTeachingEvent: ICreateTeachingEventRequest = {
-                                name: course.name,
-                                semesterPeriodId: this.semester,
-                                teacherId: this.teacher,
-                                hours: course.sws,
-                                ordered: orderedBoolean,
-                                commentId: commentId,
-                                programId: null,
-                            }
-
-                            TeachingEventService.createTeachingEvent(newTeachingEvent).then((res) => {
-                                const { error } = res;
-                                if (error)
-                                    console.log("Fehler beim Erstellen von " + course.name)
-                            })
+                        if(course.comment !== "") {
+                            commentId = await this.createComment(course.comment);
                         }
-                    }
 
-                    for (const mentoring of this.mentoring) {
-                        if (mentoring.matriculationNumber && mentoring.type !== null) {
+                        const orderedBoolean = Array.isArray(course.ordered) && course.ordered[0] === "True";
 
-                            var commentId = null;
-
-                            const newComment: ICreateCommentRequest = {
-                                userId: 1,
-                                commentContent: mentoring.comment,
-                                commentDate: new Date(),       
-                            }
-
-                            CommentService.createComment(newComment).then((res) => {
-                                const { data, error } = res;
-                                if (error) {
-                                    console.log("Fehler beim Erstellen von Kommentar zu " + mentoring.matriculationNumber)
-                                } else {
-                                    commentId = data.commentId
-                                }
-                            })
-
-                            const newSupervision: ICreateSupervisionRequest = {
-                                studentId: mentoring.matriculationNumber,
-                                semesterPeriodId: this.semester,
-                                supervisionTypeId: mentoring.type,
-                                teacherId: this.teacher,
-                                commentId: commentId,
-                            }
-
-                            SupervisionService.createSupervision(newSupervision).then((res) => {
-                                const { error } = res
-                                if (error)
-                                console.log("Fehler beim Erstellen von " + mentoring.matriculationNumber)
-                            })
+                        const newTeachingEvent: ICreateTeachingEventRequest = {
+                            name: course.name,
+                            semesterPeriodId: this.semester,
+                            teacherId: this.teacher,
+                            hours: course.sws,
+                            ordered: orderedBoolean,
+                            commentId: commentId,
+                            programId: null,
                         }
+
+                        TeachingEventService.createTeachingEvent(newTeachingEvent).then((res) => {
+                            const { error } = res;
+                            if (error)
+                                console.log("Fehler beim Erstellen von " + course.name)
+                        })
                     }
+                }
 
-                    for (const reduction of this.reductions) {
-                        if (reduction.details && reduction.type && reduction.approvedBy !== null) {
+                for (const mentoring of this.mentoring) {
+                    if (mentoring.matriculationNumber && mentoring.type !== null) {
 
-                            var commentId = null;
+                        let commentId: number | null = null;
 
-                            const newComment: ICreateCommentRequest = {
-                                userId: 1,
-                                commentContent: reduction.comment,
-                                commentDate: new Date(),       
-                            }
-
-                            CommentService.createComment(newComment).then((res) => {
-                                const { data, error } = res;
-                                if (error) {
-                                    console.log("Fehler beim Erstellen von Kommentar zu " + reduction.details)
-                                } else {
-                                    commentId = data.commentId
-                                }
-                            })
-
-                            const orderedBoolean = Array.isArray(reduction.ordered) && reduction.ordered[0] === "True";
-
-                            const newDiscount: ICreateDiscountRequest = {
-                                semesterPeriodId: this.semester,
-                                teacherId: this.teacher,
-                                commentId: commentId,
-                                discountTypeId: reduction.type,
-                                ordered: orderedBoolean,
-                                approvalDate: reduction.approvedOn,
-                                supervisor: reduction.approvedBy,
-                                description: reduction.details,
-                                scope: reduction.sws,
-                            }
-
-                            DiscountService.createDiscount(newDiscount).then((res) => {
-                                const { error } = res
-                                if (error)
-                                console.log("Fehler beim Erstellen von " + reduction.details)
-                            })
+                        if(mentoring.comment !== "") {
+                            commentId = await this.createComment(mentoring.comment);
                         }
+
+                        console.log(commentId);
+
+                        const newSupervision: ICreateSupervisionRequest = {
+                            studentId: mentoring.matriculationNumber,
+                            semesterPeriodId: this.semester,
+                            supervisionTypeId: mentoring.type,
+                            teacherId: this.teacher,
+                            commentId: commentId,
+                        }
+
+                        SupervisionService.createSupervision(newSupervision).then((res) => {
+                            const { error } = res
+                            if (error)
+                            console.log("Fehler beim Erstellen von " + mentoring.matriculationNumber)
+                        })
                     }
+                }
 
-                    this.resetForm();
+                for (const reduction of this.reductions) {
+                    if (reduction.details !=="" && reduction.type !== null && reduction.approvedBy !=="" ) {
+                        
+                        let commentId: number | null = null;
 
-                    // toast.add({
-                    //     severity: 'success',
-                    //     summary: 'Successful',
-                    //     detail: 'Deputatmeldung erfolgreich übermittelt',
-                    //     life: 3000,
-                    // })
+                        if(reduction.comment !== "") {
+                            commentId = await this.createComment(reduction.comment);
+                        }
 
-                } else {
-                    // toast.add({
-                    //     severity: 'error',
-                    //     summary: 'Fehler',
-                    //     detail: 'Für dieses Semester und die Lehrperson wurde bereits eine Deputatsmeldung übermittelt',
-                    //     life: 5000,
-                    // })
-                    console.log("Gibt bereits eine Meldung");
-                }    
-            });
+                        console.log(commentId);
+
+                        const orderedBoolean = Array.isArray(reduction.ordered) && reduction.ordered[0] === "True";
+
+                        const newDiscount: ICreateDiscountRequest = {
+                            semesterPeriodId: this.semester,
+                            teacherId: this.teacher,
+                            commentId: commentId,
+                            discountTypeId: reduction.type,
+                            ordered: orderedBoolean,
+                            approvalDate: reduction.approvedOn,
+                            supervisor: reduction.approvedBy,
+                            description: reduction.details,
+                            scope: reduction.sws,
+                        }
+
+                        DiscountService.createDiscount(newDiscount).then((res) => {
+                            const { error } = res
+                            if (error)
+                            console.log("Fehler beim Erstellen von " + reduction.details)
+                        })
+                    }
+                }
+
+                this.resetForm();
+
+                // toast.add({
+                //     severity: 'success',
+                //     summary: 'Successful',
+                //     detail: 'Deputatmeldung erfolgreich übermittelt',
+                //     life: 3000,
+                // })
+
+            } else {
+                // toast.add({
+                //     severity: 'error',
+                //     summary: 'Fehler',
+                //     detail: 'Für dieses Semester und die Lehrperson wurde bereits eine Deputatsmeldung übermittelt',
+                //     life: 5000,
+                // })
+                console.log("Gibt bereits eine Meldung");
+            }    
         } else {
             // toast.add({
             //     severity: 'error',
