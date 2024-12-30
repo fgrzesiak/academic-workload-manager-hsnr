@@ -1,6 +1,15 @@
 <script lang="ts">
 import { ComponentOptions } from 'vue';
-import { ISupervisionTypeResponse, IDiscountTypeResponse, ISemesterResponse, ITeacherResponse, ICreateTeachingEventRequest, ICreateSupervisionRequest, ICreateDiscountRequest, ICreateTeachingDutyRequest, ITeachingDutyResponse } from '@workspace/shared'
+import { 
+    ISupervisionTypeResponse, 
+    IDiscountTypeResponse, 
+    ISemesterResponse, 
+    ITeacherResponse, 
+    ICreateTeachingEventRequest, 
+    ICreateSupervisionRequest, 
+    ICreateDiscountRequest, 
+    ICreateTeachingDutyRequest 
+} from '@workspace/shared'
 import SupervisionTypeService from '@/service/supervisionType.service'
 import SemesterService from '@/service/semester.service'
 import TeacherService from '@/service/teacher.service'
@@ -16,6 +25,12 @@ interface SelectOption {
     value: number;
 }
 
+interface SelectOptionCalculation {
+    label: string;
+    value: number;
+    calculation: number;
+}
+
 export default {
   name: 'DeputatsAbrechnung',
   data(): {
@@ -26,13 +41,14 @@ export default {
     mentoring: { type: number; matriculationNumber: number; comment: string }[];
     reductions: { type: number; details: string; approvedBy: string; approvedOn: Date; sws: number; comment: string; ordered: boolean }[];
     display: boolean;
-    mentoringTypes: SelectOption[];
+    mentoringTypes: SelectOptionCalculation[];
     reductionTypes: SelectOption[];
     semesterSelect: SelectOption[];
     teacherSelect: SelectOption[];
     courseCommentOverlay: boolean;
     mentorCommentOverlay: boolean;
     reductionCommentOverlay: boolean;
+    mentoringSum: number;
   } {
     return {
       individualDeputat: 0,
@@ -45,11 +61,20 @@ export default {
       courseCommentOverlay: false,
       mentorCommentOverlay: false,
       reductionCommentOverlay: false,
-      mentoringTypes: [] as SelectOption[],
+      mentoringTypes: [] as SelectOptionCalculation[],
       reductionTypes: [] as SelectOption[],
       semesterSelect: [] as SelectOption[],
       teacherSelect: [] as SelectOption[],
+      mentoringSum: 0,
     };
+  },
+  watch: {
+    mentoring: {
+        handler() {
+            this.calculateMentoringSum(); // Aktualisiere mentoringSum bei Änderungen
+        },
+        deep: true, // Überwacht auch Änderungen innerhalb der Array-Objekte
+    },
   },
   methods: {
     addCourse() {
@@ -80,10 +105,11 @@ export default {
         this.courses = [{ name: '', sws: 0, ordered: false, comment: '' }];
         this.mentoring = [{ type: 0, matriculationNumber: 0, comment: '' }];
         this.reductions = [{ type: 0, details: '', approvedBy: '', approvedOn: new Date(), sws: 0, comment: '', ordered: false }];
+        this.mentoringSum = 0;
     },
     async checkTeachingDuty(semesterId: number, teacher: number): Promise<boolean> {
         try {
-            const res = await teachingDutyService.getTeachingDuties();
+            const res = await TeachingDutyService.getTeachingDuties();
             const { data, error } = res;
             if (error) {
                 console.warn("Couldn't load teachingDuties");
@@ -94,6 +120,20 @@ export default {
             console.error("Error while checking teaching duties:", error);
             return false;
         }
+    },
+    calculateMentoringSum() {
+        if (!this.mentoringTypes || this.mentoring.length === 0) {
+            this.mentoringSum = 0;
+            return;
+        }
+
+        // Berechne die Summe der `calculation`-Werte der ausgewählten Typen
+        this.mentoringSum = this.mentoring.reduce((sum, mentor) => {
+            const selectedType = this.mentoringTypes.find(
+                (type) => type.value === mentor.type
+        );
+            return sum + (selectedType?.calculation || 0);
+        }, 0);
     },
     submitForm() {
         if(this.semester && this.teacher && this.individualDeputat > 0) {
@@ -110,7 +150,7 @@ export default {
                     }
 
                     TeachingDutyService.createTeachingDuty(newTeachingDuty).then((res) => {
-                        const { data, error } = res;
+                        const { error } = res;
                         if (error)
                             console.log("Fehler beim Übermitteln von Deputat indv.")
                     })
@@ -131,7 +171,7 @@ export default {
                             }
 
                             TeachingEventService.createTeachingEvent(newTeachingEvent).then((res) => {
-                                const { data, error } = res;
+                                const { error } = res;
                                 if (error)
                                     console.log("Fehler beim Erstellen von " + course.name)
                             })
@@ -150,7 +190,7 @@ export default {
                             }
 
                             SupervisionService.createSupervision(newSupervision).then((res) => {
-                                const { data, error } = res
+                                const { error } = res
                                 if (error)
                                 console.log("Fehler beim Erstellen von " + mentoring.matriculationNumber)
                             })
@@ -175,7 +215,7 @@ export default {
                             }
 
                             DiscountService.createDiscount(newDiscount).then((res) => {
-                                const { data, error } = res
+                                const { error } = res
                                 if (error)
                                 console.log("Fehler beim Erstellen von " + reduction.details)
                             })
@@ -221,6 +261,7 @@ export default {
                 this.mentoringTypes = data.map((supervisionType: ISupervisionTypeResponse) => ({
                     label: supervisionType.typeOfSupervision,
                     value: supervisionType.typeOfSupervisionId,
+                    calculation: supervisionType.calculationFactor,
                 }));
             }
         }) 
@@ -527,6 +568,10 @@ export default {
                             />
                         </div>
                     </Drawer>
+                </div>
+                <div class="flex-row items-center mb-4">
+                    <p class="font-semibold">Aktuelle SWS-Summe: {{ mentoringSum.toFixed(1) }}</p>
+                    <p v-if="mentoringSum > 3" class="text-red-500 font-bold">Die maximal anrechenbaren 3 SWS wurden überschritten! (gemäß <a href="https://www.lexsoft.de/cgi-bin/lexsoft/justizportal_nrw.cgi?xid=3804662,5" target="_blank"><u>§4 Abs. 5 LVV</u></a>)</p>
                 </div>
                 <Button
                     label="Betreuung hinzufügen"
