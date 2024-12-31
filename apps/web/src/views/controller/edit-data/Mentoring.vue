@@ -6,7 +6,8 @@ import { ISupervisionResponse, ICreateSupervisionRequest } from '@workspace/shar
 import SupervisionTypeService from '@/service/supervisionType.service'
 import SemesterService from '@/service/semester.service'
 import TeacherService from '@/service/teacher.service'
-import { ISupervisionTypeResponse, ISemesterResponse, ITeacherResponse } from '@workspace/shared'
+import CommentService from '@/service/comment.service'
+import { ISupervisionTypeResponse, ISemesterResponse, ITeacherResponse, ICommentResponse } from '@workspace/shared'
 import {
     DataTableFilterMeta,
     DataTableRowEditSaveEvent,
@@ -50,6 +51,9 @@ const newSupervisionSchema = z.object({
     commentId: z.number(),
 })
 const resolver = ref(zodResolver(newSupervisionSchema))
+const currentCommentContent = ref("")
+const currentCommentDate = ref("")
+const commentDrawerVisible = ref(false)
 
 const openNew = () => {
     newSupervisionSubmitted.value = false
@@ -215,6 +219,46 @@ function initFilters() {
     }
 }
 
+const showComment = async (commentId: number) => {
+    const commentData = await fetchCommentById(commentId);
+    currentCommentContent.value = commentData ? commentData.commentContent : "Kein Inhalt.";
+    currentCommentDate.value = commentData ? formatDate(commentData.commentDate.toString()) : "Kein Datum.";
+    commentDrawerVisible.value = true;
+};
+
+const fetchCommentById = async (commentId: number): Promise<ICommentResponse | null> => {
+    try {
+        const res = await CommentService.getComments();
+        const { data, error } = res;
+
+        if (error) {
+            console.log("Error Laden von Comments");
+            return null;
+        }
+
+        const response = data.find((item) => item.commentId === commentId);
+        return response || null;
+    } catch (e) {
+        console.error("Ein Fehler ist aufgetreten:", e);
+        return null;
+    }
+};
+
+const closeCommentDrawer = () => {
+    commentDrawerVisible.value = false;
+    currentCommentContent.value = "";
+    currentCommentDate.value = "";
+}
+
+const formatDate = (value: string) => {
+    if (!value) return '';
+    const date = new Date(value);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}.${month}.${year}`;
+}
+
 //convert semester ID into Name
 const getSemesterName = (id: number) => {
     const semester = semesterSelect.value.find((s) => s.value === id);
@@ -356,14 +400,45 @@ const getTypeName = (id: number) => {
             >
                 <template #body="{ data }">
                     <Button
+                        v-if="data.commentId > 0"
+                        icon="pi pi-comments"
+                        class="p-button-secondary"
+                        @click="showComment(data.commentId)"
+                    />
+                </template>
+            </Column>
+
+            <Column
+            style="width: 4rem; text-align: center"
+            :headerStyle="{ textAlign: 'center' }"
+            >
+                <template #body="{ data }">
+                    <Button
                         icon="pi pi-trash"
                         class="p-button-rounded p-button-danger"
                         @click="deleteEntry(data.id)"
                     />
                 </template>
             </Column>
-
         </DataTable>
+
+        <Drawer v-model:visible="commentDrawerVisible" header="Kommentar" position="right">
+            <div class="flex flex-wrap flex-col gap-4">
+                <p>Kommentar vom: {{currentCommentDate}}</p>
+                <Textarea
+                v-model="currentCommentContent"
+                id="comment"
+                rows="8"
+                readonly
+                />
+                <Button
+                label="Schließen"
+                class="p-button-secondary"
+                icon="pi pi-times"
+                @click="closeCommentDrawer"
+                />
+            </div>
+        </Drawer>
 
         <Dialog
             v-model:visible="newSupervisionDialog"

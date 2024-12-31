@@ -6,7 +6,8 @@ import { IDiscountResponse, ICreateDiscountRequest } from '@workspace/shared'
 import DiscountTypeService from '@/service/discountType.service'
 import SemesterService from '@/service/semester.service'
 import TeacherService from '@/service/teacher.service'
-import { IDiscountTypeResponse, ISemesterResponse, ITeacherResponse } from '@workspace/shared'
+import CommentService from '@/service/comment.service'
+import { IDiscountTypeResponse, ISemesterResponse, ITeacherResponse, ICommentResponse } from '@workspace/shared'
 import {
     DataTableFilterMeta,
     DataTableRowEditSaveEvent,
@@ -59,6 +60,9 @@ const newDiscountSchema = z.object({
     scope: z.number(),
 })
 const resolver = ref(zodResolver(newDiscountSchema))
+const currentCommentContent = ref("")
+const currentCommentDate = ref("")
+const commentDrawerVisible = ref(false)
 
 const openNew = () => {
     newDiscountSubmitted.value = false
@@ -218,6 +222,37 @@ function initFilters() {
             matchMode: FilterMatchMode.STARTS_WITH,
         },
     }
+}
+
+const showComment = async (commentId: number) => {
+    const commentData = await fetchCommentById(commentId);
+    currentCommentContent.value = commentData ? commentData.commentContent : "Kein Inhalt.";
+    currentCommentDate.value = commentData ? formatDate(commentData.commentDate.toString()) : "Kein Datum.";
+    commentDrawerVisible.value = true;
+};
+
+const fetchCommentById = async (commentId: number): Promise<ICommentResponse | null> => {
+    try {
+        const res = await CommentService.getComments();
+        const { data, error } = res;
+
+        if (error) {
+            console.log("Error Laden von Comments");
+            return null;
+        }
+
+        const response = data.find((item) => item.commentId === commentId);
+        return response || null;
+    } catch (e) {
+        console.error("Ein Fehler ist aufgetreten:", e);
+        return null;
+    }
+};
+
+const closeCommentDrawer = () => {
+    commentDrawerVisible.value = false;
+    currentCommentContent.value = "";
+    currentCommentDate.value = "";
 }
 
 //convert semester ID into Name
@@ -421,14 +456,45 @@ const formatDate = (value: string) => {
             >
                 <template #body="{ data }">
                     <Button
+                        v-if="data.commentId > 0"
+                        icon="pi pi-comments"
+                        class="p-button-secondary"
+                        @click="showComment(data.commentId)"
+                    />
+                </template>
+            </Column>
+
+            <Column
+            style="width: 4rem; text-align: center"
+            :headerStyle="{ textAlign: 'center' }"
+            >
+                <template #body="{ data }">
+                    <Button
                         icon="pi pi-trash"
                         class="p-button-rounded p-button-danger"
                         @click="deleteEntry(data.id)"
                     />
                 </template>
             </Column>
-
         </DataTable>
+
+        <Drawer v-model:visible="commentDrawerVisible" header="Kommentar" position="right">
+            <div class="flex flex-wrap flex-col gap-4">
+                <p>Kommentar vom: {{currentCommentDate}}</p>
+                <Textarea
+                v-model="currentCommentContent"
+                id="comment"
+                rows="8"
+                readonly
+                />
+                <Button
+                label="Schließen"
+                class="p-button-secondary"
+                icon="pi pi-times"
+                @click="closeCommentDrawer"
+                />
+            </div>
+        </Drawer>
 
         <Dialog
             v-model:visible="newDiscountDialog"

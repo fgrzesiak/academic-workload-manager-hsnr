@@ -21,7 +21,7 @@ import DiscountService from '@/service/discount.service'
 import TeachingDutyService from '@/service/teachingDuty.service'
 import CommentService from '@/service/comment.service';
 import { useToast } from 'primevue/usetoast'
-import Mentoring from './edit-data/Mentoring.vue';
+
 
 interface SelectOption {
     label: string;
@@ -133,7 +133,7 @@ export default {
     },
     async createComment(content: string): Promise<number> {
         const newComment: ICreateCommentRequest = {
-            userId: 1,
+            userId: 1, // TO-DO: nach Prototyp muss das dynamisch gesetzt werden
             commentContent: content,
             commentDate: new Date(),
         };
