@@ -49,6 +49,7 @@ export default {
     semesterSelect: SelectOption[];
     teacherSelect: SelectOption[];
     mentoringSum: number;
+    toast: any;
   } {
     return {
       individualDeputat: 0,
@@ -63,6 +64,7 @@ export default {
       semesterSelect: [] as SelectOption[],
       teacherSelect: [] as SelectOption[],
       mentoringSum: 0,
+      toast: null,
     };
   },
   watch: {
@@ -264,29 +266,29 @@ export default {
 
                 this.resetForm();
 
-                // toast.add({
-                //     severity: 'success',
-                //     summary: 'Successful',
-                //     detail: 'Deputatmeldung erfolgreich übermittelt',
-                //     life: 3000,
-                // })
+                this.toast.add({
+                    severity: 'success',
+                    summary: 'Successful',
+                    detail: 'Deputatmeldung erfolgreich übermittelt',
+                    life: 3000,
+                })
 
             } else {
-                // toast.add({
-                //     severity: 'error',
-                //     summary: 'Fehler',
-                //     detail: 'Für dieses Semester und die Lehrperson wurde bereits eine Deputatsmeldung übermittelt',
-                //     life: 5000,
-                // })
+                this.toast.add({
+                    severity: 'error',
+                    summary: 'Fehler',
+                    detail: 'Für dieses Semester und die Lehrperson wurde bereits eine Deputatsmeldung übermittelt',
+                    life: 5000,
+                })
                 console.log("Gibt bereits eine Meldung");
             }    
         } else {
-            // toast.add({
-            //     severity: 'error',
-            //     summary: 'Fehler',
-            //     detail: 'Deputatmeldung konnte nicht übermittelt werden',
-            //     life: 5000,
-            // })
+            this.toast.add({
+                severity: 'error',
+                summary: 'Fehler',
+                detail: 'Deputatmeldung konnte nicht übermittelt werden',
+                life: 5000,
+            })
             console.log("Nicht alle Felder ausgefüllt");
         }
         this.display = false;
@@ -344,6 +346,9 @@ export default {
             }
         })
     },
+  },
+  created () {
+    this.toast = useToast();
   },
   async mounted() {
     await this.loadMentoringTypes();
