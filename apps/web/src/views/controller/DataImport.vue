@@ -169,11 +169,11 @@ export default {
                     teacherId: this.teacher,
                 }
 
-                // TeachingDutyService.createTeachingDuty(newTeachingDuty).then((res) => {
-                //     const { error } = res;
-                //     if (error)
-                //         console.log("Fehler beim Übermitteln von Deputat indv.")
-                // })
+                TeachingDutyService.createTeachingDuty(newTeachingDuty).then((res) => {
+                    const { error } = res;
+                    if (error)
+                        console.log("Fehler beim Übermitteln von Deputat indv.")
+                })
 
                 for (const course of this.courses) {
                     if (course.name !=="" && course.sws !== null) {
@@ -469,6 +469,7 @@ export default {
                             label-id="sws-course"
                             v-model="course.sws"
                             :min="0"
+                            :step="0.1"
                         />
                         <label
                             for="sws-course"

@@ -34,6 +34,7 @@ const loading = ref(false)
 const toast = useToast()
 const semesterSelect = ref<SelectOption[]>([])
 const userSelect = ref<SelectOption[]>([])
+const expandedRowGroups = ref<number[]>([])
 
 const updateTeachingEvents = (data: ITeachingEventResponse[]) => {
     teachingEvents.value = data.map((d) => { 
@@ -227,11 +228,25 @@ const fetchCommentById = async (commentId: number): Promise<ICommentResponse | n
     }
 };
 
+const onRowGroupExpand = (event: any) => {
+    const customEvent = event as { group: number; data: any[] };
+    const groupId = customEvent.group;
+    if (!expandedRowGroups.value.includes(groupId)) {
+        expandedRowGroups.value.push(groupId);
+    }
+};
+
+const onRowGroupCollapse = (event: any) => {
+    const customEvent = event as { group: number; data: any[] };
+    const groupId = customEvent.group;
+    expandedRowGroups.value = expandedRowGroups.value.filter(id => id !== groupId);
+};
+
 const closeCommentDrawer = () => {
     commentDrawerVisible.value = false;
     currentCommentContent.value = "";
     currentCommentDate.value = "";
-}
+};
 
 const formatDate = (value: string) => {
     if (!value) return '';
@@ -253,6 +268,14 @@ const getUserName = (id: number) => {
     return user ? user.label : 'Unbekannt';
 };
 
+const formatNumber = (value: number) => {
+    if (value == null) return ''; // Leere Anzeige, falls der Wert null oder undefined ist
+    return value.toLocaleString('de-DE', {
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1,
+    });
+};
+
 const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein');
 </script>
 
@@ -270,9 +293,16 @@ const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein');
 
         <DataTable
             :value="teachingEvents"
-            :paginator="true"
-            :rows="10"
+            size="small"
             data-key="id"
+            scrollable
+            scrollHeight="70vh"
+            v-model:expandedRowGroups="expandedRowGroups"
+            expandableRowGroups
+            @rowgroup-expand="onRowGroupExpand" 
+            @rowgroup-collapse="onRowGroupCollapse"
+            rowGroupMode="subheader" 
+            groupRowsBy="teacherId"
             :row-hover="true"
             :loading="loading"
             v-model:filters="filters"
@@ -280,17 +310,11 @@ const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein');
             v-model:editing-rows="editingRows"
             editMode="row"
             @row-edit-save="onRowEditSave"
-            :pt="{
-                table: { style: 'min-width: 50rem' },
-                column: {
-                    bodycell: ({ state }: any) => ({
-                        style:
-                            state['d_editing'] &&
-                            'padding-top: 0.75rem; padding-bottom: 0.75rem',
-                    }),
-                },
-            }"
         >
+
+            <template #groupheader="{ data }">
+                <span class="align-middle ml-2 font-bold leading-normal">{{ getUserName(data.teacherId) }}</span>
+            </template>
             <!-- Table Header -->
             <template #header>
                 <div class="flex justify-between">
@@ -350,25 +374,13 @@ const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein');
                 header="SWS"
                 style="min-width: 6rem"
             >
-                <template #body="{ data }">{{ data.hours }}</template>
+                <template #body="{ data }">{{ formatNumber(data.hours) }}</template>
                 <template #editor="{ data, field }">
-                    <InputNumber v-model="data[field]" fluid style="max-width: 6rem" :min="0" />
+                    <InputNumber v-model="data[field]" fluid style="max-width: 6rem" :step="0.1" :min="0" />
                 </template>
             </Column>
 
             <!-- ProgramId Column -->
-
-            <!-- Teacher Column -->
-            <Column
-                field="teacherId"
-                header="Lehrperson"
-                style="min-width: 8rem"
-            >
-                <template #body="{ data }">{{ getUserName(data.teacherId) }}</template>
-                <template #editor="{ data, field }">
-                    <Select v-model="data[field]" :options="userSelect" option-label="label" option-value="value" fluid />
-                </template>
-            </Column>
 
             <!-- Ordered Column -->
             <Column

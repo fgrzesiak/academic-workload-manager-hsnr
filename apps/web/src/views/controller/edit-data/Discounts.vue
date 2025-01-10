@@ -36,6 +36,7 @@ const toast = useToast()
 const typeSelect = ref<SelectOption[]>([])
 const semesterSelect = ref<SelectOption[]>([])
 const userSelect = ref<SelectOption[]>([])
+const expandedRowGroups = ref<number[]>([])
 
 const updateDiscounts = (data: IDiscountResponse[]) => {
     discounts.value = data.map((d) => { 
@@ -249,11 +250,25 @@ const fetchCommentById = async (commentId: number): Promise<ICommentResponse | n
     }
 };
 
+const onRowGroupExpand = (event: any) => {
+    const customEvent = event as { group: number; data: any[] };
+    const groupId = customEvent.group;
+    if (!expandedRowGroups.value.includes(groupId)) {
+        expandedRowGroups.value.push(groupId);
+    }
+};
+
+const onRowGroupCollapse = (event: any) => {
+    const customEvent = event as { group: number; data: any[] };
+    const groupId = customEvent.group;
+    expandedRowGroups.value = expandedRowGroups.value.filter(id => id !== groupId);
+};
+
 const closeCommentDrawer = () => {
     commentDrawerVisible.value = false;
     currentCommentContent.value = "";
     currentCommentDate.value = "";
-}
+};
 
 //convert semester ID into Name
 const getSemesterName = (id: number) => {
@@ -297,9 +312,16 @@ const formatDate = (value: string) => {
 
         <DataTable
             :value="discounts"
-            :paginator="true"
-            :rows="10"
+            size="small"
             data-key="id"
+            scrollable
+            scrollHeight="70vh"
+            v-model:expandedRowGroups="expandedRowGroups"
+            expandableRowGroups
+            @rowgroup-expand="onRowGroupExpand" 
+            @rowgroup-collapse="onRowGroupCollapse"
+            rowGroupMode="subheader" 
+            groupRowsBy="teacherId"
             :row-hover="true"
             :loading="loading"
             v-model:filters="filters"
@@ -307,17 +329,11 @@ const formatDate = (value: string) => {
             v-model:editing-rows="editingRows"
             editMode="row"
             @row-edit-save="onRowEditSave"
-            :pt="{
-                table: { style: 'min-width: 50rem' },
-                column: {
-                    bodycell: ({ state }: any) => ({
-                        style:
-                            state['d_editing'] &&
-                            'padding-top: 0.75rem; padding-bottom: 0.75rem',
-                    }),
-                },
-            }"
         >
+
+            <template #groupheader="{ data }">
+                <span class="align-middle ml-2 font-bold leading-normal">{{ getUserName(data.teacherId) }}</span>
+            </template>
             <!-- Table Header -->
             <template #header>
                 <div class="flex justify-between">
