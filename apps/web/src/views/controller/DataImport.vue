@@ -52,7 +52,7 @@ export default {
     toast: any;
   } {
     return {
-      individualDeputat: 0,
+      individualDeputat: 18,
       semester: 0,
       teacher: 0,
       courses: [{ name: '', sws: 0, ordered: false, comment: '', showComment: false, }],
@@ -98,7 +98,7 @@ export default {
       this.display = true;
     },
     resetForm() {
-        this.individualDeputat = 0;
+        this.individualDeputat = 18;
         this.teacher = 0;
         this.semester = 0;
         this.courses = [{ name: '', sws: 0, ordered: false, comment: '', showComment: false, }];
@@ -408,6 +408,7 @@ export default {
                         <InputNumber
                             v-model="individualDeputat"
                             label-id="indvDeputat"
+                            placeholder="18"
                             :min="0"
                         />
                         <label
