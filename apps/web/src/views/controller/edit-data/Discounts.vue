@@ -314,6 +314,7 @@ const formatDate = (value: string) => {
             :value="discounts"
             size="small"
             data-key="id"
+            showGridlines
             scrollable
             scrollHeight="70vh"
             v-model:expandedRowGroups="expandedRowGroups"

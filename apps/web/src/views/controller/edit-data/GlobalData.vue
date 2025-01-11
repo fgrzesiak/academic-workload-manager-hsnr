@@ -429,6 +429,7 @@ const formatNumber = (value: number) => {
             :value="mentorings"
             :paginator="true"
             :rows="4"
+            showGridlines
             size="small"
             data-key="typeOfSupervisionId"
             :row-hover="true"
@@ -630,6 +631,7 @@ const formatNumber = (value: number) => {
                 :paginator="true"
                 :rows="3"
                 size="small"
+                showGridlines
                 data-key="id"
                 :row-hover="true"
                 filter-display="row"
@@ -757,6 +759,7 @@ const formatNumber = (value: number) => {
             :paginator="true"
             :rows="3"
             size="small"
+            showGridlines
             data-key="discountTypeId"
             :row-hover="true"
             filter-display="row"

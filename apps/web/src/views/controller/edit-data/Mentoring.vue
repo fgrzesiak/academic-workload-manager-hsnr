@@ -307,6 +307,7 @@ const getTypeName = (id: number) => {
             :value="supervisions"
             size="small"
             data-key="id"
+            showGridlines
             scrollable
             scrollHeight="70vh"
             v-model:expandedRowGroups="expandedRowGroups"

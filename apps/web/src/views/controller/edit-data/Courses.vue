@@ -295,6 +295,7 @@ const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein');
             :value="teachingEvents"
             size="small"
             data-key="id"
+            showGridlines
             scrollable
             scrollHeight="70vh"
             v-model:expandedRowGroups="expandedRowGroups"

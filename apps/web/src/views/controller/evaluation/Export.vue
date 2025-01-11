@@ -1,6 +1,156 @@
+<script setup lang="ts">
+import { onBeforeMount, ref, computed, } from 'vue'
+import TeachingDutyService from '@/service/teachingDuty.service'
+import TeacherService from '@/service/teacher.service'
+import SemesterService from '@/service/semester.service'
+import { ISemesterResponse, ITeacherResponse, ITeachingDutyResponse } from '@workspace/shared'
+import { useToast } from 'primevue/usetoast'
+
+const teachers = ref<ITeacherResponse[]>([])
+const semesters = ref<ISemesterResponse[]>([])
+const deputats = ref<ITeachingDutyResponse[]>([])
+const loading = ref(false)
+const toast = useToast()
+
+onBeforeMount(() => {
+    loading.value = true
+    TeachingDutyService.getTeachingDuties().then((res) => {
+        const { data, error } = res
+        if (error) {
+            toast.add({
+                severity: 'error',
+                summary: 'Fehler',
+                detail: error,
+                life: 5000,
+            })
+        } else {
+            deputats.value = data.map((deputat: ITeachingDutyResponse) => { 
+                return deputat 
+            })
+        }
+    })
+
+    SemesterService.getSemesters().then((res) => {
+        const { data, error } = res
+        if (error) {
+            console.warn("[Export] Couldn`t load semster")
+        } else {
+            semesters.value = data.map((semester: ISemesterResponse) => { 
+                return semester 
+            })
+        }
+    })
+
+    TeacherService.getTeachers().then((res) => {
+        const { data, error } = res
+        if (error) {
+            console.warn("[Export] Couldn`t load teachers")
+        } else {
+            teachers.value = data.map((teacher: ITeacherResponse) => { 
+                return teacher 
+            })
+        }
+    })
+    loading.value = false
+});
+
+type RowData = {
+    [key: number]: number | null; // Werte für jedes Semester
+    name: string;                 // Name des Lehrers
+};
+
+const tableData = computed(() => {
+    return teachers.value.map((teacher) => {
+        const rowData: RowData = {
+            name: `${teacher.lastName}`,
+        };
+
+        // Für jedes Semester die sumBalance hinzufügen
+        semesters.value.forEach((semester) => {
+            const duty = deputats.value.find(
+                (d) =>
+                    d.teacherId === teacher.id &&
+                    d.semesterPeriodId === semester.id
+            );
+            rowData[semester.id] = duty ? duty.sumBalance : null;
+        });
+        return rowData;
+    });
+});
+
+// Helper-Funktionen für Formatierung
+const formatSumBalance = (value: number | null) => {
+    return value !== null ? value.toFixed(2) : '-' ;
+};
+
+const getSemesterName = (id: number) => {
+    const semester = semesters.value.find((s) => s.id === id);
+    return semester ? semester.name : 'Unbekannt';
+};
+
+const exportCSV = () => {
+    // Header erstellen (Name + Semester-Namen)
+    const headers = ["Name", ...semesters.value.map(semester => getSemesterName(semester.id))];
+
+    // Zeilen erstellen (Name + Werte für jedes Semester)
+    const rows = tableData.value.map(row => {
+        return [
+            row.name, 
+            ...semesters.value.map(semester => row[semester.id] || 0)
+        ];
+    });
+
+    // CSV-Daten zusammenfügen
+    const csvContent = [
+        headers.join(","), // Header
+        ...rows.map(row => row.join(","))
+    ].join("\n");
+
+    // Blob erzeugen
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+
+    // Link erstellen und Datei herunterladen
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "exportSalden.csv";
+    link.click();
+};
+
+</script>
 <template>
-    <div>
-        <h1>Export</h1>
+    <div class="card">
+        <div class="flex justify-between mb-4">
+            <h1 class="mb-4 text-xl font-semibold">Export der Semester-Salden</h1>
+            <Button
+                label="Export"
+                icon="pi pi-upload"
+                @click="exportCSV()"
+            />
+        </div>
+
+        <DataTable 
+            :value="tableData" 
+            :responsiveLayout="'scroll'"
+            showGridlines
+        >
+            <!-- Empty Table State -->
+            <template #empty>Keine Daten gefunden.</template>
+
+            <!-- Spalten mit benutzerdefiniertem Slot -->
+            <Column field="name" header="Name Lehrer" :style="{ minWidth: '150px' }" />
+            
+            <!-- Dynamische Semester-Spalten mit benutzerdefiniertem Slot -->
+            <template v-for="semester in semesters" :key="semester.id">
+                <Column
+                    :header="semester.name"
+                    :field="getSemesterName(semester.id)"
+                    :style="{ textAlign: 'center', width: '120px'}"
+                >
+                    <template v-slot:body="{ data }">
+                        {{ formatSumBalance(data[semester.id]) ?? '-' }}
+                    </template>
+                </Column>
+            </template>
+        </DataTable>
     </div>
 </template>
-<script setup lang="ts"></script>
