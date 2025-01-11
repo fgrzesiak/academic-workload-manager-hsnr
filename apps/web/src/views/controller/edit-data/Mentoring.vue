@@ -322,6 +322,8 @@ const getTypeName = (id: number) => {
             :global-filter-fields="['studentId']"
             v-model:editing-rows="editingRows"
             editMode="row"
+            sortMode="multiple"
+            removableSort 
             @row-edit-save="onRowEditSave"
         >
 
@@ -362,6 +364,7 @@ const getTypeName = (id: number) => {
                 field="supervisionTypeId"
                 header="Art der Betreuung"
                 style="min-width: 8rem"
+                sortable
             >
                 <template #body="{ data }">{{ getTypeName(data.supervisionTypeId) }}</template>
                 <template #editor="{ data, field }">
@@ -386,6 +389,7 @@ const getTypeName = (id: number) => {
                 field="semesterPeriodId"
                 header="Semester"
                 style="min-width: 8rem"
+                sortable
             >
                 <template #body="{ data }">{{ getSemesterName(data.semesterPeriodId) }}</template>
                 <template #editor="{ data, field }">

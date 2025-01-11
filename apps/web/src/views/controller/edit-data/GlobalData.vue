@@ -445,6 +445,8 @@ const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein');
             :global-filter-fields="['typeOfSupervision']"
             v-model:editing-rows="editingRowsMentoring"
             editMode="row"
+            sortMode="multiple"
+            removableSort 
             @row-edit-save="onRowEditSaveMentoring"
             :pt="{
                 table: { style: 'min-width: 50rem' },
@@ -470,6 +472,7 @@ const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein');
                 field="typeOfSupervision"
                 header="Name der Betreuungsart"
                 style="min-width: 12rem"
+                sortable
             >
                 <template #body="{ data }">{{ data.typeOfSupervision }}</template>
                 <template #editor="{ data, field }">
@@ -490,6 +493,7 @@ const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein');
                 field="calculationFactor"
                 header="Multiplikationsfaktor"
                 style="min-width: 10rem"
+                sortable
             >
                 <template #body="{ data }">{{ formatNumber(data.calculationFactor) }}</template>
                 <template #editor="{ data, field }">
@@ -502,6 +506,7 @@ const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein');
                 field="validFrom"
                 header="Gültig seit"
                 style="min-width: 10rem"
+                sortable
             >
                 <template #body="{ data }">{{ getSemesterName(data.validFrom) }}</template>
                 <template #editor="{ data, field }">
@@ -646,6 +651,8 @@ const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein');
                 :global-filter-fields="['name']"
                 v-model:editing-rows="editingRowsSemester"
                 editMode="row"
+                sortMode="multiple"
+                removableSort 
                 @row-edit-save="onRowEditSaveSemester"
                 :pt="{
                     table: { style: 'min-width: 50rem' },
@@ -671,6 +678,7 @@ const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein');
                     field="name"
                     header="Name des Semesters"
                     style="min-width: 12rem"
+                    sortable
                 >
                     <template #body="{ data }">{{ data.name }}</template>
                     <template #editor="{ data, field }">
@@ -691,6 +699,7 @@ const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein');
                     field="active"
                     header="Aktiv?"
                     style="min-width: 8rem"
+                    sortable
                 >
                     <template #body="{ data }">{{ formatBoolean(data.active) }}</template>
                     <template #editor="{ data, field }">
@@ -815,6 +824,8 @@ const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein');
             :global-filter-fields="['discountType']"
             v-model:editing-rows="editingRowsReduction"
             editMode="row"
+            sortMode="multiple"
+            removableSort 
             @row-edit-save="onRowEditSaveReduction"
             :pt="{
                 table: { style: 'min-width: 50rem' },
@@ -840,6 +851,7 @@ const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein');
                 field="discountType"
                 header="Name der Ermäßigung"
                 style="min-width: 12rem"
+                sortable
             >
                 <template #body="{ data }">{{ data.discountType }}</template>
                 <template #editor="{ data, field }">

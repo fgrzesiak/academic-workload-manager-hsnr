@@ -310,6 +310,8 @@ const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein');
             :global-filter-fields="['name']"
             v-model:editing-rows="editingRows"
             editMode="row"
+            sortMode="multiple"
+            removableSort 
             @row-edit-save="onRowEditSave"
         >
 
@@ -362,6 +364,7 @@ const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein');
                 field="semesterPeriodId"
                 header="Semester"
                 style="min-width: 8rem"
+                sortable
             >
                 <template #body="{ data }">{{ getSemesterName(data.semesterPeriodId) }}</template>
                 <template #editor="{ data, field }">
@@ -388,6 +391,7 @@ const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein');
                 field="ordered"
                 header="Angeordnet?"
                 style="min-width: 8rem"
+                sortable
             >
                 <template #body="{ data }">{{ formatBoolean(data.ordered) }}</template>
                 <template #editor="{ data, field }">

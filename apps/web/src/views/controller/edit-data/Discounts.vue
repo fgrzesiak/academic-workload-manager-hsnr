@@ -329,6 +329,8 @@ const formatDate = (value: string) => {
             :global-filter-fields="['description', 'supervisor']"
             v-model:editing-rows="editingRows"
             editMode="row"
+            sortMode="multiple"
+            removableSort 
             @row-edit-save="onRowEditSave"
         >
 
@@ -418,6 +420,7 @@ const formatDate = (value: string) => {
                 field="semesterPeriodId"
                 header="Semester"
                 style="min-width: 8rem"
+                sortable
             >
                 <template #body="{ data }">{{ getSemesterName(data.semesterPeriodId) }}</template>
                 <template #editor="{ data, field }">
@@ -442,6 +445,7 @@ const formatDate = (value: string) => {
                 field="ordered"
                 header="Angeordnet?"
                 style="min-width: 8rem"
+                sortable
             >
                 <template #body="{ data }">{{ formatBoolean(data.ordered) }}</template>
                 <template #editor="{ data, field }">
