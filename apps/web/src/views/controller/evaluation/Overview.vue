@@ -1,152 +1,286 @@
 <script setup lang="ts">
+import { onBeforeMount, ref, computed, } from 'vue'
+import TeachingDutyService from '@/service/teachingDuty.service'
+import TeacherService from '@/service/teacher.service'
+import SemesterService from '@/service/semester.service'
+import SupervisionService from '@/service/supervision.service'
+import SupervisionTypeService from '@/service/supervisionType.service'
+import DiscountService from '@/service/discount.service'
+import TeachingEventService from '@/service/teachingEvent.service'
+import { ISemesterResponse, ITeacherResponse, ITeachingDutyResponse, ISupervisionResponse, ISupervisionTypeResponse, IDiscountResponse, ITeachingEventResponse } from '@workspace/shared'
+import { useToast } from 'primevue/usetoast'
+
+const teachers = ref<ITeacherResponse[]>([])
+const semesters = ref<ISemesterResponse[]>([])
+const deputats = ref<ITeachingDutyResponse[]>([])
+const supervisions = ref<ISupervisionResponse[]>([])
+const supervisionTypes = ref<ISupervisionTypeResponse[]>([])
+const discounts = ref<IDiscountResponse[]>([])
+const courses = ref<ITeachingEventResponse[]>([])
+const loading = ref(false)
+const toast = useToast()
+const expandedRowGroups = ref<string[]>([])
+
+onBeforeMount(() => {
+    loading.value = true
+    TeachingDutyService.getTeachingDuties().then((res) => {
+        const { data, error } = res
+        if (error) {
+            toast.add({
+                severity: 'error',
+                summary: 'Fehler beim Laden der Deputate',
+                detail: error,
+                life: 5000,
+            })
+        } else {
+            deputats.value = data.map((deputat: ITeachingDutyResponse) => { 
+                return deputat 
+            })
+        }
+    })
+
+    SemesterService.getSemesters().then((res) => {
+        const { data, error } = res;
+        if (error) {
+            console.warn("[Overview] Couldn`t load semester");
+        } else {
+            // Finde das neueste aktive Semester
+            const activeSemesterIndex = data.findIndex((semester: ISemesterResponse) => semester.active === true);
+
+            if (activeSemesterIndex === -1) {
+                console.warn("[Overview] No active semester");
+                return;
+            }
+
+            // Anzahl der Semester die berücksichtigt werden sollen
+            const period = 6;
+            // Extrahiere die letzten x(period) Semester ab dem aktiven Semester
+            const recentSemesters = data.slice((activeSemesterIndex - period), (activeSemesterIndex + 1));
+            semesters.value = recentSemesters;
+        }
+    })
+
+    TeacherService.getTeachers().then((res) => {
+        const { data, error } = res
+        if (error) {
+            toast.add({
+                severity: 'error',
+                summary: 'Fehler beim Laden der Lehrer',
+                detail: error,
+                life: 5000,
+            })
+        }  else {
+            teachers.value = data.map((teacher: ITeacherResponse) => { 
+                return teacher 
+            })
+        }
+    })
+
+    SupervisionService.getSupervisions().then((res) => {
+        const { data, error } = res
+        if (error) {
+            toast.add({
+                severity: 'error',
+                summary: 'Fehler beim Laden der Betreuungen',
+                detail: error,
+                life: 5000,
+            })
+        }  else {
+            supervisions.value = data.map((supervision: ISupervisionResponse) => { 
+                return supervision 
+            })
+        }
+    })
+
+    SupervisionTypeService.getSupervisionTypes().then((res) => {
+        const { data, error } = res
+        if (error) {
+            toast.add({
+                severity: 'error',
+                summary: 'Fehler beim Laden der Betreuungsarten',
+                detail: error,
+                life: 5000,
+            })
+        } else {
+            supervisionTypes.value = data.map((type: ISupervisionTypeResponse) => { 
+                return type 
+            })
+        }
+    })
+
+    DiscountService.getDiscounts().then((res) => {
+        const { data, error } = res
+        if (error) {
+            toast.add({
+                severity: 'error',
+                summary: 'Fehler beim Laden der Ermäßigungen',
+                detail: error,
+                life: 5000,
+            })
+        } else {
+            discounts.value = data.map((discount: IDiscountResponse) => { 
+                return discount 
+            })
+        }
+    })
+
+    TeachingEventService.getTeachingEvents().then((res) => {
+        const { data, error } = res
+        if (error) {
+            toast.add({
+                severity: 'error',
+                summary: 'Fehler beim Laden der Kurse',
+                detail: error,
+                life: 5000,
+            })
+        } else {
+            courses.value = data.map((course: ITeachingEventResponse) => { 
+                return course 
+            })
+        }
+    })
+
+    loading.value = false
+});
+
+// Helper-Funktionen für Formatierung
+const formatNumber = (value: number | null) => {
+    return value !== null ? value.toFixed(2) : '-' ;
+};
+
+type RowData = {
+    [key: number]: {
+        semesterName: string;
+        sumCourses: number;
+        sumDiscounts: number;
+        sumSupervisions: number;
+        sumIndividualDeputat: number;
+        result: number;
+    } | null; // Werte für jedes Semester
+    name: string; // Name des Lehrers
+};
+
+const tableData = computed(() => {
+    // Erstelle eine flache Liste von Datenzeilen
+    return teachers.value.flatMap((teacher) => {
+        return semesters.value.map((semester) => {
+            // Filtere die relevanten Daten für den Lehrer und das Semester
+            const teacherDiscounts = discounts.value.filter(
+                (discount) =>
+                    discount.teacherId === teacher.id &&
+                    discount.semesterPeriodId === semester.id
+            );
+
+            const teacherCourses = courses.value.filter(
+                (course) =>
+                    course.teacherId === teacher.id &&
+                    course.semesterPeriodId === semester.id
+            );
+
+            const teacherSupervisions = supervisions.value.filter(
+                (supervision) =>
+                    supervision.teacherId === teacher.id &&
+                    supervision.semesterPeriodId === semester.id
+            );
+
+            // Berechnung der Summe der Betreuungen mit Berücksichtigung des calculationFactor
+            const sumSupervisions = teacherSupervisions.reduce((acc, supervision) => {
+                const supervisionType = supervisionTypes.value.find(
+                    (type) => type.typeOfSupervisionId === supervision.supervisionTypeId
+                );
+                const factor = supervisionType?.calculationFactor || 0;
+                return acc + factor;
+            }, 0);
+
+            // Berechnungen für Kurse und Ermäßigungen
+            const sumCourses = teacherCourses.reduce((acc, course) => acc + (course.hours || 0), 0);
+            const sumDiscounts = teacherDiscounts.reduce((acc, discount) => acc + (discount.scope || 0), 0);
+
+            // Individuelles Deputat (falls verfügbar)
+            const individualQuota = deputats.value.filter(
+                (deputat) =>
+                    deputat.teacherId === teacher.id &&
+                    deputat.semesterPeriodId === semester.id
+            );
+
+            const sumIndividualDeputat = individualQuota.reduce((acc, deputat) => acc + (deputat.individualDuty || 0), 0);
+
+            // Ergebnis der Stunden
+            const totalHours = sumCourses + sumDiscounts + sumSupervisions;
+            const result = totalHours - sumIndividualDeputat;
+
+            // Erstelle ein einzelnes Zeilenobjekt
+            return {
+                teacherName: `${teacher.lastName}, ${teacher.firstName}`,
+                semesterName: semester.name,
+                sumCourses: formatNumber(sumCourses),
+                sumDiscounts: formatNumber(sumDiscounts),
+                sumSupervisions: formatNumber(sumSupervisions),
+                sumIndividualDeputat: formatNumber(sumIndividualDeputat),
+                result: formatNumber(result),
+            };
+        });
+    });
+});
 
 </script>
 <template>
-    <div class="card">
-        <div class="flex justify-between mb-4">
-            <h1 class="mb-4 text-xl font-semibold">Übersicht der Lehrveranstaltungen</h1>
-            <Button
-                label="Neue Lehrveranstaltung"
-                icon="pi pi-plus"
-                class="mr-2"
-                @click="openNew"
-            />
-        </div>
+    <div>
+        <h1>Overview</h1>
 
-        <DataTable
-            :value="deputats"
-            :paginator="true"
-            :rows="10"
+        <DataTable 
+            :value="tableData"
             size="small"
-            data-key="id"
-            :row-hover="true"
-            :loading="loading"
-            v-model:filters="filters"
-            :global-filter-fields="['name']"
+            showGridlines
+            scrollable
+            scrollHeight="70vh"
+            v-model:expandedRowGroups="expandedRowGroups"
+            expandableRowGroups
+            rowGroupMode="subheader" 
+            groupRowsBy="teacherName"
         >
-            <!-- Table Header -->
-            <template #header>
-                <div class="flex justify-between">
-                    <Button
-                        type="button"
-                        icon="pi pi-filter-slash"
-                        label="Filter aufheben"
-                        outlined
-                        @click="initFilters"
-                    />
-                    <div class="flex items-center gap-2">
-                        <i class="pi pi-search" />
-                        <!-- @vue-ignore -->
-                        <InputText
-                            v-model="filters['global'].value"
-                            placeholder="Suche"
-                        />
-                    </div>
-                </div>
+            <!-- Gruppenkopf für Lehrer -->
+            <template #groupheader="{ data }">
+                <span class="align-middle ml-2 font-bold leading-normal">{{ data.teacherName }}</span>
             </template>
 
-            <!-- Empty Table State -->
-            <template #empty>Keine Lehrveranstaltungen gefunden.</template>
+            <!-- Name des Semesters -->
+            <Column field="semesterName" header="Semestername" :style="{ minWidth: '150px' }" />
 
-            <!-- ID Column -->
-            <Column field="id" header="ID" style="min-width: 1rem" sortable>
-                <template #body="{ data }">{{ data.id }}</template>
-            </Column>
+            <!-- Summe der Kurse -->
+            <Column 
+                field="sumCourses" 
+                header="Summe der Kurse" 
+                :style="{ minWidth: '150px', textAlign: 'center' }" 
+            />
 
-            <!-- Name Column -->
-            <Column
-                field="name"
-                header="Name"
-                style="min-width: 10rem"
-            >
-                <template #body="{ data }">{{ data.name }}</template>
-                <template #editor="{ data, field }">
-                    <InputText v-model="data[field]" fluid />
-                </template>
-            </Column>
+            <!-- Summe der Ermäßigungen -->
+            <Column 
+                field="sumDiscounts" 
+                header="Summe der Ermäßigungen" 
+                :style="{ minWidth: '150px', textAlign: 'center' }" 
+            />
 
-            <!-- Semester Column -->
-            <Column
-                field="semesterPeriodId"
-                header="Semester"
-                style="min-width: 8rem"
-            >
-                <template #body="{ data }">{{ getSemesterName(data.semesterPeriodId) }}</template>
-                <template #editor="{ data, field }">
-                    <Select v-model="data[field]" :options="semesterSelect" option-label="label" option-value="value" fluid />
-                </template>
-            </Column>
+            <!-- Summe der Betreuungen -->
+            <Column 
+                field="sumSupervisions" 
+                header="Summe der Betreuungen" 
+                :style="{ minWidth: '150px', textAlign: 'center' }" 
+            />
 
-            <!-- Hours Column -->
-            <Column
-                field="hours"
-                header="SWS"
-                style="min-width: 6rem"
-            >
-                <template #body="{ data }">{{ formatNumber(data.hours) }}</template>
-                <template #editor="{ data, field }">
-                    <InputNumber v-model="data[field]" fluid style="max-width: 6rem" :step="0.1" :min="0" />
-                </template>
-            </Column>
+            <!-- Individuelles Deputat -->
+            <Column 
+                field="individualQuota" 
+                header="Individuelles Deputat" 
+                :style="{ minWidth: '150px', textAlign: 'center' }" 
+            />
 
-            <!-- ProgramId Column -->
-
-            <!-- Teacher Column -->
-            <Column
-                field="teacherId"
-                header="Lehrperson"
-                style="min-width: 8rem"
-            >
-                <template #body="{ data }">{{ getUserName(data.teacherId) }}</template>
-                <template #editor="{ data, field }">
-                    <Select v-model="data[field]" :options="userSelect" option-label="label" option-value="value" fluid />
-                </template>
-            </Column>
-
-            <!-- Ordered Column -->
-            <Column
-                field="ordered"
-                header="Angeordnet?"
-                style="min-width: 8rem"
-            >
-                <template #body="{ data }">{{ formatBoolean(data.ordered) }}</template>
-                <template #editor="{ data, field }">
-                    <Select v-model="data[field]" :options="booleanOptions" option-label="label" option-value="value" fluid />
-                </template>
-            </Column>
-
-            <Column
-                :rowEditor="true"
-                style="width: 10%; min-width: 8rem"
-                bodyStyle="text-align:center"
-            ></Column>
-
-            <Column
-            style="width: 4rem; text-align: center"
-            :headerStyle="{ textAlign: 'center' }"
-            >
-                <template #body="{ data }">
-                    <Button
-                        v-if="data.commentId > 0"
-                        icon="pi pi-comments"
-                        class="p-button-secondary"
-                        @click="showComment(data.commentId)"
-                    />
-                </template>
-            </Column>
-
-            <Column
-            style="width: 4rem; text-align: center"
-            :headerStyle="{ textAlign: 'center' }"
-            >
-                <template #body="{ data }">
-                    <Button
-                        icon="pi pi-trash"
-                        class="p-button-rounded p-button-danger"
-                        @click="deleteEntry(data.id)"
-                    />
-                </template>
-            </Column>            
+            <!-- Ergebnis -->
+            <Column 
+                field="result" 
+                header="Ergebnis" 
+                :style="{ minWidth: '150px', textAlign: 'center' }" 
+            />
         </DataTable>
     </div>
 </template>

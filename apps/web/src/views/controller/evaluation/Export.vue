@@ -72,7 +72,6 @@ onBeforeMount(() => {
             })
         }
     })
-    loading.value = false
 });
 
 type RowData = {
@@ -95,6 +94,7 @@ const tableData = computed(() => {
             );
             rowData[semester.id] = duty ? duty.sumBalance : null;
         });
+        loading.value = false
         return rowData;
     });
 });
@@ -144,7 +144,7 @@ const exportCSV = () => {
             <h1 class="mb-4 text-xl font-semibold">Export der Semester-Salden</h1>
             <Button
                 label="Export"
-                icon="pi pi-upload"
+                icon="pi pi-download"
                 @click="exportCSV()"
             />
         </div>
@@ -153,12 +153,13 @@ const exportCSV = () => {
             :value="tableData" 
             :responsiveLayout="'scroll'"
             showGridlines
+            size="small"
         >
             <!-- Empty Table State -->
             <template #empty>Keine Daten gefunden.</template>
 
             <!-- Spalten mit benutzerdefiniertem Slot -->
-            <Column field="name" header="Name Lehrer" :style="{ width: '200px' }" />
+            <Column field="name" header="Lehrperson" :style="{ width: '200px' }" />
             
             <!-- Dynamische Semester-Spalten mit benutzerdefiniertem Slot -->
             <template v-for="semester in semesters" :key="semester.id">
