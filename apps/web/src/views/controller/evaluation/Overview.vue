@@ -154,7 +154,7 @@ type RowData = {
         sumCourses: number;
         sumDiscounts: number;
         sumSupervisions: number;
-        sumIndividualDeputat: number;
+        individualDeputat: number;
         result: number;
     } | null; // Werte für jedes Semester
     name: string; // Name des Lehrers
@@ -196,18 +196,17 @@ const tableData = computed(() => {
             const sumCourses = teacherCourses.reduce((acc, course) => acc + (course.hours || 0), 0);
             const sumDiscounts = teacherDiscounts.reduce((acc, discount) => acc + (discount.scope || 0), 0);
 
-            // Individuelles Deputat (falls verfügbar)
-            const individualQuota = deputats.value.filter(
+            const individualDeputat = deputats.value.find(
                 (deputat) =>
                     deputat.teacherId === teacher.id &&
                     deputat.semesterPeriodId === semester.id
-            );
+            )?.individualDuty ?? 0;
 
-            const sumIndividualDeputat = individualQuota.reduce((acc, deputat) => acc + (deputat.individualDuty || 0), 0);
+            // const sumIndividualDeputat = individualQuota.reduce((acc, deputat) => acc + (deputat.individualDuty || 0), 0);
 
             // Ergebnis der Stunden
             const totalHours = sumCourses + sumDiscounts + sumSupervisions;
-            const result = totalHours - sumIndividualDeputat;
+            const result = totalHours - individualDeputat;
 
             // Erstelle ein einzelnes Zeilenobjekt
             return {
@@ -216,7 +215,7 @@ const tableData = computed(() => {
                 sumCourses: formatNumber(sumCourses),
                 sumDiscounts: formatNumber(sumDiscounts),
                 sumSupervisions: formatNumber(sumSupervisions),
-                sumIndividualDeputat: formatNumber(sumIndividualDeputat),
+                individualDeputat: formatNumber(individualDeputat),
                 result: formatNumber(result),
             };
         });
@@ -225,8 +224,10 @@ const tableData = computed(() => {
 
 </script>
 <template>
-    <div>
-        <h1>Overview</h1>
+     <div class="card">
+        <div class="flex justify-between mb-4">
+            <h1 class="mb-4 text-xl font-semibold">Saldierungen</h1>
+        </div>
 
         <DataTable 
             :value="tableData"
@@ -270,7 +271,7 @@ const tableData = computed(() => {
 
             <!-- Individuelles Deputat -->
             <Column 
-                field="individualQuota" 
+                field="individualDeputat" 
                 header="Individuelles Deputat" 
                 :style="{ minWidth: '150px', textAlign: 'center' }" 
             />
