@@ -393,18 +393,6 @@ const getTypeName = (id: number) => {
                 </template>
             </Column>
 
-            <!-- Teacher Column -->
-            <Column
-                field="teacherId"
-                header="Lehrperson"
-                style="min-width: 8rem"
-            >
-                <template #body="{ data }">{{ getUserName(data.teacherId) }}</template>
-                <template #editor="{ data, field }">
-                    <Select v-model="data[field]" :options="userSelect" option-label="label" option-value="value" fluid />
-                </template>
-            </Column>
-
             <Column
                 :rowEditor="true"
                 style="width: 10%; min-width: 8rem"
