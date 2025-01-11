@@ -54,7 +54,7 @@ const hideSemesterDialog = () => {
 const getNewSemesterValues = (): z.infer<typeof newSemesterSchema> => {
     return {
         name: '',
-        active: true,
+        active: false,
     } satisfies ICreateSemesterRequest
 }
 
@@ -62,7 +62,7 @@ const onCreateSemesterFormSubmit = async ({ valid, states }: FormSubmitEvent) =>
     if (valid) {
         newSemesterSubmitted.value = true
         const newSemester = getFormStatesAsType<ICreateSemesterRequest>(states)
-        newSemester.active = true //TO-DO: when teacher can send data, this should be set bei controller
+        // newSemester.active = true //TO-DO: when teacher can send data, this should be set bei controller
         SemesterService.createSemester(newSemester).then((res) => {
             const { data, error } = res
             if (error) {
@@ -121,6 +121,10 @@ function initSemesterFilters() {
     }
 }
 
+const booleanOptions = ref([
+    { label: 'Ja', value: true },
+    { label: 'Nein', value: false },
+]);
 
 /**
  * New Mentoring/Supervision Configuration
@@ -408,6 +412,8 @@ const formatNumber = (value: number) => {
         maximumFractionDigits: 2,
     });
 };
+
+const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein');
 </script>
 
 <template>
@@ -491,7 +497,7 @@ const formatNumber = (value: number) => {
                 </template>
             </Column>
 
-            <!-- Smester (validFrom) Column -->
+            <!-- Semester (validFrom) Column -->
             <Column
                 field="validFrom"
                 header="Gültig seit"
@@ -680,6 +686,18 @@ const formatNumber = (value: number) => {
                     </template>
                 </Column>
 
+                <!-- Akctive Column -->
+                <Column
+                    field="active"
+                    header="Aktiv?"
+                    style="min-width: 8rem"
+                >
+                    <template #body="{ data }">{{ formatBoolean(data.active) }}</template>
+                    <template #editor="{ data, field }">
+                        <Select v-model="data[field]" :options="booleanOptions" option-label="label" option-value="value" fluid />
+                    </template>
+                </Column>
+
                 <Column
                     :rowEditor="true"
                     style="width: 10%; min-width: 8rem"
@@ -720,6 +738,35 @@ const formatNumber = (value: number) => {
                         >
                             <!-- @vue-expect-error -->
                             {{ $form.name.error?.message }}
+                        </Message>
+                    </div>
+
+                    <!-- Aktiv Field -->
+                    <div class="flex flex-col gap-1">
+                        <FloatLabel variant="on">
+                            <Select
+                                label-id="active"
+                                name="active"
+                                :options="booleanOptions"
+                                option-label="label"
+                                option-value="value"
+                                fluid
+                            ></Select>
+                            <label
+                                for="active"
+                                class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
+                                >Aktiv?</label
+                            >
+                        </FloatLabel>
+                        <!-- @vue-expect-error -->
+                        <Message
+                            v-if="$form.active?.invalid"
+                            severity="error"
+                            size="small"
+                            variant="simple"
+                        >
+                            <!-- @vue-expect-error -->
+                            {{ $form.active.error?.message }}
                         </Message>
                     </div>
 
