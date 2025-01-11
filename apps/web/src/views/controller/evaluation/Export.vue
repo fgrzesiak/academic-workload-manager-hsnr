@@ -30,14 +30,35 @@ onBeforeMount(() => {
         }
     })
 
+    // SemesterService.getSemesters().then((res) => {
+    //     const { data, error } = res
+    //     if (error) {
+    //         console.warn("[Export] Couldn`t load semster")
+    //     } else {
+    //         semesters.value = data.map((semester: ISemesterResponse) => { 
+    //             return semester 
+    //         })
+    //     }
+    // })
+
     SemesterService.getSemesters().then((res) => {
-        const { data, error } = res
+        const { data, error } = res;
         if (error) {
-            console.warn("[Export] Couldn`t load semster")
+            console.warn("[Export] Couldn`t load semester");
         } else {
-            semesters.value = data.map((semester: ISemesterResponse) => { 
-                return semester 
-            })
+            // Finde das neueste aktive Semester
+            const activeSemesterIndex = data.findIndex((semester: ISemesterResponse) => semester.active === true);
+
+            if (activeSemesterIndex === -1) {
+                console.warn("[Export] No active semester");
+                return;
+            }
+
+            // Anzahl der Semester die berücksichtigt werden sollen
+            const period = 6;
+            // Extrahiere die letzten x(period) Semester ab dem aktiven Semester
+            const recentSemesters = data.slice((activeSemesterIndex - (period - 1)), (activeSemesterIndex + 1));
+            semesters.value = recentSemesters;
         }
     })
 
@@ -137,14 +158,14 @@ const exportCSV = () => {
             <template #empty>Keine Daten gefunden.</template>
 
             <!-- Spalten mit benutzerdefiniertem Slot -->
-            <Column field="name" header="Name Lehrer" :style="{ minWidth: '150px' }" />
+            <Column field="name" header="Name Lehrer" :style="{ width: '200px' }" />
             
             <!-- Dynamische Semester-Spalten mit benutzerdefiniertem Slot -->
             <template v-for="semester in semesters" :key="semester.id">
                 <Column
                     :header="semester.name"
                     :field="getSemesterName(semester.id)"
-                    :style="{ textAlign: 'center', width: '120px'}"
+                    :style="{ textAlign: 'center'}"
                 >
                     <template v-slot:body="{ data }">
                         {{ formatSumBalance(data[semester.id]) ?? '-' }}
