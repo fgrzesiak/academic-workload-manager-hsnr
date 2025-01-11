@@ -148,18 +148,6 @@ const formatNumber = (value: number | null) => {
     return value !== null ? value.toFixed(2) : '-' ;
 };
 
-type RowData = {
-    [key: number]: {
-        semesterName: string;
-        sumCourses: number;
-        sumDiscounts: number;
-        sumSupervisions: number;
-        individualDeputat: number;
-        result: number;
-    } | null; // Werte für jedes Semester
-    name: string; // Name des Lehrers
-};
-
 const tableData = computed(() => {
     // Erstelle eine flache Liste von Datenzeilen
     return teachers.value.flatMap((teacher) => {
@@ -222,6 +210,28 @@ const tableData = computed(() => {
     });
 });
 
+interface RowData {
+    teacherName: string;
+    semesterName: string;
+    sumCourses: number;
+    sumDiscounts: number;
+    sumSupervisions: number;
+    individualDeputat: number;
+    result: number;
+}
+
+const getTotal = (field: keyof RowData, teacherName: string) => {
+    const teacherRows = tableData.value.filter(row => row.teacherName === teacherName);
+    const rowsWithoutFirst = teacherRows.slice(1);
+
+    const total = rowsWithoutFirst.reduce((sum, row) => {
+        const value = Number(row[field]) || 0;  
+        return sum + value;
+    }, 0);
+
+    return total.toFixed(2);
+};
+
 </script>
 <template>
      <div class="card">
@@ -240,6 +250,9 @@ const tableData = computed(() => {
             rowGroupMode="subheader" 
             groupRowsBy="teacherName"
         >
+            <!-- Empty Table State -->
+            <template #empty>Keine Daten gefunden.</template>
+
             <!-- Gruppenkopf für Lehrer -->
             <template #groupheader="{ data }">
                 <span class="align-middle ml-2 font-bold leading-normal">{{ data.teacherName }}</span>
@@ -276,12 +289,16 @@ const tableData = computed(() => {
                 :style="{ minWidth: '150px', textAlign: 'center' }" 
             />
 
-            <!-- Ergebnis -->
+            <!-- Saldo Semester -->
             <Column 
                 field="result" 
-                header="Ergebnis" 
-                :style="{ minWidth: '150px', textAlign: 'center' }" 
+                header="Saldo Semester" 
+                :style="{ minWidth: '150px', textAlign: 'center' }"
             />
+
+            <template #groupfooter="{ data }">
+                <div class="flex justify-end w-full">Gesamtsaldo (letzte 6 Semester):&nbsp; <span class="font-bold">{{ getTotal('result', data.teacherName) }}</span></div>
+            </template>
         </DataTable>
     </div>
 </template>
