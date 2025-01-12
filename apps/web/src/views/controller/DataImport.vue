@@ -595,7 +595,7 @@ export default {
                 </div>
                 <div class="flex-row items-center mb-4">
                     <p class="font-semibold">Aktuelle SWS-Summe: {{ mentoringSum.toFixed(1) }}</p>
-                    <p v-if="mentoringSum > 3" class="text-red-500 font-bold">Die maximal anrechenbaren 3 SWS wurden überschritten! (gemäß <a href="https://www.lexsoft.de/cgi-bin/lexsoft/justizportal_nrw.cgi?xid=3804662,5" target="_blank"><u>§4 Abs. 5 LVV</u></a>)</p>
+                    <p v-if="mentoringSum > 3.1" class="text-red-500 font-bold">Die maximal anrechenbaren 3 SWS wurden überschritten! (gemäß <a href="https://www.lexsoft.de/cgi-bin/lexsoft/justizportal_nrw.cgi?xid=3804662,5" target="_blank"><u>§4 Abs. 5 LVV</u></a>)</p>
                 </div>
                 <Button
                     label="Betreuung hinzufügen"

@@ -265,39 +265,56 @@ const getTotal = (field: keyof RowData, teacherName: string) => {
             <Column 
                 field="sumCourses" 
                 header="Summe der Kurse" 
-                :style="{ minWidth: '150px', textAlign: 'center' }" 
+                :style="{ minWidth: '150px' }" 
             />
 
             <!-- Summe der Ermäßigungen -->
             <Column 
                 field="sumDiscounts" 
                 header="Summe der Ermäßigungen" 
-                :style="{ minWidth: '150px', textAlign: 'center' }" 
+                :style="{ minWidth: '150px' }" 
             />
 
             <!-- Summe der Betreuungen -->
             <Column 
                 field="sumSupervisions" 
                 header="Summe der Betreuungen" 
-                :style="{ minWidth: '150px', textAlign: 'center' }" 
-            />
+                :style="{ minWidth: '150px' }" 
+            >
+                <template #body="{ data }">
+                    <div 
+                        :style="{
+                            backgroundColor: data.sumSupervisions > 3.0 ? 'red' : 'transparent',
+                            color: data.sumSupervisions > 3.0 ? 'white' : 'inherit',
+                            fontWeight: data.sumSupervisions > 3.0 ? 'bold' : 'normal',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: '0 8px'
+                        }"
+                    >
+                        <span>{{ data.sumSupervisions }}</span>
+                        <i v-if="data.sumSupervisions > 3.0" class="pi pi-exclamation-triangle" style="margin-left: 8px;"></i>
+                    </div>
+                </template>
+            </Column>
 
             <!-- Individuelles Deputat -->
             <Column 
                 field="individualDeputat" 
                 header="Individuelles Deputat" 
-                :style="{ minWidth: '150px', textAlign: 'center' }" 
+                :style="{ minWidth: '150px' }" 
             />
 
             <!-- Saldo Semester -->
             <Column 
                 field="result" 
                 header="Saldo Semester" 
-                :style="{ minWidth: '150px', textAlign: 'center' }"
+                :style="{ minWidth: '150px' }"
             />
 
             <template #groupfooter="{ data }">
-                <div class="flex justify-end w-full">Gesamtsaldo (letzte 6 Semester):&nbsp; <span class="font-bold">{{ getTotal('result', data.teacherName) }}</span></div>
+                <div class="flex justify-end w-full"><span class="font-bold">Gesamtsaldo: {{ getTotal('result', data.teacherName) }}</span></div>
             </template>
         </DataTable>
     </div>
