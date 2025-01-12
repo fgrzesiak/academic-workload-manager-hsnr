@@ -156,13 +156,15 @@ const tableData = computed(() => {
             const teacherDiscounts = discounts.value.filter(
                 (discount) =>
                     discount.teacherId === teacher.id &&
-                    discount.semesterPeriodId === semester.id
+                    discount.semesterPeriodId === semester.id &&
+                    discount.ordered === false
             );
 
             const teacherCourses = courses.value.filter(
                 (course) =>
                     course.teacherId === teacher.id &&
-                    course.semesterPeriodId === semester.id
+                    course.semesterPeriodId === semester.id &&
+                    course.ordered === false
             );
 
             const teacherSupervisions = supervisions.value.filter(
@@ -180,6 +182,11 @@ const tableData = computed(() => {
                 return acc + factor;
             }, 0);
 
+            // Begrenzung der Summe der Betreuungen auf 3,0 und Speicherung der Differenz
+            const maxSupervisions = 3.0;
+            const supervisionsExpire = sumSupervisions > maxSupervisions ? sumSupervisions - maxSupervisions : 0;
+            const adjustedSupervisions = Math.min(sumSupervisions, maxSupervisions);
+
             // Berechnungen für Kurse und Ermäßigungen
             const sumCourses = teacherCourses.reduce((acc, course) => acc + (course.hours || 0), 0);
             const sumDiscounts = teacherDiscounts.reduce((acc, discount) => acc + (discount.scope || 0), 0);
@@ -190,10 +197,8 @@ const tableData = computed(() => {
                     deputat.semesterPeriodId === semester.id
             )?.individualDuty ?? 0;
 
-            // const sumIndividualDeputat = individualQuota.reduce((acc, deputat) => acc + (deputat.individualDuty || 0), 0);
-
             // Ergebnis der Stunden
-            const totalHours = sumCourses + sumDiscounts + sumSupervisions;
+            const totalHours = sumCourses + sumDiscounts + adjustedSupervisions; // Verwende die begrenzten Betreuungen
             const result = totalHours - individualDeputat;
 
             // Erstelle ein einzelnes Zeilenobjekt
@@ -203,6 +208,7 @@ const tableData = computed(() => {
                 sumCourses: formatNumber(sumCourses),
                 sumDiscounts: formatNumber(sumDiscounts),
                 sumSupervisions: formatNumber(sumSupervisions),
+                supervisionsExpire: formatNumber(supervisionsExpire),
                 individualDeputat: formatNumber(individualDeputat),
                 result: formatNumber(result),
             };
@@ -216,6 +222,7 @@ interface RowData {
     sumCourses: number;
     sumDiscounts: number;
     sumSupervisions: number;
+    supervisionsExpire: number;
     individualDeputat: number;
     result: number;
 }
@@ -294,7 +301,11 @@ const getTotal = (field: keyof RowData, teacherName: string) => {
                         }"
                     >
                         <span>{{ data.sumSupervisions }}</span>
-                        <i v-if="data.sumSupervisions > 3.0" class="pi pi-exclamation-triangle" style="margin-left: 8px;"></i>
+                        <div v-if="data.sumSupervisions > 3.0" class="flex-row items-center">
+                            <span>Verfall: {{ data.supervisionsExpire }}</span>
+                            <i class="pi pi-exclamation-triangle" style="margin-left: 8px;"></i>
+                        </div>
+                        
                     </div>
                 </template>
             </Column>
@@ -311,8 +322,22 @@ const getTotal = (field: keyof RowData, teacherName: string) => {
                 field="result" 
                 header="Saldo Semester" 
                 :style="{ minWidth: '150px' }"
-            />
-
+            >
+                <template #body="{ data }">
+                    <div 
+                        :style="{
+                            color: data.result < 0 ? 'red' : 'green',
+                            fontWeight: 'bold',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: '0 8px'
+                        }"
+                    >
+                        <span>{{ data.result }}</span>
+                    </div>
+                </template>
+            </Column>
             <template #groupfooter="{ data }">
                 <div class="flex justify-end w-full"><span class="font-bold">Gesamtsaldo: {{ getTotal('result', data.teacherName) }}</span></div>
             </template>
