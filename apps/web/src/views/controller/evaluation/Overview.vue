@@ -152,20 +152,43 @@ const tableData = computed(() => {
     // Erstelle eine flache Liste von Datenzeilen
     return teachers.value.flatMap((teacher) => {
         return semesters.value.map((semester) => {
-            // Filtere die relevanten Daten für den Lehrer und das Semester
-            const teacherDiscounts = discounts.value.filter(
+            // Filtern und Berechnen der Ermäßigungen
+            const teacherDiscountsUnordered = discounts.value.filter(
                 (discount) =>
                     discount.teacherId === teacher.id &&
                     discount.semesterPeriodId === semester.id &&
                     discount.ordered === false
             );
 
-            const teacherCourses = courses.value.filter(
+            const teacherDiscountsOrdered = discounts.value.filter(
+                (discount) =>
+                    discount.teacherId === teacher.id &&
+                    discount.semesterPeriodId === semester.id &&
+                    discount.ordered === true
+            );
+
+            // Summe der Ermäßigungen
+            const sumDiscounts = teacherDiscountsUnordered.reduce((acc, discount) => acc + (discount.scope || 0), 0);
+            const sumOrderedDiscounts = teacherDiscountsOrdered.reduce((acc, discount) => acc + (discount.scope || 0), 0);
+
+            // Filtern und Berechnen der Kurse
+            const teacherCoursesUnordered = courses.value.filter(
                 (course) =>
                     course.teacherId === teacher.id &&
                     course.semesterPeriodId === semester.id &&
                     course.ordered === false
             );
+
+            const teacherCoursesOrdered = courses.value.filter(
+                (course) =>
+                    course.teacherId === teacher.id &&
+                    course.semesterPeriodId === semester.id &&
+                    course.ordered === true
+            );
+
+            // Summe der Kurse
+            const sumCourses = teacherCoursesUnordered.reduce((acc, course) => acc + (course.hours || 0), 0);
+            const sumOrderedCourses = teacherCoursesOrdered.reduce((acc, course) => acc + (course.hours || 0), 0);
 
             const teacherSupervisions = supervisions.value.filter(
                 (supervision) =>
@@ -187,10 +210,6 @@ const tableData = computed(() => {
             const supervisionsExpire = sumSupervisions > maxSupervisions ? sumSupervisions - maxSupervisions : 0;
             const adjustedSupervisions = Math.min(sumSupervisions, maxSupervisions);
 
-            // Berechnungen für Kurse und Ermäßigungen
-            const sumCourses = teacherCourses.reduce((acc, course) => acc + (course.hours || 0), 0);
-            const sumDiscounts = teacherDiscounts.reduce((acc, discount) => acc + (discount.scope || 0), 0);
-
             const individualDeputat = deputats.value.find(
                 (deputat) =>
                     deputat.teacherId === teacher.id &&
@@ -206,7 +225,9 @@ const tableData = computed(() => {
                 teacherName: `${teacher.lastName}, ${teacher.firstName}`,
                 semesterName: semester.name,
                 sumCourses: formatNumber(sumCourses),
+                sumOrderedCourses: formatNumber(sumOrderedCourses),
                 sumDiscounts: formatNumber(sumDiscounts),
+                sumOrderedDiscounts: formatNumber(sumOrderedDiscounts),
                 sumSupervisions: formatNumber(sumSupervisions),
                 supervisionsExpire: formatNumber(supervisionsExpire),
                 individualDeputat: formatNumber(individualDeputat),
@@ -220,7 +241,9 @@ interface RowData {
     teacherName: string;
     semesterName: string;
     sumCourses: number;
+    sumOrderedCourses: number;
     sumDiscounts: number;
+    sumOrderedDiscounts: number;
     sumSupervisions: number;
     supervisionsExpire: number;
     individualDeputat: number;
@@ -266,21 +289,49 @@ const getTotal = (field: keyof RowData, teacherName: string) => {
             </template>
 
             <!-- Name des Semesters -->
-            <Column field="semesterName" header="Semestername" :style="{ minWidth: '150px' }" />
+            <Column field="semesterName" header="Semester" :style="{ minWidth: '150px' }" />
 
             <!-- Summe der Kurse -->
             <Column 
                 field="sumCourses" 
-                header="Summe der Kurse" 
+                header="Summe der Kurse / Angeordnet" 
                 :style="{ minWidth: '150px' }" 
-            />
+                >
+                <template #body="{ data }">
+                    <div 
+                        :style="{
+                            display: 'flex',
+                            alignItems: 'center',
+                        }"
+                    >
+                        <span>{{ data.sumCourses }}</span>
+                        <div v-if="data.sumOrderedCourses > 0" class="flex-row items-center font-bold">
+                            <span>&nbsp;/ {{ data.sumOrderedCourses }}</span>
+                        </div>
+                    </div>
+                </template>
+            </Column>
 
             <!-- Summe der Ermäßigungen -->
             <Column 
                 field="sumDiscounts" 
-                header="Summe der Ermäßigungen" 
+                header="Summe der Ermäßigungen / Angeordnet" 
                 :style="{ minWidth: '150px' }" 
-            />
+            >
+                <template #body="{ data }">
+                    <div 
+                        :style="{
+                            display: 'flex',
+                            alignItems: 'center',
+                        }"
+                    >
+                        <span>{{ data.sumDiscounts }}</span>
+                        <div v-if="data.sumOrderedDiscounts > 0" class="flex-row items-center font-bold">
+                            <span>&nbsp;/ {{ data.sumOrderedDiscounts }}</span>
+                        </div>
+                    </div>
+                </template>
+            </Column>
 
             <!-- Summe der Betreuungen -->
             <Column 
@@ -331,7 +382,6 @@ const getTotal = (field: keyof RowData, teacherName: string) => {
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'space-between',
-                            padding: '0 8px'
                         }"
                     >
                         <span>{{ data.result }}</span>
