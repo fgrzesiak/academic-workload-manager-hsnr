@@ -1,15 +1,8 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Post,
-  Put,
-} from "@nestjs/common";
+import { Body, Controller, Delete, Get, Post, Put } from "@nestjs/common";
 import {
   ICreateSupervisionRequest,
-  IUpdateSupervisionRequest,
   ISupervisionResponse,
+  IUpdateSupervisionRequest,
 } from "@workspace/shared";
 
 import { Auth } from "../../../common/decorators/auth.decorator";
@@ -28,19 +21,24 @@ export class SupervisionController {
 
   @Post("/")
   @Auth(Role.CONTROLLER)
-  async createSupervision(@Body() supervision: ICreateSupervisionRequest): Promise<ISupervisionResponse> {
+  async createSupervision(
+    @Body() supervision: ICreateSupervisionRequest,
+  ): Promise<ISupervisionResponse> {
     return await this.supervisionService.create(supervision);
   }
 
   @Put("/")
   @Auth(Role.CONTROLLER)
-  async updateSupervision(@Body() supervision: IUpdateSupervisionRequest): Promise<ISupervisionResponse> {
+  async updateSupervision(
+    @Body() supervision: IUpdateSupervisionRequest,
+  ): Promise<ISupervisionResponse> {
     return await this.supervisionService.update(supervision);
   }
 
   @Delete("/delete/")
   @Auth(Role.CONTROLLER)
-  async deleteSupervision(@Body() id: number) {
+  async deleteSupervision(@Body() object: { id: number }) {
+    const { id } = object;
     console.warn(`Type of ID: ${typeof id}`, id);
     return await this.supervisionService.delete(id);
   }

@@ -110,13 +110,25 @@ class ApiClient {
             })
     }
 
-    delete<T>(url: string, id: number) {
-        if (typeof id !== 'number') {
-            throw new Error('Invalid ID: ID must be a number');
-        }
-        return this.networkClient(`${url}/${id}`, {
+    delete<T>(url: string, body: unknown) {
+        return this.networkClient(url, {
             afterFetch: (ctx) => ctx.data,
         })
+            .delete(body)
+            .json<T>()
+            .then((res) => {
+                const { data, error } = res
+                if (error.value) {
+                    return { data: null, error: new String(error.value) }
+                } else if (!data.value) {
+                    return {
+                        data: null,
+                        error: 'Ein unbekannter Fehler ist aufgetreten.',
+                    }
+                } else {
+                    return { data: data.value, error: null }
+                }
+            })
     }
 }
 
