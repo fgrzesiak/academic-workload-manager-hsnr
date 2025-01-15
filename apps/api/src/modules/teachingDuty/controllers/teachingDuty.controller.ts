@@ -4,6 +4,7 @@ import {
   Get,
   Post,
   Put,
+  Delete,
 } from "@nestjs/common";
 import {
   ICreateTeachingDutyRequest,
@@ -35,5 +36,12 @@ export class TeachingDutyController {
   @Auth(Role.CONTROLLER)
   async updateTeachingDuty(@Body() teaching: IUpdateTeachingDutyRequest): Promise<ITeachingDutyResponse> {
     return await this.teachingDutyService.update(teaching);
+  }
+
+  @Delete("/delete/")
+  @Auth(Role.CONTROLLER)
+  async deleteSupervision(@Body() object: { id: number }) {
+    const { id } = object;
+    return await this.teachingDutyService.delete(id);
   }
 }

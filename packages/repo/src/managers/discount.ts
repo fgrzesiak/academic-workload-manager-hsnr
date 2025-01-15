@@ -40,4 +40,12 @@ export class DiscountManager {
     const result = await this.prisma.discount.create({ data: discount });
     return new Discount(result);
   }
+
+  async delete(id: number) {
+    await this.prisma.discount.delete({
+      where: { 
+        id: id,
+      },
+    });
+  }
 }

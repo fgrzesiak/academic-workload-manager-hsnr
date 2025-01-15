@@ -40,4 +40,12 @@ export class TeachingDutyManager {
     const result = await this.prisma.teachingDutyPerSemester.create({ data: teachingDuty });
     return new TeachingDuty(result);
   }
+
+  async delete(id: number) {
+    await this.prisma.teachingDutyPerSemester.delete({
+      where: { 
+        id: id,
+      },
+    });
+  }
 }

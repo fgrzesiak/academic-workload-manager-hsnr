@@ -13,11 +13,15 @@ const createDiscount = (data: ICreateDiscountRequest) =>
 const updateDiscount = (data: IUpdateDiscountRequest) =>
     apiClient.put<IDiscountResponse>('/discount', data)
 
+const deleteDiscount = (id: number) =>
+    apiClient.delete('/discount/delete', { id })
+
 const discountService = {
     getProfile,
     getDiscounts,
     createDiscount,
     updateDiscount,
+    deleteDiscount,
 }
 
 export default discountService

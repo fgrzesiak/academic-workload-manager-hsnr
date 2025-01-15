@@ -13,11 +13,15 @@ const createTeachingDuty = (data: ICreateTeachingDutyRequest) =>
 const updateTeachingDuty = (data: IUpdateTeachingDutyRequest) =>
     apiClient.put<ITeachingDutyResponse>('/teachingDuty', data)
 
+const deleteTeachingDuty = (id: number) =>
+    apiClient.delete('/teachingDuty/delete', { id })
+
 const teachingDutyService = {
     getProfile,
     getTeachingDuties,
     createTeachingDuty,
     updateTeachingDuty,
+    deleteTeachingDuty,
 }
 
 export default teachingDutyService

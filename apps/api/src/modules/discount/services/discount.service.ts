@@ -28,4 +28,8 @@ export class DiscountService {
     const { ...rest } = await discounts.update(discount);
     return rest;
   }
+
+  async delete(id: number) {
+    await discounts.delete(id);
+  }
 }

@@ -39,7 +39,6 @@ export class SupervisionController {
   @Auth(Role.CONTROLLER)
   async deleteSupervision(@Body() object: { id: number }) {
     const { id } = object;
-    console.warn(`Type of ID: ${typeof id}`, id);
     return await this.supervisionService.delete(id);
   }
 }

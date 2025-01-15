@@ -28,4 +28,8 @@ export class TeachingDutyService {
     const { ...rest } = await teachingDuties.update(teachingEvent);
     return rest;
   }
+
+  async delete(id: number) {
+    await teachingDuties.delete(id);
+  }
 }

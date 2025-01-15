@@ -4,6 +4,7 @@ import {
   Get,
   Post,
   Put,
+  Delete,
 } from "@nestjs/common";
 import {
   ICreateDiscountRequest,
@@ -35,5 +36,12 @@ export class DiscountController {
   @Auth(Role.CONTROLLER)
   async updateDiscount(@Body() discount: IUpdateDiscountRequest): Promise<IDiscountResponse> {
     return await this.discountService.update(discount);
+  }
+
+  @Delete("/delete/")
+  @Auth(Role.CONTROLLER)
+  async deleteSupervision(@Body() object: { id: number }) {
+    const { id } = object;
+    return await this.discountService.delete(id);
   }
 }
