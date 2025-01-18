@@ -76,13 +76,25 @@ const hideDialog = () => {
 }
 
 const deleteEntry = (id: number) => {
-    discounts.value = discounts.value.filter(event => event.id !== id);
-    toast.add({
-        severity: 'success',
-        summary: 'Successful',
-        detail: 'Betreuung erfolgreich gelöscht',
-        life: 3000,
-    })
+    try {
+        DiscountService.deleteDiscount(id);
+
+        toast.add({
+            severity: 'success',
+            summary: 'Erfolgreich',
+            detail: 'Ermäßigung gelöscht',
+            life: 3000,
+        })
+            
+        discounts.value = discounts.value.filter(event => event.id !== id);
+    } catch (error) {
+        toast.add({
+            severity: 'error',
+            summary: 'Fehler',
+            detail: error,
+            life: 5000,
+        })
+    }
 }
 
 const getNewDiscountValues = (): z.infer<typeof newDiscountSchema> => {

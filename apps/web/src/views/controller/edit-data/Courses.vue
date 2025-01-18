@@ -71,16 +71,30 @@ const hideDialog = () => {
     newTeachingEventSubmitted.value = false
 }
 
+// deletes a course based on its ID
 const deleteEntry = (id: number) => {
-    teachingEvents.value = teachingEvents.value.filter(event => event.id !== id);
-    toast.add({
-        severity: 'success',
-        summary: 'Successful',
-        detail: 'Betreuung erfolgreich gelöscht',
-        life: 3000,
-    })
+    try {
+        TeachingEventService.deleteTeachingEvent(id);
+
+        toast.add({
+            severity: 'success',
+            summary: 'Erfolgreich',
+            detail: 'Lehrveranstaltung gelöscht',
+            life: 3000,
+        })
+            
+        teachingEvents.value = teachingEvents.value.filter(event => event.id !== id);
+    } catch (error) {
+        toast.add({
+            severity: 'error',
+            summary: 'Fehler',
+            detail: error,
+            life: 5000,
+        })
+    }
 }
 
+// Initializes the values for a new course
 const getNewTeachingEventValues = (): z.infer<typeof newTeachingEventSchema> => {
     return {
         name: '',
