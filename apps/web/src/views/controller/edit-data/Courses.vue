@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// import of required modules, libraries and services
 import { FilterMatchMode } from '@primevue/core/api'
 import { onBeforeMount, ref } from 'vue'
 import TeachingEventService from '@/service/teachingEvent.service'
@@ -17,16 +18,19 @@ import { z } from 'zod'
 import { zodResolver } from '@primevue/forms/resolvers/zod'
 import { Form, FormSubmitEvent } from '@primevue/forms'
 
+// interface for defining dropdown options
 interface SelectOption {
     label: string;
     value: number;
 }
 
+// definition of selection options for yes/no
 const booleanOptions = ref([
     { label: 'Ja', value: true },
     { label: 'Nein', value: false },
 ]);
 
+// reactive variables for saving courses, filter criteria and UI states
 const teachingEvents = ref<ITeachingEventResponse[]>([])
 const filters = ref<DataTableFilterMeta>({})
 const editingRows = ref([])
@@ -36,15 +40,14 @@ const semesterSelect = ref<SelectOption[]>([])
 const userSelect = ref<SelectOption[]>([])
 const expandedRowGroups = ref<number[]>([])
 
+// updates the list within the tabular display of the courses with new data
 const updateTeachingEvents = (data: ITeachingEventResponse[]) => {
     teachingEvents.value = data.map((d) => { 
         return d 
     })
 }
 
-/**
- * New TeachingEvent Configuration
- */
+// variables and schema for creating a new course
 const newTeachingEventSubmitted = ref(false)
 const newTeachingEventDialog = ref(false)
 const newTeachingEventSchema = z.object({
@@ -57,15 +60,19 @@ const newTeachingEventSchema = z.object({
     commentId: z.number(),
 })
 const resolver = ref(zodResolver(newTeachingEventSchema))
+
+// comment overlay condition and content
 const currentCommentContent = ref("")
 const currentCommentDate = ref("")
 const commentDrawerVisible = ref(false)
 
+// opens the dialog for adding a new course
 const openNew = () => {
     newTeachingEventSubmitted.value = false
     newTeachingEventDialog.value = true
 }
 
+// closes the dialog of the course creation without action
 const hideDialog = () => {
     newTeachingEventDialog.value = false
     newTeachingEventSubmitted.value = false
@@ -107,6 +114,7 @@ const getNewTeachingEventValues = (): z.infer<typeof newTeachingEventSchema> => 
     } satisfies ICreateTeachingEventRequest
 }
 
+// submit handler for the form for creating a new course
 const onCreateTeachingEventFormSubmit = async ({ valid, states }: FormSubmitEvent) => {
     if (valid) {
         newTeachingEventSubmitted.value = true
@@ -136,6 +144,7 @@ const onCreateTeachingEventFormSubmit = async ({ valid, states }: FormSubmitEven
     }
 }
 
+// saves changes to a course
 const onRowEditSave = ({ newData }: DataTableRowEditSaveEvent) => {
     TeachingEventService.updateTeachingEvent(newData).then((res) => {
         const { data, error } = res
@@ -159,8 +168,11 @@ const onRowEditSave = ({ newData }: DataTableRowEditSaveEvent) => {
     })
 }
 
+// loads initial data from the table for courses, semesters and lecturers
 onBeforeMount(() => {
     loading.value = true
+
+    // loads courses
     TeachingEventService.getTeachingEvents().then((res) => {
         const { data, error } = res
         if (error) {
@@ -175,6 +187,7 @@ onBeforeMount(() => {
         }
     })
 
+    // loads semesters
     SemesterService.getSemesters().then((res) => {
         const { data, error } = res
         if (error) {
@@ -187,6 +200,7 @@ onBeforeMount(() => {
         }
     })
 
+    // loads teachers
     TeacherService.getTeachers().then((res) => {
         const { data, error } = res
         if (error) {
@@ -203,7 +217,7 @@ onBeforeMount(() => {
     loading.value = false
 })
 
-// Initialize filters
+// initializes default filter settings
 function initFilters() {
     filters.value = {
         global: { 
@@ -217,6 +231,7 @@ function initFilters() {
     }
 }
 
+// displays a comment based on the ID
 const showComment = async (commentId: number) => {
     const commentData = await fetchCommentById(commentId);
     currentCommentContent.value = commentData ? commentData.commentContent : "Kein Inhalt.";
@@ -224,6 +239,7 @@ const showComment = async (commentId: number) => {
     commentDrawerVisible.value = true;
 };
 
+// loads a comment based on the ID
 const fetchCommentById = async (commentId: number): Promise<ICommentResponse | null> => {
     try {
         const res = await CommentService.getComments();
@@ -242,6 +258,7 @@ const fetchCommentById = async (commentId: number): Promise<ICommentResponse | n
     }
 };
 
+// handling the group extension (grouped display in the table)
 const onRowGroupExpand = (event: any) => {
     const customEvent = event as { group: number; data: any[] };
     const groupId = customEvent.group;
@@ -250,18 +267,21 @@ const onRowGroupExpand = (event: any) => {
     }
 };
 
+// handling the group closure
 const onRowGroupCollapse = (event: any) => {
     const customEvent = event as { group: number; data: any[] };
     const groupId = customEvent.group;
     expandedRowGroups.value = expandedRowGroups.value.filter(id => id !== groupId);
 };
 
+// closes the comment overlay
 const closeCommentDrawer = () => {
     commentDrawerVisible.value = false;
     currentCommentContent.value = "";
     currentCommentDate.value = "";
 };
 
+// formats a date in “dd.mm.yyyy” format
 const formatDate = (value: string) => {
     if (!value) return '';
     const date = new Date(value);
@@ -271,17 +291,19 @@ const formatDate = (value: string) => {
     return `${day}.${month}.${year}`;
 }
 
-//convert semester ID into Name
+// converts semester IDs into names
 const getSemesterName = (id: number) => {
     const semester = semesterSelect.value.find((s) => s.value === id);
     return semester ? semester.label : 'Unbekannt';
 };
 
+// converts user IDs to names
 const getUserName = (id: number) => {
     const user = userSelect.value.find((s) => s.value === id);
     return user ? user.label : 'Unbekannt';
 };
 
+// formats numbers with one decimal place
 const formatNumber = (value: number) => {
     if (value == null) return ''; // Leere Anzeige, falls der Wert null oder undefined ist
     return value.toLocaleString('de-DE', {
@@ -290,6 +312,7 @@ const formatNumber = (value: number) => {
     });
 };
 
+// converts a boolean value to Yes/No
 const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein');
 </script>
 
@@ -305,6 +328,7 @@ const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein');
             />
         </div>
 
+        <!-- table to display the data -->
         <DataTable
             :value="teachingEvents"
             size="small"
@@ -328,7 +352,7 @@ const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein');
             removableSort 
             @row-edit-save="onRowEditSave"
         >
-
+            <!-- grouping the data by teacher -->
             <template #groupheader="{ data }">
                 <span class="align-middle ml-2 font-bold leading-normal">{{ getUserName(data.teacherId) }}</span>
             </template>
@@ -413,12 +437,14 @@ const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein');
                 </template>
             </Column>
 
+            <!-- edit data -->
             <Column
                 :rowEditor="true"
                 style="width: 10%; min-width: 8rem"
                 bodyStyle="text-align:center"
             ></Column>
 
+            <!-- show comment -->
             <Column
             style="width: 4rem; text-align: center"
             :headerStyle="{ textAlign: 'center' }"
@@ -433,6 +459,7 @@ const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein');
                 </template>
             </Column>
 
+            <!-- delete data -->
             <Column
             style="width: 4rem; text-align: center"
             :headerStyle="{ textAlign: 'center' }"
@@ -447,6 +474,7 @@ const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein');
             </Column>            
         </DataTable>
 
+        <!-- comment overlay -->
         <Drawer v-model:visible="commentDrawerVisible" header="Kommentar" position="right">
             <div class="flex flex-wrap flex-col gap-4">
                 <p>Kommentar vom: {{currentCommentDate}}</p>
@@ -465,6 +493,7 @@ const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein');
             </div>
         </Drawer>
 
+        <!-- add new course -->
         <Dialog
             v-model:visible="newTeachingEventDialog"
             :style="{ width: '450px' }"
