@@ -5,15 +5,12 @@ import { singleton } from "tsyringe";
 import { PrismaService } from "../services/index.js";
 import { TeachingEvent } from "../structures/index.js";
 
+// marks the class as a singleton for dependency injection
 @singleton()
 export class TeachingEventManager {
   constructor(private prisma: PrismaService) {}
 
-  /**
-   * finds a teaching event by its ID.
-   * @param id - the ID of the teaching event to find.
-   * @returns a `TeachingEvent` object or `null` if no event is found.
-   */
+  // find teachingEvent by ID
   async findOne(id: number): Promise<TeachingEvent | null> {
     try {
       const result = await this.prisma.teachingEvent.findUniqueOrThrow({
@@ -26,11 +23,7 @@ export class TeachingEventManager {
     }
   }
 
-  /**
-   * updates the details of a teaching event.
-   * @param teachingEvent - an object containing the updated teaching event data.
-   * @returns the updated `TeachingEvent` object.
-   */
+  //update teachingEvent
   async update(teachingEvent: IUpdateTeachingEventRequest): Promise<TeachingEvent> {
     const { id } = teachingEvent;
     const result = await this.prisma.teachingEvent.update({
@@ -40,19 +33,12 @@ export class TeachingEventManager {
     return new TeachingEvent(result); // wrap the updated event in a `TeachingEvent` structure
   }
 
-  /**
-   * retrieves all teaching events from the database.
-   * @returns a list of teaching events as raw database objects.
-   */
+  // get all teachingEvents
   async findAll(): Promise<ITeachingEvent[]> {
     return await this.prisma.teachingEvent.findMany();  // retrieve all teaching events
   }
 
-  /**
-   * creates a new teaching event.
-   * @param teachingEvent - the data for the new teaching event.
-   * @returns the newly created `TeachingEvent` object.
-   */
+  // Create a new teachingEvent
   async create(teachingEvent: ICreateTeachingEventRequest): Promise<TeachingEvent> {
     const result = await this.prisma.teachingEvent.create({ 
       data: teachingEvent, // insert the new teaching event into the database
@@ -60,10 +46,7 @@ export class TeachingEventManager {
     return new TeachingEvent(result); // wrap the created event in a `TeachingEvent` structure
   }
 
-  /**
-   * deletes a teaching event by its ID.
-   * @param id - the ID of the teaching event to delete.
-   */
+  // delete teachingEvent by ID
   async delete(id: number) {
     await this.prisma.teachingEvent.delete({
       where: { 

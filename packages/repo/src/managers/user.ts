@@ -5,28 +5,29 @@ import { singleton } from "tsyringe";
 import { PrismaService } from "../services/index.js";
 import { User } from "../structures/index.js";
 
+// marks the class as a singleton for dependency injection
 @singleton()
 export class UserManager {
   constructor(private prisma: PrismaService) {}
 
-  // Find a user by ID, including the Teacher or Controller relation based on the user's role
+  // find a user by ID, including the Teacher or Controller relation based on the user's role
   async findOne(id: number): Promise<User | null> {
     try {
       const result = await this.prisma.user.findUniqueOrThrow({
         where: { id },
         include: {
-          Teacher: true, // Include Teacher relation if it exists
-          Controller: true, // Include Controller relation if it exists
+          Teacher: true,  // include Teacher relation if it exists
+          Controller: true,  // include Controller relation if it exists
         },
       });
 
-      return new User(result);
+      return new User(result);  // returns the found user as an instance of User
     } catch (_err) {
-      return null;
+      return null;  // returns null if the user is not found or an error occurs
     }
   }
 
-  // Find a user by username, including the Teacher or Controller relation
+  // find a user by username, including the Teacher or Controller relation
   async findByUsername(username: string): Promise<User | null> {
     try {
       const result = await this.prisma.user.findUniqueOrThrow({
@@ -37,31 +38,34 @@ export class UserManager {
         }, */
       });
 
-      return new User(result);
+      return new User(result);  // returns the found user as an instance of User
     } catch (_err) {
-      return null;
+      return null;  // returns null if the user is not found or an error occurs
     }
   }
 
-  // Update user details; for Teacher/Controller-specific fields, handle separately in their services if necessary
+  // update user details; for Teacher/Controller-specific fields, handle separately in their services if necessary
   async update(user: IUpdateUserRequest): Promise<User> {
     const { id } = user;
     const result = await this.prisma.user.update({
-      data: user,
+      data: user,  // updates the user record with the provided data
       where: { id },
     });
-    return new User(result);
+    return new User(result);  // returns the updated user as an instance of User
   }
 
+  // find all users
   async findAll(): Promise<IUser[]> {
-    return await this.prisma.user.findMany();
+    return await this.prisma.user.findMany();  // returns all user records from the database
   }
 
+  // create a new user, along with their Teacher or Controller relation based on the role
   async create(user: ICreateUserRequest): Promise<User> {
     const { firstName, lastName, ...rest } = user;
     const result = await this.prisma.user.create({
       data: {
         ...rest,
+        // create a Teacher or Controller relation based on the role
         ...(Role.CONTROLLER === rest.role
           ? {
               Controller: {
@@ -76,13 +80,13 @@ export class UserManager {
                 create: {
                   firstName,
                   lastName,
-                  retirementDate: new Date(), // TODO: set a proper value
-                  totalTeachingDuty: 0, // TODO: set a proper value
+                  retirementDate: new Date(),  // TODO: set a proper value
+                  totalTeachingDuty: 0,  // TODO: set a proper value
                 },
               },
             }),
       },
     });
-    return new User(result);
+    return new User(result);  // returns the newly created user as an instance of User
   }
 }

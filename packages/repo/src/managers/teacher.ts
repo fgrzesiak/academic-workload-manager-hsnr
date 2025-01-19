@@ -4,64 +4,53 @@ import { singleton } from "tsyringe";
 import { PrismaService } from "../services/index.js";
 import { Teacher } from "../structures/index.js";
 
+// marks the class as a singleton for dependency injection
 @singleton()
 export class TeacherManager {
+  // constructor initializes the service with PrismaService instance
   constructor(private prisma: PrismaService) {}
 
-  /**
-   * Get by id
-   */
+  //get teacher by ID
   async get(id: number): Promise<Teacher | null> {
     try {
+      // tries to find a unique teacher by their ID
       const result = await this.prisma.teacher.findUniqueOrThrow({
         where: { id },
       });
 
-      return new Teacher(result);
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      return new Teacher(result); // returns the found teacher as an instance of Teacher
     } catch (err) {
-      return null;
+      return null; // returns null if an error occurs (e.g., teacher not found)
     }
   }
 
-  /**
-   * Get by userId
-   */
+  //get teacher by userId
   async getByUserId(userId: number): Promise<Teacher | null> {
     try {
+      // tries to find a unique teacher by their userId
       const result = await this.prisma.teacher.findUniqueOrThrow({
         where: { userId: userId },
       });
 
-      return new Teacher(result);
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      return new Teacher(result); // returns the found teacher as an instance of Teacher
     } catch (err) {
-      return null;
+      return null; // returns null if an error occurs (e.g., teacher not found)
     }
   }
 
-  /***
-   * Get all
-   */
+  // get all teachers
   async findAll(): Promise<ITeacher[]> {
-    return await this.prisma.teacher.findMany();
+    return await this.prisma.teacher.findMany(); // returns a list of all teachers
   }
 
-  /***
-   * Create
-   */
+  //create a new teacher
   async create(user: Omit<ITeacher, "id" | "createdAt">): Promise<Teacher> {
     const result = await this.prisma.teacher.create({ data: user });
-    return new Teacher(result);
+    return new Teacher(result); // returns the newly created teacher as an instance of Teacher
   }
 
-  /**
-   * Update
-   */
-  async update(
-    id: number,
-    data: Partial<Omit<ITeacher, "id" | "createdAt">>,
-  ): Promise<void> {
+  //update a teacher
+  async update(id: number, data: Partial<Omit<ITeacher, "id" | "createdAt">>,): Promise<void> {
     await this.prisma.teacher.update({
       data,
       where: { id },
