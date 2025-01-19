@@ -14,8 +14,11 @@ import { TeacherModule } from "./modules/teacher/teacher.module.js";
 import { TeachingDutyModule } from "./modules/teachingDuty/teachingDuty.module.js";
 import { CommentModule } from "./modules/comment/comment.module.js";
 
+/**
+ * the root module of the application, where all feature modules and providers are registered.
+ */
 @Module({
   imports: [AuthModule, ConfigModule, UsersModule, SemesterModule, SupervisionTypeModule, SupervisionModule, DiscountTypeModule, DiscountModule, TeachingEventModule, TeacherModule, TeachingDutyModule, CommentModule],
-  providers: [InitControllerService],
+  providers: [InitControllerService], // initializes core application processes
 })
 export class AppModule {}
