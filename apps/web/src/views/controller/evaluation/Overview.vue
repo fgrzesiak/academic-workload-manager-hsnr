@@ -20,6 +20,8 @@ const courses = ref<ITeachingEventResponse[]>([])
 const loading = ref(false)
 const toast = useToast()
 const expandedRowGroups = ref<string[]>([])
+const calculationOverlayVisible = ref(false)
+var dialogData = ref<RowData | null>(null)
 
 onBeforeMount(() => {
     loading.value = true
@@ -44,7 +46,7 @@ onBeforeMount(() => {
         if (error) {
             console.warn("[Overview] Couldn`t load semester");
         } else {
-            // Finde das neueste aktive Semester
+            // find the latest active semester
             const activeSemesterIndex = data.findIndex((semester: ISemesterResponse) => semester.active === true);
 
             if (activeSemesterIndex === -1) {
@@ -52,9 +54,9 @@ onBeforeMount(() => {
                 return;
             }
 
-            // Anzahl der Semester die berücksichtigt werden sollen
+            // number of semesters to be taken into account
             const period = 6;
-            // Extrahiere die letzten x(period) Semester ab dem aktiven Semester
+            // extract the last x(period) semesters from the active semester
             const recentSemesters = data.slice((activeSemesterIndex - period), (activeSemesterIndex + 1));
             semesters.value = recentSemesters;
         }
@@ -143,60 +145,57 @@ onBeforeMount(() => {
     loading.value = false
 });
 
-// Helper-Funktionen für Formatierung
+// helper function to format numbers
 const formatNumber = (value: number | null) => {
     return value !== null ? value.toFixed(2) : '-' ;
 };
 
 const tableData = computed(() => {
-    // Erstelle eine flache Liste von Datenzeilen
+    // group data by relevant IDs to avoid repeated filtering
+    const groupedDiscounts = discounts.value.reduce((acc, discount) => {
+        const key = `${discount.teacherId}-${discount.semesterPeriodId}`;
+        if (!acc[key]) acc[key] = { ordered: [], unordered: [] };
+        acc[key][discount.ordered ? "ordered" : "unordered"].push(discount);
+        return acc;
+    }, {} as Record<string, { ordered: IDiscountResponse[]; unordered: IDiscountResponse[] }>);
+
+    const groupedCourses = courses.value.reduce((acc, course) => {
+        const key = `${course.teacherId}-${course.semesterPeriodId}`;
+        if (!acc[key]) acc[key] = { ordered: [], unordered: [] };
+        acc[key][course.ordered ? "ordered" : "unordered"].push(course);
+        return acc;
+    }, {} as Record<string, { ordered: ITeachingEventResponse[]; unordered: ITeachingEventResponse[] }>);
+
+    const groupedSupervisions = supervisions.value.reduce((acc, supervision) => {
+        const key = `${supervision.teacherId}-${supervision.semesterPeriodId}`;
+        if (!acc[key]) acc[key] = [];
+        acc[key].push(supervision);
+        return acc;
+    }, {} as Record<string, ISupervisionResponse[]>);
+
+    const groupedDeputats = deputats.value.reduce((acc, deputat) => {
+        const key = `${deputat.teacherId}-${deputat.semesterPeriodId}`;
+        acc[key] = deputat.individualDuty ?? 0;
+        return acc;
+    }, {} as Record<string, number>);
+
     return teachers.value.flatMap((teacher) => {
         return semesters.value.map((semester) => {
-            // Filtern und Berechnen der Ermäßigungen
-            const teacherDiscountsUnordered = discounts.value.filter(
-                (discount) =>
-                    discount.teacherId === teacher.id &&
-                    discount.semesterPeriodId === semester.id &&
-                    discount.ordered === false
-            );
+            const key = `${teacher.id}-${semester.id}`;
 
-            const teacherDiscountsOrdered = discounts.value.filter(
-                (discount) =>
-                    discount.teacherId === teacher.id &&
-                    discount.semesterPeriodId === semester.id &&
-                    discount.ordered === true
-            );
+            // retrieve data from previously grouped values
+            const teacherDiscounts = groupedDiscounts[key] || { ordered: [], unordered: [] };
+            const teacherCourses = groupedCourses[key] || { ordered: [], unordered: [] };
+            const teacherSupervisions = groupedSupervisions[key] || [];
+            const individualDeputat = groupedDeputats[key] || 0;
 
-            // Summe der Ermäßigungen
-            const sumDiscounts = teacherDiscountsUnordered.reduce((acc, discount) => acc + (discount.scope || 0), 0);
-            const sumOrderedDiscounts = teacherDiscountsOrdered.reduce((acc, discount) => acc + (discount.scope || 0), 0);
+            // calculations
+            const sumDiscounts = teacherDiscounts.unordered.reduce((acc, discount) => acc + (discount.scope || 0), 0);
+            const sumOrderedDiscounts = teacherDiscounts.ordered.reduce((acc, discount) => acc + (discount.scope || 0), 0);
 
-            // Filtern und Berechnen der Kurse
-            const teacherCoursesUnordered = courses.value.filter(
-                (course) =>
-                    course.teacherId === teacher.id &&
-                    course.semesterPeriodId === semester.id &&
-                    course.ordered === false
-            );
+            const sumCourses = teacherCourses.unordered.reduce((acc, course) => acc + (course.hours || 0), 0);
+            const sumOrderedCourses = teacherCourses.ordered.reduce((acc, course) => acc + (course.hours || 0), 0);
 
-            const teacherCoursesOrdered = courses.value.filter(
-                (course) =>
-                    course.teacherId === teacher.id &&
-                    course.semesterPeriodId === semester.id &&
-                    course.ordered === true
-            );
-
-            // Summe der Kurse
-            const sumCourses = teacherCoursesUnordered.reduce((acc, course) => acc + (course.hours || 0), 0);
-            const sumOrderedCourses = teacherCoursesOrdered.reduce((acc, course) => acc + (course.hours || 0), 0);
-
-            const teacherSupervisions = supervisions.value.filter(
-                (supervision) =>
-                    supervision.teacherId === teacher.id &&
-                    supervision.semesterPeriodId === semester.id
-            );
-
-            // Berechnung der Summe der Betreuungen mit Berücksichtigung des calculationFactor
             const sumSupervisions = teacherSupervisions.reduce((acc, supervision) => {
                 const supervisionType = supervisionTypes.value.find(
                     (type) => type.typeOfSupervisionId === supervision.supervisionTypeId
@@ -205,22 +204,15 @@ const tableData = computed(() => {
                 return acc + factor;
             }, 0);
 
-            // Begrenzung der Summe der Betreuungen auf 3,0 und Speicherung der Differenz
+            //limit of supervisions
             const maxSupervisions = 3.0;
+
             const supervisionsExpire = sumSupervisions > maxSupervisions ? sumSupervisions - maxSupervisions : 0;
             const adjustedSupervisions = Math.min(sumSupervisions, maxSupervisions);
 
-            const individualDeputat = deputats.value.find(
-                (deputat) =>
-                    deputat.teacherId === teacher.id &&
-                    deputat.semesterPeriodId === semester.id
-            )?.individualDuty ?? 0;
-
-            // Ergebnis der Stunden
-            const totalHours = sumCourses + sumDiscounts + adjustedSupervisions; // Verwende die begrenzten Betreuungen
+            const totalHours = sumCourses + sumDiscounts + adjustedSupervisions;
             const result = totalHours - individualDeputat;
 
-            // Erstelle ein einzelnes Zeilenobjekt
             return {
                 teacherName: `${teacher.lastName}, ${teacher.firstName}`,
                 semesterName: semester.name,
@@ -260,6 +252,16 @@ const getTotal = (field: keyof RowData, teacherName: string) => {
     }, 0);
 
     return total.toFixed(2);
+};
+
+const openCalculationDialog = (data: RowData) => {
+    dialogData.value = data;
+    calculationOverlayVisible.value = true;
+};
+
+const calculateSaldo = () => {
+    console.log('Calculate Saldo');
+    calculationOverlayVisible.value = false;
 };
 
 </script>
@@ -388,6 +390,80 @@ const getTotal = (field: keyof RowData, teacherName: string) => {
                     </div>
                 </template>
             </Column>
+
+            <!-- Calculation -->
+            <Column
+            style="width: 4rem; text-align: center"
+            :headerStyle="{ textAlign: 'center' }"
+            >
+                <template #body="{ data }">
+                    <Button
+                        icon="pi pi-calculator"
+                        class="p-button-success"
+                        @click="openCalculationDialog(data)"
+                        outlined
+                    />
+                </template>
+            </Column>
+
+            <!-- Dialog Saldierung -->
+            <Dialog
+                v-model:visible="calculationOverlayVisible"
+                header="Saldo berechnen"
+                :breakpoints="{ '960px': '75vw' }"
+                :style="{ width: '40vw' }"
+                :modal="true"
+            >
+                <!-- Header mit Name und Semester -->
+                <div class="dialog-header">
+                <h3 class="text-lg font-bold mb-4">
+                    Lehrperson: {{ dialogData?.teacherName }}
+                </h3>
+                <p class="text-md mb-6">
+                    Semester: {{ dialogData?.semesterName }}
+                </p>
+                </div>
+
+                <!-- Mathematische Darstellung der Berechnung -->
+                <div class="calculation-details">
+                <p class="text-md">
+                    Summe der Kurse: <strong>{{ dialogData?.sumCourses }}</strong>
+                </p>
+                <p class="text-md">
+                    Summe der Ermäßigungen: <strong>{{ dialogData?.sumDiscounts }}</strong>
+                </p>
+                <p class="text-md">
+                    Berücksichtigte Betreuungen (max. 3,0): <strong>{{ dialogData?.sumSupervisions }}</strong>
+                </p>
+                <p class="text-md">
+                    Zuerreichendes Deputat : <strong>{{ dialogData?.individualDeputat }}</strong>
+                </p>
+                <p class="text-md mt-4">
+                    <strong>Berechnung:</strong>
+                </p>
+                <p class="text-lg font-mono">
+                    ({{ dialogData?.sumCourses }} + {{ dialogData?.sumDiscounts }} + {{ dialogData?.sumSupervisions }}) 
+                    - {{ dialogData?.individualDeputat }}
+                </p>
+                <p class="text-lg font-bold mt-4">
+                    Saldo Semester: <span :style="{ color: (dialogData?.result ?? 0) < 0 ? 'red' : 'green' }">
+                    {{ dialogData?.result }}
+                    </span>
+                </p>
+                </div>
+
+                <!-- Footer mit Aktionen -->
+                <template #footer>
+                    <Button
+                    type="submit"
+                    label="Abschicken"
+                    class="p-button-success"
+                    icon="pi pi-send"
+                    @click="calculateSaldo"
+                    />
+                </template>
+            </Dialog>
+
             <template #groupfooter="{ data }">
                 <div class="flex justify-end w-full"><span class="font-bold">Gesamtsaldo: {{ getTotal('result', data.teacherName) }}</span></div>
             </template>
