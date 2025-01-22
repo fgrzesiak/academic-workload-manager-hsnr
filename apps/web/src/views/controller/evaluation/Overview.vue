@@ -10,6 +10,7 @@ import TeachingEventService from '@/service/teachingEvent.service'
 import { ISemesterResponse, ITeacherResponse, IUpdateTeachingDutyRequest, ITeachingDutyResponse, ISupervisionResponse, ISupervisionTypeResponse, IDiscountResponse, ITeachingEventResponse } from '@workspace/shared'
 import { useToast } from 'primevue/usetoast'
 
+// define reactive variables
 const teachers = ref<ITeacherResponse[]>([])
 const semesters = ref<ISemesterResponse[]>([])
 const deputats = ref<ITeachingDutyResponse[]>([])
@@ -26,6 +27,7 @@ var dialogData = ref<RowData | null>(null)
 const totalOrderedDiscounts = ref(0);
 const totalOrderedCourses = ref(0);
 
+// function to load data from various services
 const loadData = () => {
     loading.value = true;
     TeachingDutyService.getTeachingDuties().then((res) => {
@@ -126,7 +128,7 @@ const loadData = () => {
             const recentSemesters = data.slice((activeSemesterIndex - period), (activeSemesterIndex + 1));
             semesters.value = recentSemesters;
 
-            // Calculate total ordered discounts and courses for all semesters
+            // calculate total ordered discounts and courses for all semesters
             totalOrderedDiscounts.value = discounts.value.reduce((acc, discount) => {
                 return discount.ordered ? acc + (discount.scope || 0) : acc;
             }, 0);
@@ -140,6 +142,7 @@ const loadData = () => {
     loading.value = false;
 };
 
+// load data before mounting the component
 onBeforeMount(loadData);
 
 // helper function to format numbers
@@ -147,18 +150,20 @@ const formatNumber = (value: number | null) => {
     return value !== null ? value.toFixed(2) : '-' ;
 };
 
+// function to calculate total ordered and saldo
 const getTotalOrderedAndSaldo = (teacherName: string) => {
     const totalOrderedDiscounts = parseFloat(tableData.value.teacherTotals.find((t: { teacherName: string }) => t.teacherName === teacherName)?.totalOrderedDiscounts || '0');
     const totalOrderedCourses = parseFloat(tableData.value.teacherTotals.find((t: { teacherName: string }) => t.teacherName === teacherName)?.totalOrderedCourses || '0');
     const totalOrdered = totalOrderedDiscounts + totalOrderedCourses;
     const totalSaldo = parseFloat(getTotal('result', teacherName));
     if (totalSaldo < 0) {
-        return `Gesamtsaldo: ${(totalOrdered + totalSaldo).toFixed(2)} <i class="pi pi-flag-fill" style="margin-left: 8px;"></i> <span class="text-sm">(${totalOrdered.toFixed(2)} + ${totalSaldo.toFixed(2)})</span>`;
+        return `Gesamtsaldo: ${(totalOrdered + totalSaldo).toFixed(2)} <i class="pi pi-flag-fill" style="margin-left: 8px;"></i> <span class="text-sm">(${totalOrdered.toFixed(2)} + (${totalSaldo.toFixed(2)}))</span>`;
     } else {
         return `Gesamtsaldo: ${totalSaldo.toFixed(2)}`;
     }
 };
 
+// computed property to process and group data
 const tableData = computed(() => {
     // group data by relevant IDs to avoid repeated filtering
     const groupedDiscounts = discounts.value.reduce((acc, discount) => {
@@ -188,6 +193,7 @@ const tableData = computed(() => {
         return acc;
     }, {} as Record<string, ITeachingDutyResponse>);
 
+    // calculate total ordered discounts and courses for each teacher
     const teacherTotals = teachers.value.map((teacher) => {
         const totalOrderedDiscounts = discounts.value.reduce((acc, discount) => {
             return discount.teacherId === teacher.id && discount.ordered ? acc + (discount.scope || 0) : acc;
@@ -204,6 +210,7 @@ const tableData = computed(() => {
         };
     });
 
+    // process data for each teacher and semester
     const data = teachers.value.flatMap((teacher) => {
         return semesters.value.map((semester, index) => {
             const key = `${teacher.id}-${semester.id}`;
@@ -231,7 +238,7 @@ const tableData = computed(() => {
                 return acc + factor;
             }, 0);
 
-            //limit of supervisions
+            // limit of supervisions
             const maxSupervisions = 3.0;
 
             const supervisionsExpire = sumSupervisions > maxSupervisions ? sumSupervisions - maxSupervisions : 0;
@@ -260,6 +267,7 @@ const tableData = computed(() => {
     return { data, teacherTotals };
 });
 
+// interface for row data
 interface RowData {
     teacherName: string;
     semesterName: string;
@@ -274,6 +282,7 @@ interface RowData {
     result: number;
 }
 
+// function to calculate total for a specific field
 const getTotal = (field: keyof RowData, teacherName: string) => {
     const teacherRows = tableData.value.data.filter(row => row.teacherName === teacherName);
     const rowsWithoutFirst = teacherRows.slice(1);
@@ -286,21 +295,23 @@ const getTotal = (field: keyof RowData, teacherName: string) => {
     return total.toFixed(2);
 };
 
+// function to open calculation dialog
 const openCalculationDialog = (data: RowData) => {
     dialogData.value = data;
     calculationOverlayVisible.value = true;
 };
 
+// function to calculate saldo and update the database
 const calculateSaldo = (data: RowData | null) => {
     if (data === null) return;
 
-    // Find the correct id from the deputats array
+    // find the correct id from the deputats array
     const deputat = deputats.value.find(deputat => 
         deputat.teacherId === teachers.value.find(teacher => `${teacher.lastName}, ${teacher.firstName}` === data.teacherName)?.id &&
         deputat.semesterPeriodId === semesters.value.find(semester => semester.name === data.semesterName)?.id
     );
 
-    // Build the updateData object
+    // build the updateData object
     const updateData: IUpdateTeachingDutyRequest = {
         id: deputat?.id ?? 0,
         teacherId: deputat?.teacherId ?? undefined,
@@ -311,7 +322,7 @@ const calculateSaldo = (data: RowData | null) => {
 
     console.log(updateData);
 
-    // Send the updated data to the database
+    // send the updated data to the database
     TeachingDutyService.updateTeachingDuty(updateData).then((res) => {
         const { error } = res;
         if (error) {
@@ -329,7 +340,7 @@ const calculateSaldo = (data: RowData | null) => {
                 life: 5000,
             });
 
-            // Reload the data from the database
+            // reload the data from the database
             loadData();
         }
     });
@@ -355,15 +366,15 @@ const calculateSaldo = (data: RowData | null) => {
             rowGroupMode="subheader" 
             groupRowsBy="teacherName"
         >
-            <!-- Empty Table State -->
+            <!-- empty table state -->
             <template #empty>Keine Daten gefunden.</template>
 
-            <!-- Gruppenkopf für Lehrer -->
+            <!-- group header for teacher -->
             <template #groupheader="{ data }">
                 <span class="align-middle ml-2 font-bold leading-normal">{{ data.teacherName }}</span>
             </template>
 
-            <!-- Name des Semesters -->
+            <!-- semester name -->
             <Column 
                 field="semesterName" 
                 header="Semester" 
@@ -382,7 +393,8 @@ const calculateSaldo = (data: RowData | null) => {
                     </div>
                 </template>
             </Column>
-            <!-- Summe der Kurse -->
+
+            <!-- sum of courses -->
             <Column 
                 field="sumCourses" 
                 header="Summe der Kurse / Angeordnet" 
@@ -405,7 +417,7 @@ const calculateSaldo = (data: RowData | null) => {
                 </template>
             </Column>
 
-            <!-- Summe der Ermäßigungen -->
+            <!-- sum of discounts -->
             <Column 
                 field="sumDiscounts" 
                 header="Summe der Ermäßigungen / Angeordnet" 
@@ -428,7 +440,7 @@ const calculateSaldo = (data: RowData | null) => {
                 </template>
             </Column>
 
-            <!-- Summe der Betreuungen -->
+            <!-- sum of supervisions -->
             <Column 
                 field="sumSupervisions" 
                 header="Summe der Betreuungen" 
@@ -457,7 +469,7 @@ const calculateSaldo = (data: RowData | null) => {
                 </template>
             </Column>
 
-            <!-- Individuelles Deputat -->
+            <!-- individual duty -->
             <Column 
                 field="individualDeputat" 
                 header="Individuelles Deputat" 
@@ -521,7 +533,7 @@ const calculateSaldo = (data: RowData | null) => {
                 </template>
             </Column>
 
-            <!-- Dialog Saldierung -->
+            <!-- dialog saldation -->
             <Dialog
                 v-model:visible="calculationOverlayVisible"
                 header="Saldo berechnen"
@@ -529,7 +541,7 @@ const calculateSaldo = (data: RowData | null) => {
                 :style="{ width: '40vw' }"
                 :modal="true"
             >
-                <!-- Header mit Name und Semester -->
+                <!-- header with name and semester -->
                 <div class="dialog-header">
                 <h3 class="text-lg font-bold mb-4">
                     Lehrperson: {{ dialogData?.teacherName }}
@@ -539,7 +551,7 @@ const calculateSaldo = (data: RowData | null) => {
                 </p>
                 </div>
 
-                <!-- Mathematische Darstellung der Berechnung -->
+                <!-- mathematical representation of the calculation -->
                 <div class="calculation-details">
                 <p class="text-md">
                     Summe der Kurse: <strong>{{ dialogData?.sumCourses }}</strong>
@@ -572,7 +584,7 @@ const calculateSaldo = (data: RowData | null) => {
                 </p>
                 </div>
 
-                <!-- Footer mit Aktionen -->
+                <!-- footer -->
                 <template #footer>
                     <Button
                     type="submit"
