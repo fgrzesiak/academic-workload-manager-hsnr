@@ -153,7 +153,7 @@ const getTotalOrderedAndSaldo = (teacherName: string) => {
     const totalOrdered = totalOrderedDiscounts + totalOrderedCourses;
     const totalSaldo = parseFloat(getTotal('result', teacherName));
     if (totalSaldo < 0) {
-        return `Gesamtsaldo: ${(totalOrdered + totalSaldo).toFixed(2)} <i class="pi pi-flag" style="margin-left: 8px;"></i> <span class="text-sm">(${totalOrdered.toFixed(2)} + ${totalSaldo.toFixed(2)})</span>`;
+        return `Gesamtsaldo: ${(totalOrdered + totalSaldo).toFixed(2)} <i class="pi pi-flag-fill" style="margin-left: 8px;"></i> <span class="text-sm">(${totalOrdered.toFixed(2)} + ${totalSaldo.toFixed(2)})</span>`;
     } else {
         return `Gesamtsaldo: ${totalSaldo.toFixed(2)}`;
     }
@@ -374,7 +374,6 @@ const calculateSaldo = (data: RowData | null) => {
                         :style="{
                             color: data.isFirstRow ? 'grey' : 'inherit',
                             fontStyle: data.isFirstRow ? 'italic' : 'normal',
-                            fontWeight: data.isFirstRow ? 'normal' : 'bold',
                             display: 'flex',
                             alignItems: 'center',
                         }"
@@ -394,7 +393,6 @@ const calculateSaldo = (data: RowData | null) => {
                         :style="{
                             color: data.isFirstRow ? 'grey' : 'inherit',
                             fontStyle: data.isFirstRow ? 'italic' : 'normal',
-                            fontWeight: data.isFirstRow ? 'normal' : 'bold',
                             display: 'flex',
                             alignItems: 'center',
                         }"
@@ -418,7 +416,6 @@ const calculateSaldo = (data: RowData | null) => {
                         :style="{
                             color: data.isFirstRow ? 'grey' : 'inherit',
                             fontStyle: data.isFirstRow ? 'italic' : 'normal',
-                            fontWeight: data.isFirstRow ? 'normal' : 'bold',
                             display: 'flex',
                             alignItems: 'center',
                         }"
@@ -471,7 +468,6 @@ const calculateSaldo = (data: RowData | null) => {
                         :style="{
                             color: data.isFirstRow ? 'grey' : 'inherit',
                             fontStyle: data.isFirstRow ? 'italic' : 'normal',
-                            fontWeight: data.isFirstRow ? 'normal' : 'bold',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'space-between',
