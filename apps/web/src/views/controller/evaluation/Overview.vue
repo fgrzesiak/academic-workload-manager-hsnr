@@ -205,7 +205,7 @@ const tableData = computed(() => {
     });
 
     const data = teachers.value.flatMap((teacher) => {
-        return semesters.value.map((semester) => {
+        return semesters.value.map((semester, index) => {
             const key = `${teacher.id}-${semester.id}`;
 
             // retrieve data from previously grouped values
@@ -252,6 +252,7 @@ const tableData = computed(() => {
                 individualDeputat: formatNumber(individualDeputat),
                 sumBalance: formatNumber(sumBalance),
                 result: formatNumber(result),
+                isFirstRow: index === 0
             };
         });
     });
@@ -363,8 +364,25 @@ const calculateSaldo = (data: RowData | null) => {
             </template>
 
             <!-- Name des Semesters -->
-            <Column field="semesterName" header="Semester" :style="{ minWidth: '150px' }" />
-
+            <Column 
+                field="semesterName" 
+                header="Semester" 
+                :style="{ minWidth: '150px' }" 
+                >
+                <template #body="{ data }">
+                    <div 
+                        :style="{
+                            color: data.isFirstRow ? 'grey' : 'inherit',
+                            fontStyle: data.isFirstRow ? 'italic' : 'normal',
+                            fontWeight: data.isFirstRow ? 'normal' : 'bold',
+                            display: 'flex',
+                            alignItems: 'center',
+                        }"
+                    >
+                        <span>{{ data.semesterName }}</span>
+                    </div>
+                </template>
+            </Column>
             <!-- Summe der Kurse -->
             <Column 
                 field="sumCourses" 
@@ -374,6 +392,9 @@ const calculateSaldo = (data: RowData | null) => {
                 <template #body="{ data }">
                     <div 
                         :style="{
+                            color: data.isFirstRow ? 'grey' : 'inherit',
+                            fontStyle: data.isFirstRow ? 'italic' : 'normal',
+                            fontWeight: data.isFirstRow ? 'normal' : 'bold',
                             display: 'flex',
                             alignItems: 'center',
                         }"
@@ -395,6 +416,9 @@ const calculateSaldo = (data: RowData | null) => {
                 <template #body="{ data }">
                     <div 
                         :style="{
+                            color: data.isFirstRow ? 'grey' : 'inherit',
+                            fontStyle: data.isFirstRow ? 'italic' : 'normal',
+                            fontWeight: data.isFirstRow ? 'normal' : 'bold',
                             display: 'flex',
                             alignItems: 'center',
                         }"
@@ -416,9 +440,10 @@ const calculateSaldo = (data: RowData | null) => {
                 <template #body="{ data }">
                     <div 
                         :style="{
-                            backgroundColor: data.sumSupervisions > 3.0 ? 'red' : 'transparent',
-                            color: data.sumSupervisions > 3.0 ? 'white' : 'inherit',
-                            fontWeight: data.sumSupervisions > 3.0 ? 'bold' : 'normal',
+                            color: data.isFirstRow ? 'grey' : (data.sumSupervisions > 3.0 ? 'white' : 'inherit'),
+                            fontStyle: data.isFirstRow ? 'italic' : 'normal',
+                            fontWeight: data.isFirstRow ? 'normal' : (data.sumSupervisions > 3.0 ? 'bold' : 'normal'),
+                            backgroundColor: data.sumSupervisions > 3.0 && !data.isFirstRow ? 'red' : 'transparent',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'space-between',
@@ -426,7 +451,7 @@ const calculateSaldo = (data: RowData | null) => {
                         }"
                     >
                         <span>{{ data.sumSupervisions }}</span>
-                        <div v-if="data.sumSupervisions > 3.0" class="flex-row items-center">
+                        <div v-if="data.sumSupervisions > 3.0 && !data.isFirstRow" class="flex-row items-center">
                             <span>Verfall: {{ data.supervisionsExpire }}</span>
                             <i class="pi pi-exclamation-triangle" style="margin-left: 8px;"></i>
                         </div>
@@ -440,7 +465,22 @@ const calculateSaldo = (data: RowData | null) => {
                 field="individualDeputat" 
                 header="Individuelles Deputat" 
                 :style="{ minWidth: '150px' }" 
-            />
+            >
+                <template #body="{ data }">
+                    <div 
+                        :style="{
+                            color: data.isFirstRow ? 'grey' : 'inherit',
+                            fontStyle: data.isFirstRow ? 'italic' : 'normal',
+                            fontWeight: data.isFirstRow ? 'normal' : 'bold',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                        }"
+                    >
+                        <span>{{ data.individualDeputat }}</span>
+                    </div>
+                </template>
+            </Column>
 
             <!-- Saldo Semester -->
             <Column 
@@ -451,15 +491,16 @@ const calculateSaldo = (data: RowData | null) => {
                 <template #body="{ data }">
                     <div 
                         :style="{
-                            color: data.result < 0 ? 'red' : 'green',
-                            fontWeight: 'bold',
+                            color: data.isFirstRow ? 'grey' : (data.result < 0 ? 'red' : 'green'),
+                            fontStyle: data.isFirstRow ? 'italic' : 'normal',
+                            fontWeight: data.isFirstRow ? 'normal' : 'bold',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'space-between',
                         }"
                     >
                         <span>{{ data.result }}</span>
-                        <div v-if="data.result !== data.sumBalance" class="flex-row items-center">
+                        <div v-if="data.result !== data.sumBalance && !data.isFirstRow" class="flex-row items-center">
                             <span :style="{ color: (data.result - data.sumBalance) < 0 ? 'red' : 'green' }">
                                 &nbsp;({{ (data.result - data.sumBalance) > 0 ? '+' : '' }}{{ (data.result - data.sumBalance).toFixed(2) }})
                             </span>
@@ -475,7 +516,7 @@ const calculateSaldo = (data: RowData | null) => {
             >
                 <template #body="{ data }">
                     <Button
-                        v-if="data.result !== data.sumBalance"
+                        v-if="data.result !== data.sumBalance && !data.isFirstRow"
                         icon="pi pi-calculator"
                         class="p-button-success"
                         @click="openCalculationDialog(data)"
