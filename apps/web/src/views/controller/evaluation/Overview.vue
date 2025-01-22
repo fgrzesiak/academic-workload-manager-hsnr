@@ -23,6 +23,9 @@ const expandedRowGroups = ref<string[]>([])
 const calculationOverlayVisible = ref(false)
 var dialogData = ref<RowData | null>(null)
 
+const totalOrderedDiscounts = ref(0);
+const totalOrderedCourses = ref(0);
+
 const loadData = () => {
     loading.value = true;
     TeachingDutyService.getTeachingDuties().then((res) => {
@@ -36,22 +39,6 @@ const loadData = () => {
             });
         } else {
             deputats.value = data.map((deputat: ITeachingDutyResponse) => deputat);
-        }
-    });
-
-    SemesterService.getSemesters().then((res) => {
-        const { data, error } = res;
-        if (error) {
-            console.warn("[Overview] Couldn`t load semester");
-        } else {
-            const activeSemesterIndex = data.findIndex((semester: ISemesterResponse) => semester.active === true);
-            if (activeSemesterIndex === -1) {
-                console.warn("[Overview] No active semester");
-                return;
-            }
-            const period = 6;
-            const recentSemesters = data.slice((activeSemesterIndex - period), (activeSemesterIndex + 1));
-            semesters.value = recentSemesters;
         }
     });
 
@@ -125,6 +112,31 @@ const loadData = () => {
         }
     });
 
+    SemesterService.getSemesters().then((res) => {
+        const { data, error } = res;
+        if (error) {
+            console.warn("[Overview] Couldn`t load semester");
+        } else {
+            const activeSemesterIndex = data.findIndex((semester: ISemesterResponse) => semester.active === true);
+            if (activeSemesterIndex === -1) {
+                console.warn("[Overview] No active semester");
+                return;
+            }
+            const period = 6;
+            const recentSemesters = data.slice((activeSemesterIndex - period), (activeSemesterIndex + 1));
+            semesters.value = recentSemesters;
+
+            // Calculate total ordered discounts and courses for all semesters
+            totalOrderedDiscounts.value = discounts.value.reduce((acc, discount) => {
+                return discount.ordered ? acc + (discount.scope || 0) : acc;
+            }, 0);
+
+            totalOrderedCourses.value = courses.value.reduce((acc, course) => {
+                return course.ordered ? acc + (course.hours || 0) : acc;
+            }, 0);
+        }
+    });
+
     loading.value = false;
 };
 
@@ -164,7 +176,23 @@ const tableData = computed(() => {
         return acc;
     }, {} as Record<string, ITeachingDutyResponse>);
 
-    return teachers.value.flatMap((teacher) => {
+    const teacherTotals = teachers.value.map((teacher) => {
+        const totalOrderedDiscounts = discounts.value.reduce((acc, discount) => {
+            return discount.teacherId === teacher.id && discount.ordered ? acc + (discount.scope || 0) : acc;
+        }, 0);
+
+        const totalOrderedCourses = courses.value.reduce((acc, course) => {
+            return course.teacherId === teacher.id && course.ordered ? acc + (course.hours || 0) : acc;
+        }, 0);
+
+        return {
+            teacherName: `${teacher.lastName}, ${teacher.firstName}`,
+            totalOrderedDiscounts: formatNumber(totalOrderedDiscounts),
+            totalOrderedCourses: formatNumber(totalOrderedCourses),
+        };
+    });
+
+    const data = teachers.value.flatMap((teacher) => {
         return semesters.value.map((semester) => {
             const key = `${teacher.id}-${semester.id}`;
 
@@ -215,6 +243,8 @@ const tableData = computed(() => {
             };
         });
     });
+
+    return { data, teacherTotals };
 });
 
 interface RowData {
@@ -232,7 +262,7 @@ interface RowData {
 }
 
 const getTotal = (field: keyof RowData, teacherName: string) => {
-    const teacherRows = tableData.value.filter(row => row.teacherName === teacherName);
+    const teacherRows = tableData.value.data.filter(row => row.teacherName === teacherName);
     const rowsWithoutFirst = teacherRows.slice(1);
 
     const total = rowsWithoutFirst.reduce((sum, row) => {
@@ -302,7 +332,7 @@ const calculateSaldo = (data: RowData | null) => {
         </div>
 
         <DataTable 
-            :value="tableData"
+            :value="tableData.data"
             size="small"
             showGridlines
             scrollable
@@ -506,7 +536,18 @@ const calculateSaldo = (data: RowData | null) => {
             </Dialog>
 
             <template #groupfooter="{ data }">
-                <div class="flex justify-end w-full"><span class="font-bold">Gesamtsaldo: {{ getTotal('result', data.teacherName) }}</span></div>
+                <div class="flex justify-between w-full">
+                    <span class="font-bold">
+                        Gesamtsumme Angeordnet: 
+                        {{
+                            (
+                                parseFloat(tableData.teacherTotals.find(t => t.teacherName === data.teacherName)?.totalOrderedDiscounts || '0') +
+                                parseFloat(tableData.teacherTotals.find(t => t.teacherName === data.teacherName)?.totalOrderedCourses || '0')
+                            ).toFixed(2)
+                        }}
+                    </span>
+                    <span class="font-bold">Gesamtsaldo: {{ getTotal('result', data.teacherName) }}</span>
+                </div>
             </template>
         </DataTable>
     </div>
