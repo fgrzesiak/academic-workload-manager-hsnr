@@ -22,129 +22,113 @@ const toast = useToast()
 const expandedRowGroups = ref<string[]>([])
 const calculationOverlayVisible = ref(false)
 var dialogData = ref<RowData | null>(null)
-var updateData = ref<IUpdateTeachingDutyRequest | null>(null)
 
-onBeforeMount(() => {
-    loading.value = true
+const loadData = () => {
+    loading.value = true;
     TeachingDutyService.getTeachingDuties().then((res) => {
-        const { data, error } = res
+        const { data, error } = res;
         if (error) {
             toast.add({
                 severity: 'error',
                 summary: 'Fehler beim Laden der Deputate',
                 detail: error,
                 life: 5000,
-            })
+            });
         } else {
-            deputats.value = data.map((deputat: ITeachingDutyResponse) => { 
-                return deputat 
-            })
+            deputats.value = data.map((deputat: ITeachingDutyResponse) => deputat);
         }
-    })
+    });
 
     SemesterService.getSemesters().then((res) => {
         const { data, error } = res;
         if (error) {
             console.warn("[Overview] Couldn`t load semester");
         } else {
-            // find the latest active semester
             const activeSemesterIndex = data.findIndex((semester: ISemesterResponse) => semester.active === true);
-
             if (activeSemesterIndex === -1) {
                 console.warn("[Overview] No active semester");
                 return;
             }
-
-            // number of semesters to be taken into account
             const period = 6;
-            // extract the last x(period) semesters from the active semester
             const recentSemesters = data.slice((activeSemesterIndex - period), (activeSemesterIndex + 1));
             semesters.value = recentSemesters;
         }
-    })
+    });
 
     TeacherService.getTeachers().then((res) => {
-        const { data, error } = res
+        const { data, error } = res;
         if (error) {
             toast.add({
                 severity: 'error',
                 summary: 'Fehler beim Laden der Lehrer',
                 detail: error,
                 life: 5000,
-            })
-        }  else {
-            teachers.value = data.map((teacher: ITeacherResponse) => { 
-                return teacher 
-            })
+            });
+        } else {
+            teachers.value = data.map((teacher: ITeacherResponse) => teacher);
         }
-    })
+    });
 
     SupervisionService.getSupervisions().then((res) => {
-        const { data, error } = res
+        const { data, error } = res;
         if (error) {
             toast.add({
                 severity: 'error',
                 summary: 'Fehler beim Laden der Betreuungen',
                 detail: error,
                 life: 5000,
-            })
-        }  else {
-            supervisions.value = data.map((supervision: ISupervisionResponse) => { 
-                return supervision 
-            })
+            });
+        } else {
+            supervisions.value = data.map((supervision: ISupervisionResponse) => supervision);
         }
-    })
+    });
 
     SupervisionTypeService.getSupervisionTypes().then((res) => {
-        const { data, error } = res
+        const { data, error } = res;
         if (error) {
             toast.add({
                 severity: 'error',
                 summary: 'Fehler beim Laden der Betreuungsarten',
                 detail: error,
                 life: 5000,
-            })
+            });
         } else {
-            supervisionTypes.value = data.map((type: ISupervisionTypeResponse) => { 
-                return type 
-            })
+            supervisionTypes.value = data.map((type: ISupervisionTypeResponse) => type);
         }
-    })
+    });
 
     DiscountService.getDiscounts().then((res) => {
-        const { data, error } = res
+        const { data, error } = res;
         if (error) {
             toast.add({
                 severity: 'error',
                 summary: 'Fehler beim Laden der Ermäßigungen',
                 detail: error,
                 life: 5000,
-            })
+            });
         } else {
-            discounts.value = data.map((discount: IDiscountResponse) => { 
-                return discount 
-            })
+            discounts.value = data.map((discount: IDiscountResponse) => discount);
         }
-    })
+    });
 
     TeachingEventService.getTeachingEvents().then((res) => {
-        const { data, error } = res
+        const { data, error } = res;
         if (error) {
             toast.add({
                 severity: 'error',
                 summary: 'Fehler beim Laden der Kurse',
                 detail: error,
                 life: 5000,
-            })
+            });
         } else {
-            courses.value = data.map((course: ITeachingEventResponse) => { 
-                return course 
-            })
+            courses.value = data.map((course: ITeachingEventResponse) => course);
         }
-    })
+    });
 
-    loading.value = false
-});
+    loading.value = false;
+};
+
+onBeforeMount(loadData);
 
 // helper function to format numbers
 const formatNumber = (value: number | null) => {
@@ -176,9 +160,9 @@ const tableData = computed(() => {
 
     const groupedDeputats = deputats.value.reduce((acc, deputat) => {
         const key = `${deputat.teacherId}-${deputat.semesterPeriodId}`;
-        acc[key] = deputat.individualDuty ?? 0;
+        acc[key] = deputat;
         return acc;
-    }, {} as Record<string, number>);
+    }, {} as Record<string, ITeachingDutyResponse>);
 
     return teachers.value.flatMap((teacher) => {
         return semesters.value.map((semester) => {
@@ -188,7 +172,9 @@ const tableData = computed(() => {
             const teacherDiscounts = groupedDiscounts[key] || { ordered: [], unordered: [] };
             const teacherCourses = groupedCourses[key] || { ordered: [], unordered: [] };
             const teacherSupervisions = groupedSupervisions[key] || [];
-            const individualDeputat = groupedDeputats[key] || 0;
+            const deputat = groupedDeputats[key];
+            const individualDeputat = deputat?.individualDuty ?? 0;
+            const sumBalance = deputat?.sumBalance ?? 0;
 
             // calculations
             const sumDiscounts = teacherDiscounts.unordered.reduce((acc, discount) => acc + (discount.scope || 0), 0);
@@ -224,6 +210,7 @@ const tableData = computed(() => {
                 sumSupervisions: formatNumber(sumSupervisions),
                 supervisionsExpire: formatNumber(supervisionsExpire),
                 individualDeputat: formatNumber(individualDeputat),
+                sumBalance: formatNumber(sumBalance),
                 result: formatNumber(result),
             };
         });
@@ -240,6 +227,7 @@ interface RowData {
     sumSupervisions: number;
     supervisionsExpire: number;
     individualDeputat: number;
+    sumBalance: number;
     result: number;
 }
 
@@ -297,6 +285,9 @@ const calculateSaldo = (data: RowData | null) => {
                 detail: 'Das Saldo wurde erfolgreich in der Datenbank aktualisiert.',
                 life: 5000,
             });
+
+            // Reload the data from the database
+            loadData();
         }
     });
 
@@ -426,6 +417,11 @@ const calculateSaldo = (data: RowData | null) => {
                         }"
                     >
                         <span>{{ data.result }}</span>
+                        <div v-if="data.result !== data.sumBalance" class="flex-row items-center">
+                            <span :style="{ color: (data.result - data.sumBalance) < 0 ? 'red' : 'green' }">
+                                &nbsp;({{ (data.result - data.sumBalance) > 0 ? '+' : '' }}{{ (data.result - data.sumBalance).toFixed(2) }})
+                            </span>
+                        </div>
                     </div>
                 </template>
             </Column>
@@ -437,6 +433,7 @@ const calculateSaldo = (data: RowData | null) => {
             >
                 <template #body="{ data }">
                     <Button
+                        v-if="data.result !== data.sumBalance"
                         icon="pi pi-calculator"
                         class="p-button-success"
                         @click="openCalculationDialog(data)"
@@ -487,6 +484,11 @@ const calculateSaldo = (data: RowData | null) => {
                 <p class="text-lg font-bold mt-4">
                     Saldo Semester: <span :style="{ color: (dialogData?.result ?? 0) < 0 ? 'red' : 'green' }">
                     {{ dialogData?.result }}
+                    </span>
+                </p>
+                <p v-if="dialogData?.result !== dialogData?.sumBalance" class="text-lg font-bold mt-4">
+                    Abweichung von bereits berechnetem Saldo: <span :style="{ color: ((dialogData?.result?? 0) - ( dialogData?.sumBalance ?? 0)) < 0 ? 'red' : 'green' }">
+                    {{ ((dialogData?.result ?? 0) - (dialogData?.sumBalance ?? 0)) > 0 ? '+' : '' }}{{ ((dialogData?.result ?? 0) - (dialogData?.sumBalance ?? 0)).toFixed(2) }}
                     </span>
                 </p>
                 </div>
