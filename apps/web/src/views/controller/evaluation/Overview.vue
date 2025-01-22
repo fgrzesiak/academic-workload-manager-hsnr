@@ -147,6 +147,18 @@ const formatNumber = (value: number | null) => {
     return value !== null ? value.toFixed(2) : '-' ;
 };
 
+const getTotalOrderedAndSaldo = (teacherName: string) => {
+    const totalOrderedDiscounts = parseFloat(tableData.value.teacherTotals.find((t: { teacherName: string }) => t.teacherName === teacherName)?.totalOrderedDiscounts || '0');
+    const totalOrderedCourses = parseFloat(tableData.value.teacherTotals.find((t: { teacherName: string }) => t.teacherName === teacherName)?.totalOrderedCourses || '0');
+    const totalOrdered = totalOrderedDiscounts + totalOrderedCourses;
+    const totalSaldo = parseFloat(getTotal('result', teacherName));
+    if (totalSaldo < 0) {
+        return `Gesamtsaldo: ${(totalOrdered + totalSaldo).toFixed(2)} <i class="pi pi-flag" style="margin-left: 8px;"></i> <span class="text-sm">(${totalOrdered.toFixed(2)} + ${totalSaldo.toFixed(2)})</span>`;
+    } else {
+        return `Gesamtsaldo: ${totalSaldo.toFixed(2)}`;
+    }
+};
+
 const tableData = computed(() => {
     // group data by relevant IDs to avoid repeated filtering
     const groupedDiscounts = discounts.value.reduce((acc, discount) => {
@@ -534,7 +546,6 @@ const calculateSaldo = (data: RowData | null) => {
                     />
                 </template>
             </Dialog>
-
             <template #groupfooter="{ data }">
                 <div class="flex justify-between w-full">
                     <span class="font-bold">
@@ -546,7 +557,7 @@ const calculateSaldo = (data: RowData | null) => {
                             ).toFixed(2)
                         }}
                     </span>
-                    <span class="font-bold">Gesamtsaldo: {{ getTotal('result', data.teacherName) }}</span>
+                    <span class="font-bold" v-html="getTotalOrderedAndSaldo(data.teacherName)"></span>
                 </div>
             </template>
         </DataTable>
