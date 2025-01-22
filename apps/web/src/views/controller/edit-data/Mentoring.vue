@@ -138,7 +138,6 @@ const onRowEditSave = ({ newData }: DataTableRowEditSaveEvent) => {
                 life: 5000,
             })
         } else {
-            data
             updateSupervisions(supervisions.value.map((u) => (u.id === data.id ? data : u)))
             toast.add({
                 severity: 'success',

@@ -7,7 +7,7 @@ import SupervisionService from '@/service/supervision.service'
 import SupervisionTypeService from '@/service/supervisionType.service'
 import DiscountService from '@/service/discount.service'
 import TeachingEventService from '@/service/teachingEvent.service'
-import { ISemesterResponse, ITeacherResponse, ITeachingDutyResponse, ISupervisionResponse, ISupervisionTypeResponse, IDiscountResponse, ITeachingEventResponse } from '@workspace/shared'
+import { ISemesterResponse, ITeacherResponse, IUpdateTeachingDutyRequest, ITeachingDutyResponse, ISupervisionResponse, ISupervisionTypeResponse, IDiscountResponse, ITeachingEventResponse } from '@workspace/shared'
 import { useToast } from 'primevue/usetoast'
 
 const teachers = ref<ITeacherResponse[]>([])
@@ -22,6 +22,7 @@ const toast = useToast()
 const expandedRowGroups = ref<string[]>([])
 const calculationOverlayVisible = ref(false)
 var dialogData = ref<RowData | null>(null)
+var updateData = ref<IUpdateTeachingDutyRequest | null>(null)
 
 onBeforeMount(() => {
     loading.value = true
@@ -259,8 +260,46 @@ const openCalculationDialog = (data: RowData) => {
     calculationOverlayVisible.value = true;
 };
 
-const calculateSaldo = () => {
-    console.log('Calculate Saldo');
+const calculateSaldo = (data: RowData | null) => {
+    if (data === null) return;
+
+    // Find the correct id from the deputats array
+    const deputat = deputats.value.find(deputat => 
+        deputat.teacherId === teachers.value.find(teacher => `${teacher.lastName}, ${teacher.firstName}` === data.teacherName)?.id &&
+        deputat.semesterPeriodId === semesters.value.find(semester => semester.name === data.semesterName)?.id
+    );
+
+    // Build the updateData object
+    const updateData: IUpdateTeachingDutyRequest = {
+        id: deputat?.id ?? 0,
+        teacherId: deputat?.teacherId ?? undefined,
+        semesterPeriodId: deputat?.semesterPeriodId ?? undefined,
+        individualDuty: deputat?.individualDuty ?? 0,
+        sumBalance: parseFloat(data.result.toString()),
+    };
+
+    console.log(updateData);
+
+    // Send the updated data to the database
+    TeachingDutyService.updateTeachingDuty(updateData).then((res) => {
+        const { error } = res;
+        if (error) {
+            toast.add({
+                severity: 'error',
+                summary: 'Fehler beim Aktualisieren des Saldos',
+                detail: error,
+                life: 5000,
+            });
+        } else {
+            toast.add({
+                severity: 'success',
+                summary: 'Saldo erfolgreich aktualisiert',
+                detail: 'Das Saldo wurde erfolgreich in der Datenbank aktualisiert.',
+                life: 5000,
+            });
+        }
+    });
+
     calculationOverlayVisible.value = false;
 };
 
@@ -456,10 +495,10 @@ const calculateSaldo = () => {
                 <template #footer>
                     <Button
                     type="submit"
-                    label="Abschicken"
+                    label="Korrekt"
                     class="p-button-success"
                     icon="pi pi-send"
-                    @click="calculateSaldo"
+                    @click="calculateSaldo(dialogData)"
                     />
                 </template>
             </Dialog>

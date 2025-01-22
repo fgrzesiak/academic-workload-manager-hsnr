@@ -98,7 +98,6 @@ const onRowEditSaveSemester = ({ newData }: DataTableRowEditSaveEvent) => {
                 life: 5000,
             })
         } else {
-            data
             updateSemester(semesters.value.map((u) => (u.id === data.id ? data : u)))
             toast.add({
                 severity: 'success',
@@ -212,7 +211,6 @@ const onRowEditSaveMentoring = ({ newData }: DataTableRowEditSaveEvent) => {
                 life: 5000,
             })
         } else {
-            data
             updateSupervisionType(mentorings.value.map((u) => (u.typeOfSupervisionId === data.typeOfSupervisionId ? data : u)))
             toast.add({
                 severity: 'success',
@@ -315,7 +313,6 @@ const onRowEditSaveReduction = ({ newData }: DataTableRowEditSaveEvent) => {
                 life: 5000,
             })
         } else {
-            data
             updateDiscountType(reductions.value.map((u) => (u.discountTypeId === data.discountTypeId ? data : u)))
             toast.add({
                 severity: 'success',
