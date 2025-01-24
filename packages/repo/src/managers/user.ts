@@ -47,6 +47,7 @@ export class UserManager {
   // update user details; for Teacher/Controller-specific fields, handle separately in their services if necessary
   async update(user: IUpdateUserRequest): Promise<User> {
     const { id } = user;
+    user.updatedAt = new Date();  // sets the updated date to the current date and time
     const result = await this.prisma.user.update({
       data: user,  // updates the user record with the provided data
       where: { id },

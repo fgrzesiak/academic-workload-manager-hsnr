@@ -26,7 +26,7 @@ export type ICreateUserRequest = Pick<
 
 // defines the request type for updating an existing User, with optional fields except for the required `id`
 export type IUpdateUserRequest = OptionalExceptFor<
-  Pick<IUser, "id" | "username" | "password" | "isPasswordTemporary">,
+  Pick<IUser, "id" | "username" | "password" | "isPasswordTemporary" | "updatedAt">,
   "id"
 >;
 
