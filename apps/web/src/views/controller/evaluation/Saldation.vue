@@ -244,9 +244,9 @@ const tableData = computed(() => {
             const supervisionsExpire = sumSupervisions > maxSupervisions ? sumSupervisions - maxSupervisions : 0;
             const adjustedSupervisions = Math.min(sumSupervisions, maxSupervisions);
 
-            const totalHours = sumCourses + sumDiscounts + adjustedSupervisions; //18 + 30 + 2,6 = 50,6
-            const maxAllowedHours = individualDeputat * 2; //36
-            const hoursExpire = totalHours > maxAllowedHours ? totalHours - maxAllowedHours : 0; //50,6 - 36 = 14,6
+            const totalHours = sumCourses + sumDiscounts + adjustedSupervisions;
+            const maxAllowedHours = individualDeputat * 2;
+            const hoursExpire = totalHours > maxAllowedHours ? totalHours - maxAllowedHours : 0;
             const adjustedTotalHours = Math.min(totalHours, maxAllowedHours);
 
             const result = hoursExpire > 0 ? individualDeputat * 2 : adjustedTotalHours - individualDeputat;
@@ -287,6 +287,7 @@ interface RowData {
     individualDeputat: number;
     sumBalance: number;
     result: number;
+    hoursExpire: number;
     halfDutyWarning: boolean;
 }
 
@@ -585,7 +586,7 @@ const calculateSaldo = (data: RowData | null) => {
                     Lehrperson: {{ dialogData?.teacherName }}
                 </h3>
                 <p class="text-md mb-6">
-                    Semester: {{ dialogData?.semesterName }}
+                    Semester: <strong>{{ dialogData?.semesterName }}</strong>
                 </p>
                 </div>
 
@@ -610,11 +611,26 @@ const calculateSaldo = (data: RowData | null) => {
                     ({{ dialogData?.sumCourses }} + {{ dialogData?.sumDiscounts }} + {{ dialogData?.sumSupervisions }}) 
                     - {{ dialogData?.individualDeputat }}
                 </p>
-                <p class="text-lg font-bold mt-4">
-                    Saldo Semester: <span :style="{ color: (dialogData?.result ?? 0) < 0 ? 'red' : 'green' }">
-                    {{ dialogData?.result }}
-                    </span>
-                </p>
+                <div class="flex gap-8">
+                    <p class="text-lg font-bold mt-4">
+                        Saldo Semester: <span :style="{ color: (dialogData?.result ?? 0) < 0 ? 'red' : 'green' }">
+                        {{ dialogData?.result }}
+                        </span>
+                    </p>
+                    <p v-if="(dialogData?.hoursExpire ?? 0) > 0" class="text-lg font-bold mt-4">
+                        Verfall: <span :style="{ color: 'red' }">
+                        {{ dialogData?.hoursExpire }}
+                        <i class="pi pi-exclamation-triangle" style="margin-left: 2px;"></i>
+                        </span>
+                    </p>
+                    <p v-if="dialogData?.halfDutyWarning" class="text-lg font-bold mt-4">
+                        Warnung: <span :style="{ color: 'orange' }">
+                        Weniger als die Hälfte des Deputats erreicht
+                        <i class="pi pi-exclamation-triangle" style="margin-left: 2px;"></i>
+                        </span>
+                    </p>
+                </div>
+
                 <p v-if="dialogData?.result !== dialogData?.sumBalance" class="text-lg font-bold mt-4">
                     Abweichung von bereits berechnetem Saldo: <span :style="{ color: ((dialogData?.result?? 0) - ( dialogData?.sumBalance ?? 0)) < 0 ? 'red' : 'green' }">
                     {{ ((dialogData?.result ?? 0) - (dialogData?.sumBalance ?? 0)) > 0 ? '+' : '' }}{{ ((dialogData?.result ?? 0) - (dialogData?.sumBalance ?? 0)).toFixed(2) }}
