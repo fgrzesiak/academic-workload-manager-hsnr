@@ -186,6 +186,7 @@ function formatDate(value: Date) {
             :value="users"
             :paginator="true"
             :rows="10"
+            size="small"
             data-key="id"
             :row-hover="true"
             filter-display="row"
@@ -207,7 +208,7 @@ function formatDate(value: Date) {
             }"
         >
             <!-- Table Header -->
-            <template #header>
+            <!-- <template #header>
                 <div class="flex justify-between">
                     <Button
                         type="button"
@@ -218,14 +219,13 @@ function formatDate(value: Date) {
                     />
                     <div class="flex items-center gap-2">
                         <i class="pi pi-search" />
-                        <!-- @vue-ignore -->
                         <InputText
                             v-model="filters['global'].value"
                             placeholder="Suche"
                         />
                     </div>
                 </div>
-            </template>
+            </template> -->
 
             <!-- Empty Table State -->
             <template #empty>Keine Nutzer gefunden.</template>
