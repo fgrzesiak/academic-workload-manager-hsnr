@@ -250,6 +250,7 @@ const tableData = computed(() => {
             const adjustedTotalHours = Math.min(totalHours, maxAllowedHours);
 
             const result = adjustedTotalHours - individualDeputat;
+            const halfDutyWarning = totalHours < individualDeputat / 2;
 
             return {
                 teacherName: `${teacher.lastName}, ${teacher.firstName}`,
@@ -264,6 +265,7 @@ const tableData = computed(() => {
                 sumBalance: formatNumber(sumBalance),
                 result: formatNumber(result),
                 hoursExpire: formatNumber(hoursExpire),
+                halfDutyWarning,
                 isFirstRow: index === 0
             };
         });
@@ -285,6 +287,7 @@ interface RowData {
     individualDeputat: number;
     sumBalance: number;
     result: number;
+    halfDutyWarning: boolean;
 }
 
 // function to calculate total for a specific field
@@ -531,6 +534,21 @@ const calculateSaldo = (data: RowData | null) => {
                             }"
                         >
                             <span>Verfall: {{ data.hoursExpire }}</span>
+                            <i class="pi pi-exclamation-triangle" style="margin-left: 8px;"></i>
+                        </div>
+                        <div v-if="data.halfDutyWarning && !data.isFirstRow" 
+                            :style="{
+                                backgroundColor: 'orange',
+                                color: 'white',
+                                fontWeight: 'bold',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                padding: '0 8px',
+                                marginLeft: '8px'
+                            }"
+                        >
+                            <span>Weniger als die Hälfte</span>
                             <i class="pi pi-exclamation-triangle" style="margin-left: 8px;"></i>
                         </div>
                     </div>
