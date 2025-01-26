@@ -245,7 +245,11 @@ const tableData = computed(() => {
             const adjustedSupervisions = Math.min(sumSupervisions, maxSupervisions);
 
             const totalHours = sumCourses + sumDiscounts + adjustedSupervisions;
-            const result = totalHours - individualDeputat;
+            const maxAllowedHours = individualDeputat * 2;
+            const hoursExpire = totalHours > maxAllowedHours ? totalHours - maxAllowedHours : 0;
+            const adjustedTotalHours = Math.min(totalHours, maxAllowedHours);
+
+            const result = adjustedTotalHours - individualDeputat;
 
             return {
                 teacherName: `${teacher.lastName}, ${teacher.firstName}`,
@@ -259,6 +263,7 @@ const tableData = computed(() => {
                 individualDeputat: formatNumber(individualDeputat),
                 sumBalance: formatNumber(sumBalance),
                 result: formatNumber(result),
+                hoursExpire: formatNumber(hoursExpire),
                 isFirstRow: index === 0
             };
         });
@@ -512,6 +517,21 @@ const calculateSaldo = (data: RowData | null) => {
                             <span :style="{ color: (data.result - data.sumBalance) < 0 ? 'red' : 'green' }">
                                 &nbsp;({{ (data.result - data.sumBalance) > 0 ? '+' : '' }}{{ (data.result - data.sumBalance).toFixed(2) }})
                             </span>
+                        </div>
+                        <div v-if="data.hoursExpire > 0 && !data.isFirstRow" 
+                            :style="{
+                                backgroundColor: 'red',
+                                color: 'white',
+                                fontWeight: 'bold',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                padding: '0 8px',
+                                marginLeft: '8px'
+                            }"
+                        >
+                            <span>Verfall: {{ data.hoursExpire }}</span>
+                            <i class="pi pi-exclamation-triangle" style="margin-left: 8px;"></i>
                         </div>
                     </div>
                 </template>
