@@ -244,12 +244,12 @@ const tableData = computed(() => {
             const supervisionsExpire = sumSupervisions > maxSupervisions ? sumSupervisions - maxSupervisions : 0;
             const adjustedSupervisions = Math.min(sumSupervisions, maxSupervisions);
 
-            const totalHours = sumCourses + sumDiscounts + adjustedSupervisions;
-            const maxAllowedHours = individualDeputat * 2;
-            const hoursExpire = totalHours > maxAllowedHours ? totalHours - maxAllowedHours : 0;
+            const totalHours = sumCourses + sumDiscounts + adjustedSupervisions; //18 + 30 + 2,6 = 50,6
+            const maxAllowedHours = individualDeputat * 2; //36
+            const hoursExpire = totalHours > maxAllowedHours ? totalHours - maxAllowedHours : 0; //50,6 - 36 = 14,6
             const adjustedTotalHours = Math.min(totalHours, maxAllowedHours);
 
-            const result = adjustedTotalHours - individualDeputat;
+            const result = hoursExpire > 0 ? individualDeputat * 2 : adjustedTotalHours - individualDeputat;
             const halfDutyWarning = totalHours < individualDeputat / 2;
 
             return {
