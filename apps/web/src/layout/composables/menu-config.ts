@@ -40,19 +40,19 @@ export const CONTROLLER_MENU: MenuItem[] = [
         label: 'Datenauswertung',
         items: [
             {
-                label: 'Daten exportieren',
-                icon: 'pi pi-fw pi-download',
-                to: '/controlling/evaluation/export',
-            },
-            {
                 label: 'Übersicht',
-                icon: 'pi pi-fw pi-chart-bar',
+                icon: 'pi pi-fw pi-chart-line',
                 to: '/controlling/evaluation/overview',
             },
             {
-                label: 'Gruppenauswertung',
-                icon: 'pi pi-fw pi-chart-line',
-                to: '/controlling/evaluation/group-analysis',
+                label: 'Saldierung',
+                icon: 'pi pi-fw pi-chart-bar',
+                to: '/controlling/evaluation/saldation',
+            },
+            {
+                label: 'Daten exportieren',
+                icon: 'pi pi-fw pi-download',
+                to: '/controlling/evaluation/export',
             },
         ],
     },

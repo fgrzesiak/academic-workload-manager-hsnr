@@ -76,6 +76,30 @@ const router = createRouter({
                     path: 'evaluation',
                     children: [
                         {
+                            path: 'overview',
+                            name: 'c.overview',
+                            component: () =>
+                                import(
+                                    '@/views/controller/evaluation/Overview.vue'
+                                ),
+                            meta: {
+                                label: 'Group Analysis',
+                                icon: 'pi pi-fw pi-chart-line',
+                            },
+                        },
+                        {
+                            path: 'saldation',
+                            name: 'c.saldation',
+                            component: () =>
+                                import(
+                                    '@/views/controller/evaluation/Saldation.vue'
+                                ),
+                            meta: {
+                                label: 'Saladation',
+                                icon: 'pi pi-fw pi-chart-bar',
+                            },
+                        },
+                        {
                             path: 'export',
                             name: 'c.export',
                             component: () =>
@@ -85,30 +109,6 @@ const router = createRouter({
                             meta: {
                                 label: 'Export',
                                 icon: 'pi pi-fw pi-download',
-                            },
-                        },
-                        {
-                            path: 'overview',
-                            name: 'c.overview',
-                            component: () =>
-                                import(
-                                    '@/views/controller/evaluation/Overview.vue'
-                                ),
-                            meta: {
-                                label: 'Overview',
-                                icon: 'pi pi-fw pi-chart-bar',
-                            },
-                        },
-                        {
-                            path: 'group-analysis',
-                            name: 'c.groupanalysis',
-                            component: () =>
-                                import(
-                                    '@/views/controller/evaluation/GroupAnalysis.vue'
-                                ),
-                            meta: {
-                                label: 'Group Analysis',
-                                icon: 'pi pi-fw pi-chart-line',
                             },
                         },
                     ],
