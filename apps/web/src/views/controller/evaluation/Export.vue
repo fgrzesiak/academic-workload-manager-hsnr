@@ -47,16 +47,16 @@ onBeforeMount(() => {
             console.warn("[Export] Couldn't load settings, using default period of 6");
         }
 
-        // Standardwert für den Zeitraum
+        // default value for the period
         let period = 6;
 
-        // Falls Einstellungen erfolgreich geladen wurden, Wert extrahieren
+        // if settings were loaded successfully, extract value
         if (settingsData) {
             const periodSetting = settingsData.find((s: { key: string }) => s.key === "saldation_period");
             period = periodSetting ? parseInt(periodSetting.value, 10) || 6 : 6;
         }
 
-        // Finde das neueste aktive Semester
+        // find the latest active semester
         const activeSemesterIndex = semesterData.findIndex((semester: ISemesterResponse) => semester.active === true);
 
         if (activeSemesterIndex === -1) {
@@ -64,7 +64,7 @@ onBeforeMount(() => {
             return;
         }
 
-        // Extrahiere die letzten `period` Semester ab dem aktiven Semester
+        // extract the last `period` semesters from the active semester
         const recentSemesters = semesterData.slice((activeSemesterIndex - (period - 1)), (activeSemesterIndex + 1));
         semesters.value = recentSemesters;
     })

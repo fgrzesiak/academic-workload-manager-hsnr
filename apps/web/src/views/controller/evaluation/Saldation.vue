@@ -7,6 +7,7 @@ import SupervisionService from '@/service/supervision.service'
 import SupervisionTypeService from '@/service/supervisionType.service'
 import DiscountService from '@/service/discount.service'
 import TeachingEventService from '@/service/teachingEvent.service'
+import EvaluationSettingsService from '@/service/evaluationSettings.service'
 import { ISemesterResponse, ITeacherResponse, IUpdateTeachingDutyRequest, ITeachingDutyResponse, ISupervisionResponse, ISupervisionTypeResponse, IDiscountResponse, ITeachingEventResponse } from '@workspace/shared'
 import { useToast } from 'primevue/usetoast'
 
@@ -23,6 +24,8 @@ const toast = useToast()
 const expandedRowGroups = ref<string[]>([])
 const calculationOverlayVisible = ref(false)
 var dialogData = ref<RowData | null>(null)
+let upperLimit = 2;
+let lowerLimit = 2;
 
 const totalOrderedDiscounts = ref(0);
 const totalOrderedCourses = ref(0);
@@ -114,29 +117,55 @@ const loadData = () => {
         }
     });
 
-    SemesterService.getSemesters().then((res) => {
-        const { data, error } = res;
-        if (error) {
-            console.warn("[Overview] Couldn`t load semester");
-        } else {
-            const activeSemesterIndex = data.findIndex((semester: ISemesterResponse) => semester.active === true);
-            if (activeSemesterIndex === -1) {
-                console.warn("[Overview] No active semester");
-                return;
-            }
-            const period = 6;
-            const recentSemesters = data.slice((activeSemesterIndex - period), (activeSemesterIndex + 1));
-            semesters.value = recentSemesters;
+    Promise.all([
+        SemesterService.getSemesters(),
+        EvaluationSettingsService.getEvaluationSettings()
+    ]).then(([semesterRes, settingsRes]) => {
+        const { data: semesterData, error: semesterError } = semesterRes;
+        const { data: settingsData, error: settingsError } = settingsRes;
 
-            // calculate total ordered discounts and courses for all semesters
-            totalOrderedDiscounts.value = discounts.value.reduce((acc, discount) => {
-                return discount.ordered ? acc + (discount.scope || 0) : acc;
-            }, 0);
-
-            totalOrderedCourses.value = courses.value.reduce((acc, course) => {
-                return course.ordered ? acc + (course.hours || 0) : acc;
-            }, 0);
+        if (semesterError) {
+            console.warn("[Saldation] Couldn't load semester");
+            return;
         }
+
+        if (settingsError) {
+            console.warn("[Saldation] Couldn't load settings");
+        }
+
+        // default value for the period
+        let period = 6;
+
+        // if settings were loaded successfully, extract value
+        if (settingsData) {
+            const periodSetting = settingsData.find((s: { key: string }) => s.key === "saldation_period");
+            period = periodSetting ? parseInt(periodSetting.value, 10) || 6 : 6;
+            const upperLimitSetting = settingsData.find((s: { key: string }) => s.key === "factor_upper_limit");
+            upperLimit = upperLimitSetting ? parseInt(upperLimitSetting.value, 10) || 2 : 2;
+            const lowerLimitSetting = settingsData.find((s: { key: string }) => s.key === "factor_lower_limit");
+            lowerLimit = lowerLimitSetting ? parseInt(lowerLimitSetting.value, 10) || 2 : 2;
+        }
+
+        // find the latest active semester
+        const activeSemesterIndex = semesterData.findIndex((semester: ISemesterResponse) => semester.active === true);
+
+        if (activeSemesterIndex === -1) {
+            console.warn("[Saldation] No active semester");
+            return;
+        }
+
+        // extract the last `period` semesters from the active semester
+        const recentSemesters = semesterData.slice((activeSemesterIndex - period), (activeSemesterIndex + 1));
+        semesters.value = recentSemesters;
+
+        // calculate total ordered discounts and courses for all semesters
+        totalOrderedDiscounts.value = discounts.value.reduce((acc, discount) => {
+            return discount.ordered ? acc + (discount.scope || 0) : acc;
+        }, 0);
+
+        totalOrderedCourses.value = courses.value.reduce((acc, course) => {
+            return course.ordered ? acc + (course.hours || 0) : acc;
+        }, 0);
     });
 
     loading.value = false;
@@ -249,8 +278,8 @@ const tableData = computed(() => {
             const hoursExpire = totalHours > maxAllowedHours ? totalHours - maxAllowedHours : 0;
             const adjustedTotalHours = Math.min(totalHours, maxAllowedHours);
 
-            const result = hoursExpire > 0 ? individualDeputat * 2 : adjustedTotalHours - individualDeputat;
-            const halfDutyWarning = totalHours < individualDeputat / 2;
+            const result = hoursExpire > 0 ? individualDeputat * upperLimit : adjustedTotalHours - individualDeputat;
+            const halfDutyWarning = totalHours < individualDeputat / lowerLimit;
 
             return {
                 teacherName: `${teacher.lastName}, ${teacher.firstName}`,
