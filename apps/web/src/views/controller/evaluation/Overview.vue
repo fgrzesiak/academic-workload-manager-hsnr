@@ -5,8 +5,6 @@ import TeacherService from '@/service/teacher.service'
 import SemesterService from '@/service/semester.service'
 import { ISemesterResponse, ITeacherResponse, ITeachingDutyResponse } from '@workspace/shared'
 import { useToast } from 'primevue/usetoast'
-// import { Column, DataTable } from 'primevue/datatable'
-// import { Button } from 'primevue/button'
 
 // define reactive variables
 const teachers = ref<ITeacherResponse[]>([])

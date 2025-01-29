@@ -30,17 +30,6 @@ onBeforeMount(() => {
         }
     })
 
-    // SemesterService.getSemesters().then((res) => {
-    //     const { data, error } = res
-    //     if (error) {
-    //         console.warn("[Export] Couldn`t load semster")
-    //     } else {
-    //         semesters.value = data.map((semester: ISemesterResponse) => { 
-    //             return semester 
-    //         })
-    //     }
-    // })
-
     SemesterService.getSemesters().then((res) => {
         const { data, error } = res;
         if (error) {
