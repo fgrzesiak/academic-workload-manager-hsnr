@@ -3,6 +3,7 @@ import { onBeforeMount, ref, computed, } from 'vue'
 import TeachingDutyService from '@/service/teachingDuty.service'
 import TeacherService from '@/service/teacher.service'
 import SemesterService from '@/service/semester.service'
+import EvaluationSettingsService from '@/service/evaluationSettings.service'
 import { ISemesterResponse, ITeacherResponse, ITeachingDutyResponse } from '@workspace/shared'
 import { useToast } from 'primevue/usetoast'
 
@@ -30,37 +31,44 @@ onBeforeMount(() => {
         }
     })
 
-    // SemesterService.getSemesters().then((res) => {
-    //     const { data, error } = res
-    //     if (error) {
-    //         console.warn("[Export] Couldn`t load semster")
-    //     } else {
-    //         semesters.value = data.map((semester: ISemesterResponse) => { 
-    //             return semester 
-    //         })
-    //     }
-    // })
+    Promise.all([
+        SemesterService.getSemesters(),
+        EvaluationSettingsService.getEvaluationSettings()
+    ]).then(([semesterRes, settingsRes]) => {
+        const { data: semesterData, error: semesterError } = semesterRes;
+        const { data: settingsData, error: settingsError } = settingsRes;
 
-    SemesterService.getSemesters().then((res) => {
-        const { data, error } = res;
-        if (error) {
-            console.warn("[Export] Couldn`t load semester");
-        } else {
-            // Finde das neueste aktive Semester
-            const activeSemesterIndex = data.findIndex((semester: ISemesterResponse) => semester.active === true);
-
-            if (activeSemesterIndex === -1) {
-                console.warn("[Export] No active semester");
-                return;
-            }
-
-            // Anzahl der Semester die berücksichtigt werden sollen
-            const period = 6;
-            // Extrahiere die letzten x(period) Semester ab dem aktiven Semester
-            const recentSemesters = data.slice((activeSemesterIndex - (period - 1)), (activeSemesterIndex + 1));
-            semesters.value = recentSemesters;
+        if (semesterError) {
+            console.warn("[Export] Couldn't load semester");
+            return;
         }
+
+        if (settingsError) {
+            console.warn("[Export] Couldn't load settings, using default period of 6");
+        }
+
+        // default value for the period
+        let period = 6;
+
+        // if settings were loaded successfully, extract value
+        if (settingsData) {
+            const periodSetting = settingsData.find((s: { key: string }) => s.key === "saldation_period");
+            period = periodSetting ? parseInt(periodSetting.value, 10) || 6 : 6;
+        }
+
+        // find the latest active semester
+        const activeSemesterIndex = semesterData.findIndex((semester: ISemesterResponse) => semester.active === true);
+
+        if (activeSemesterIndex === -1) {
+            console.warn("[Export] No active semester");
+            return;
+        }
+
+        // extract the last `period` semesters from the active semester
+        const recentSemesters = semesterData.slice((activeSemesterIndex - (period - 1)), (activeSemesterIndex + 1));
+        semesters.value = recentSemesters;
     })
+
 
     TeacherService.getTeachers().then((res) => {
         const { data, error } = res
