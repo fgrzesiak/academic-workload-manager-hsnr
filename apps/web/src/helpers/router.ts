@@ -76,6 +76,18 @@ const router = createRouter({
                     path: 'evaluation',
                     children: [
                         {
+                            path: 'settings',
+                            name: 'c.settings',
+                            component: () =>
+                                import(
+                                    '@/views/controller/evaluation/EvaluationSettings.vue'
+                                ),
+                            meta: {
+                                label: 'Einstellungen',
+                                icon: 'pi pi-fw pi-cog',
+                            },
+                        },
+                        {
                             path: 'overview',
                             name: 'c.overview',
                             component: () =>

@@ -40,6 +40,11 @@ export const CONTROLLER_MENU: MenuItem[] = [
         label: 'Datenauswertung',
         items: [
             {
+                label: 'Einstellungen',
+                icon: 'pi pi-fw pi-cog',
+                to: '/controlling/evaluation/settings',
+            },
+            {
                 label: 'Übersicht',
                 icon: 'pi pi-fw pi-chart-line',
                 to: '/controlling/evaluation/overview',
