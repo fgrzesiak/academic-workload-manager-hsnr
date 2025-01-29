@@ -3,6 +3,7 @@ import { onBeforeMount, ref, computed } from 'vue'
 import TeachingDutyService from '@/service/teachingDuty.service'
 import TeacherService from '@/service/teacher.service'
 import SemesterService from '@/service/semester.service'
+import EvaluationSettingsService from '@/service/evaluationSettings.service'
 import { ISemesterResponse, ITeacherResponse, ITeachingDutyResponse } from '@workspace/shared'
 import { useToast } from 'primevue/usetoast'
 
@@ -44,25 +45,42 @@ const loadData = () => {
         }
     });
 
-    SemesterService.getSemesters().then((res) => {
-        const { data, error } = res;
-        if (error) {
-            toast.add({
-                severity: 'error',
-                summary: 'Fehler beim Laden der Semester',
-                detail: error,
-                life: 5000,
-            });
-        } else {
-            const activeSemesterIndex = data.findIndex((semester: ISemesterResponse) => semester.active === true);
-            if (activeSemesterIndex === -1) {
-                console.warn("[Overview] No active semester");
-                return;
-            }
-            const period = 6;
-            const recentSemesters = data.slice((activeSemesterIndex - period), (activeSemesterIndex + 1));
-            semesters.value = recentSemesters;
+    Promise.all([
+        SemesterService.getSemesters(),
+        EvaluationSettingsService.getEvaluationSettings()
+    ]).then(([semesterRes, settingsRes]) => {
+        const { data: semesterData, error: semesterError } = semesterRes;
+        const { data: settingsData, error: settingsError } = settingsRes;
+
+        if (semesterError) {
+            console.warn("[Export] Couldn't load semester");
+            return;
         }
+
+        if (settingsError) {
+            console.warn("[Export] Couldn't load settings, using default period of 6");
+        }
+
+        // Standardwert für den Zeitraum
+        let period = 6;
+
+        // Falls Einstellungen erfolgreich geladen wurden, Wert extrahieren
+        if (settingsData) {
+            const periodSetting = settingsData.find((s: { key: string }) => s.key === "saldation_period");
+            period = periodSetting ? parseInt(periodSetting.value, 10) || 6 : 6;
+        }
+
+        // Finde das neueste aktive Semester
+        const activeSemesterIndex = semesterData.findIndex((semester: ISemesterResponse) => semester.active === true);
+
+        if (activeSemesterIndex === -1) {
+            console.warn("[Export] No active semester");
+            return;
+        }
+
+        // Extrahiere die letzten `period` Semester ab dem aktiven Semester
+        const recentSemesters = semesterData.slice((activeSemesterIndex - (period - 1)), (activeSemesterIndex + 1));
+        semesters.value = recentSemesters;
     });
 
     loading.value = false;
