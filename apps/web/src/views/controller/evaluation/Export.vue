@@ -152,7 +152,7 @@ const exportCSV = () => {
             <h1 class="mb-4 text-xl font-semibold">Export der Semester-Salden</h1>
             <Button
                 label="Export"
-                icon="pi pi-download"
+                icon="pi pi-file-export"
                 @click="exportCSV()"
             />
         </div>

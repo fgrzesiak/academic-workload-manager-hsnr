@@ -46,12 +46,12 @@ export const CONTROLLER_MENU: MenuItem[] = [
             },
             {
                 label: 'Übersicht',
-                icon: 'pi pi-fw pi-chart-line',
+                icon: 'pi pi-fw pi-eye',
                 to: '/controlling/evaluation/overview',
             },
             {
                 label: 'Saldierung',
-                icon: 'pi pi-fw pi-chart-bar',
+                icon: 'pi pi-fw pi-calculator',
                 to: '/controlling/evaluation/saldation',
             },
             {

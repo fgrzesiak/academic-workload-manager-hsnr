@@ -96,7 +96,7 @@ const router = createRouter({
                                 ),
                             meta: {
                                 label: 'Group Analysis',
-                                icon: 'pi pi-fw pi-chart-line',
+                                icon: 'pi pi-fw pi-eye',
                             },
                         },
                         {
@@ -108,7 +108,7 @@ const router = createRouter({
                                 ),
                             meta: {
                                 label: 'Saladation',
-                                icon: 'pi pi-fw pi-chart-bar',
+                                icon: 'pi pi-fw pi-calculator',
                             },
                         },
                         {
