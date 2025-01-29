@@ -1,0 +1,6 @@
+model EvaluationSettings {
+  id        Int      @id @default(autoincrement())
+  key       String   @unique
+  value     String
+  dataType  String   // "int", "boolean", "string", "float"
+}
