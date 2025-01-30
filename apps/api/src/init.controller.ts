@@ -28,14 +28,13 @@ export class InitControllerService implements OnModuleInit {
 
       // create the initial controller
       await controllers.create(
-        {
-          firstName: "Initial", // default first name
-          lastName: "Controller", // default last name
-        },
+        {},
         {
           username, // use the configured username
+          firstName: "Initial", // default first name
+          lastName: "Controller", // default last name
           password: hashedPassword, // save the hashed password
-          isPasswordTemporary: true, //TODO: change to fals
+          isPasswordTemporary: false,
           role: "CONTROLLER", // set the role to "controller"
         },
       );

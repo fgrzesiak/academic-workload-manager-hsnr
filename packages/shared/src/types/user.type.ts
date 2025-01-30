@@ -9,7 +9,7 @@ import {
 type OptionalExceptFor<T, TRequired extends keyof T> = Partial<T> &
   Pick<T, TRequired>;
 
-// defines the response type for a User, including only specific properties 
+// defines the response type for a User, including only specific properties
 export type IUserResponse = Omit<IUser, "password">;
 
 // common properties shared between Teacher and Controller types
@@ -20,13 +20,20 @@ type UserCommon = {
 // defines the request type for creating a new User
 export type ICreateUserRequest = Pick<
   IUser,
-  "password" | "role" | "username" | "isPasswordTemporary"
-> &
-  Pick<UserCommon, "firstName" | "lastName">;
+  | "password"
+  | "role"
+  | "username"
+  | "firstName"
+  | "lastName"
+  | "isPasswordTemporary"
+>;
 
 // defines the request type for updating an existing User, with optional fields except for the required `id`
 export type IUpdateUserRequest = OptionalExceptFor<
-  Pick<IUser, "id" | "username" | "password" | "isPasswordTemporary" | "updatedAt">,
+  Pick<
+    IUser,
+    "id" | "username" | "password" | "isPasswordTemporary" | "updatedAt"
+  >,
   "id"
 >;
 
@@ -40,6 +47,8 @@ export const UserRole: typeof $Enums.Role = {
 export class User implements IUser {
   id!: number; // unique identifier for the user
   username!: string; // username of the user
+  firstName!: string; // first name of the user
+  lastName!: string; // last name of the user
   password!: string; // password for the user (excluded from serialization)
   isPasswordTemporary!: boolean; // indicates if the user's password is temporary
   role!: $Enums.Role; // role of the user (Teacher or Controller)

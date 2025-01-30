@@ -7,6 +7,8 @@ import { injectable } from "tsyringe";
 export class User implements IUser {
   id!: number; // unique identifier for the user
   username!: string; // the username chosen by the user
+  firstName!: string; // the user's first name
+  lastName!: string; // the user's last name
   password!: string; // the user's password (note: this may be hashed in a real-world scenario)
   isPasswordTemporary!: boolean; // flag indicating if the password is temporary
   role!: $Enums.Role; // the role assigned to the user (teacher or controller)

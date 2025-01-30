@@ -145,6 +145,14 @@ function initFilters() {
             value: null,
             matchMode: FilterMatchMode.STARTS_WITH,
         },
+        firstName: {
+            value: null,
+            matchMode: FilterMatchMode.STARTS_WITH,
+        },
+        lastName: {
+            value: null,
+            matchMode: FilterMatchMode.STARTS_WITH,
+        },
         role: {
             value: null,
             matchMode: FilterMatchMode.EQUALS,
@@ -172,7 +180,7 @@ function formatDate(value: Date) {
 
 <template>
     <div class="card">
-        <div class="flex justify-between mb-4">
+        <div class="mb-4 flex justify-between">
             <h1 class="mb-4 text-xl font-semibold">Nutzerverwaltung</h1>
             <Button
                 label="Neuer Nutzer"
@@ -192,7 +200,12 @@ function formatDate(value: Date) {
             filter-display="row"
             :loading="loading"
             v-model:filters="filters"
-            :global-filter-fields="['username', 'role']"
+            :global-filter-fields="[
+                'username',
+                'role',
+                'firstName',
+                'lastName',
+            ]"
             v-model:editing-rows="editingRows"
             editMode="row"
             @row-edit-save="onRowEditSave"
@@ -207,8 +220,8 @@ function formatDate(value: Date) {
                 },
             }"
         >
-            <!-- Table Header -->
-            <!-- <template #header>
+            <!-- Table Header Global Search -->
+            <template #header>
                 <div class="flex justify-between">
                     <Button
                         type="button"
@@ -219,13 +232,14 @@ function formatDate(value: Date) {
                     />
                     <div class="flex items-center gap-2">
                         <i class="pi pi-search" />
+                        <!-- @vue-expect-error -->
                         <InputText
                             v-model="filters['global'].value"
-                            placeholder="Suche"
+                            placeholder="Globale Suche"
                         />
                     </div>
                 </div>
-            </template> -->
+            </template>
 
             <!-- Empty Table State -->
             <template #empty>Keine Nutzer gefunden.</template>
@@ -251,6 +265,38 @@ function formatDate(value: Date) {
                         v-model="filterModel.value"
                         type="text"
                         placeholder="Nutzername suchen"
+                    />
+                </template>
+            </Column>
+
+            <!-- First Name Column -->
+            <Column field="firstName" header="Vorname" style="min-width: 12rem">
+                <template #body="{ data }">{{ data.firstName }}</template>
+                <template #editor="{ data, field }">
+                    <InputText v-model="data[field]" fluid />
+                </template>
+                <template #filter="{ filterModel, filterCallback }">
+                    <InputText
+                        @input="filterCallback()"
+                        v-model="filterModel.value"
+                        type="text"
+                        placeholder="Vorname suchen"
+                    />
+                </template>
+            </Column>
+
+            <!-- Last Name Column -->
+            <Column field="lastName" header="Nachname" style="min-width: 12rem">
+                <template #body="{ data }">{{ data.lastName }}</template>
+                <template #editor="{ data, field }">
+                    <InputText v-model="data[field]" fluid />
+                </template>
+                <template #filter="{ filterModel, filterCallback }">
+                    <InputText
+                        @input="filterCallback()"
+                        v-model="filterModel.value"
+                        type="text"
+                        placeholder="Nachname suchen"
                     />
                 </template>
             </Column>
