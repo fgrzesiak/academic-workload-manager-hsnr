@@ -4,6 +4,7 @@ import { onBeforeMount, reactive, ref } from 'vue'
 import UserService from '@/service/user.service'
 import { IUserResponse, ICreateUserRequest } from '@workspace/shared'
 import {
+    TabPanel,
     DataTableFilterMeta,
     DataTableRowEditSaveEvent,
     useToast,
@@ -23,6 +24,11 @@ const editingRows = ref([])
 const loading = ref(false)
 const toast = useToast()
 const roles = reactive(getObjectAsSelectOptions(UserRole))
+const activeTab = ref(0) // 0 = Teacher, 1 = Controller
+const tabs = [
+    { title: 'Lehrende/-r', value: 0 },
+    { title: 'Controller', value: 1 },
+]
 
 const updateUsers = (data: IUserResponse[]) => {
     users.value = data.map((d) => {
@@ -37,19 +43,38 @@ const updateUsers = (data: IUserResponse[]) => {
  */
 const newUserSubmitted = ref(false)
 const newUserDialog = ref(false)
-const newUserSchema = z.object({
+
+// Schema for Teacher Form
+const teacherSchema = z.object({
     username: z.string().trim().min(5).max(30),
     password: z.string().trim().min(6).max(30),
     isPasswordTemporary: z.boolean(),
     firstName: z.string().trim().min(1).max(30),
     lastName: z.string().trim().min(1).max(30),
-    role: z.enum(['TEACHER', 'CONTROLLER']),
+    'relation.retirementDate': z.date(),
+    role: z.literal(UserRole.TEACHER),
 })
-const resolver = ref(zodResolver(newUserSchema))
+
+// Schema for Controller Form
+const controllerSchema = z.object({
+    username: z.string().trim().min(5).max(30),
+    password: z.string().trim().min(6).max(30),
+    isPasswordTemporary: z.boolean(),
+    firstName: z.string().trim().min(1).max(30),
+    lastName: z.string().trim().min(1).max(30),
+    role: z.literal(UserRole.CONTROLLER),
+})
+
+// Resolver based on active tab
+const resolverTeacher = ref(zodResolver(teacherSchema))
+const resolverController = ref(zodResolver(controllerSchema))
 
 const openNew = () => {
     newUserSubmitted.value = false
     newUserDialog.value = true
+    activeTab.value = 0 // Reset to Teacher tab on open
+    resolverTeacher.value = zodResolver(teacherSchema)
+    resolverController.value = zodResolver(controllerSchema)
 }
 
 const hideDialog = () => {
@@ -57,15 +82,29 @@ const hideDialog = () => {
     newUserSubmitted.value = false
 }
 
-const getNewUserValues = (): z.infer<typeof newUserSchema> => {
-    return {
-        username: '',
-        password: Math.random().toString(36).slice(-8),
-        firstName: '',
-        lastName: '',
-        role: 'TEACHER',
-        isPasswordTemporary: true,
-    } satisfies ICreateUserRequest
+const getNewUserValues = (): z.infer<
+    typeof teacherSchema | typeof controllerSchema
+> => {
+    return activeTab.value === 0
+        ? {
+              username: '',
+              password: Math.random().toString(36).slice(-8),
+              firstName: '',
+              lastName: '',
+              'relation.retirementDate': new Date(
+                  new Date().setFullYear(new Date().getFullYear() + 10)
+              ),
+              role: UserRole.TEACHER,
+              isPasswordTemporary: true,
+          }
+        : {
+              username: '',
+              password: Math.random().toString(36).slice(-8),
+              firstName: '',
+              lastName: '',
+              role: UserRole.CONTROLLER,
+              isPasswordTemporary: true,
+          }
 }
 
 const onCreateUserFormSubmit = async ({ valid, states }: FormSubmitEvent) => {
@@ -372,160 +411,327 @@ function formatDate(value: Date) {
             ></Column>
         </DataTable>
 
+        <!-- Dialog with TabView -->
         <Dialog
             v-model:visible="newUserDialog"
-            :style="{ width: '450px' }"
-            header="Neuer Nutzer - Details"
+            :style="{ width: '500px' }"
+            header="Neuer Nutzer"
             :modal="true"
         >
-            <!-- Form inside the dialog -->
-            <Form
-                v-slot="$form"
-                :resolver
-                :initial-values="getNewUserValues()"
-                class="flex w-full flex-col gap-4"
-                @submit="onCreateUserFormSubmit"
-            >
-                <!-- Username Field -->
-                <div class="mt-2 flex flex-col gap-1">
-                    <FloatLabel variant="on">
-                        <InputText id="username" name="username" fluid />
-                        <label
-                            for="username"
-                            class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
-                            >Nutzername</label
-                        >
-                    </FloatLabel>
-                    <!-- @vue-expect-error -->
-                    <Message
-                        v-if="$form.username?.invalid"
-                        severity="error"
-                        size="small"
-                        variant="simple"
+            <Tabs v-model:value="activeTab">
+                <TabList>
+                    <Tab
+                        v-for="tab in tabs"
+                        :key="tab.title"
+                        :value="tab.value"
                     >
-                        <!-- @vue-expect-error -->
-                        {{ $form.username.error?.message }}
-                    </Message>
-                </div>
+                        {{ tab.title }}
+                    </Tab>
+                </TabList>
 
-                <!-- Password Field -->
-                <div class="flex flex-col gap-1">
-                    <FloatLabel variant="on">
-                        <Password
-                            id="password"
-                            name="password"
-                            fluid
-                            toggle-mask
-                            :feedback="false"
-                        />
-                        <label
-                            for="password"
-                            class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
-                            >Initiales Passwort</label
+                <TabPanels>
+                    <!-- Teacher Tab -->
+                    <TabPanel v-if="activeTab === 0" :value="0">
+                        <Form
+                            v-slot="$form"
+                            :resolver="resolverTeacher"
+                            :initial-values="getNewUserValues()"
+                            class="flex w-full flex-col gap-4"
+                            @submit="onCreateUserFormSubmit"
                         >
-                    </FloatLabel>
-                    <!-- @vue-expect-error -->
-                    <Message
-                        v-if="$form.password?.invalid"
-                        severity="error"
-                        size="small"
-                        variant="simple"
-                    >
-                        <!-- @vue-expect-error -->
-                        {{ $form.password.error?.message }}
-                    </Message>
-                </div>
+                            <!-- Username Field -->
+                            <div class="mt-2 flex flex-col gap-1">
+                                <FloatLabel variant="on">
+                                    <InputText
+                                        id="username"
+                                        name="username"
+                                        fluid
+                                    />
+                                    <label
+                                        for="username"
+                                        class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
+                                        >Nutzername</label
+                                    >
+                                </FloatLabel>
+                                <!-- @vue-expect-error -->
+                                <Message
+                                    v-if="$form.username?.invalid"
+                                    severity="error"
+                                    size="small"
+                                    variant="simple"
+                                >
+                                    <!-- @vue-expect-error -->
+                                    {{ $form.username.error?.message }}
+                                </Message>
+                            </div>
 
-                <!-- First Name Field -->
-                <div class="flex flex-col gap-1">
-                    <FloatLabel variant="on">
-                        <InputText id="firstName" name="firstName" fluid />
-                        <label
-                            for="firstName"
-                            class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
-                            >Vorname</label
+                            <!-- Password Field -->
+                            <div class="flex flex-col gap-1">
+                                <FloatLabel variant="on">
+                                    <Password
+                                        id="password"
+                                        name="password"
+                                        fluid
+                                        toggle-mask
+                                        :feedback="false"
+                                    />
+                                    <label
+                                        for="password"
+                                        class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
+                                        >Initiales Passwort</label
+                                    >
+                                </FloatLabel>
+                                <!-- @vue-expect-error -->
+                                <Message
+                                    v-if="$form.password?.invalid"
+                                    severity="error"
+                                    size="small"
+                                    variant="simple"
+                                >
+                                    <!-- @vue-expect-error -->
+                                    {{ $form.password.error?.message }}
+                                </Message>
+                            </div>
+
+                            <!-- First Name Field -->
+                            <div class="flex flex-col gap-1">
+                                <FloatLabel variant="on">
+                                    <InputText
+                                        id="firstName"
+                                        name="firstName"
+                                        fluid
+                                    />
+                                    <label
+                                        for="firstName"
+                                        class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
+                                        >Vorname</label
+                                    >
+                                </FloatLabel>
+                                <!-- @vue-expect-error -->
+                                <Message
+                                    v-if="$form.firstName?.invalid"
+                                    severity="error"
+                                    size="small"
+                                    variant="simple"
+                                >
+                                    <!-- @vue-expect-error -->
+                                    {{ $form.firstName.error?.message }}
+                                </Message>
+                            </div>
+
+                            <!-- Last Name Field -->
+                            <div class="flex flex-col gap-1">
+                                <FloatLabel variant="on">
+                                    <InputText
+                                        id="lastName"
+                                        name="lastName"
+                                        fluid
+                                    />
+                                    <label
+                                        for="lastName"
+                                        class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
+                                        >Nachname</label
+                                    >
+                                </FloatLabel>
+                                <!-- @vue-expect-error -->
+                                <Message
+                                    v-if="$form.lastName?.invalid"
+                                    severity="error"
+                                    size="small"
+                                    variant="simple"
+                                >
+                                    <!-- @vue-expect-error -->
+                                    {{ $form.lastName.error?.message }}
+                                </Message>
+                            </div>
+                            <!-- Retirement Date Field -->
+                            <div class="flex flex-col gap-1">
+                                <FloatLabel variant="on">
+                                    <DatePicker
+                                        id="relation.retirementDate"
+                                        name="relation.retirementDate"
+                                        date-format="dd.mm.yy"
+                                        fluid
+                                    />
+                                    <label
+                                        for="relation.retirementDate"
+                                        class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
+                                        >Ruhestandsdatum</label
+                                    >
+                                </FloatLabel>
+                                <!-- @vue-expect-error -->
+                                <Message
+                                    v-if="
+                                        $form['relation.retirementDate']?.error
+                                            ?.invalid
+                                    "
+                                    severity="error"
+                                    size="small"
+                                    variant="simple"
+                                >
+                                    <!-- @vue-expect-error -->
+                                    {{
+                                        $form['relation.retirementDate'].error
+                                            ?.message
+                                    }}
+                                </Message>
+                            </div>
+                            <!-- Role Hidden Field -->
+                            <InputText type="hidden" id="role" name="role" />
+
+                            <div class="flex flex-row">
+                                <Button
+                                    label="Abbrechen"
+                                    icon="pi pi-times"
+                                    text
+                                    @click="hideDialog"
+                                    fluid
+                                />
+                                <Button
+                                    type="submit"
+                                    icon="pi pi-check"
+                                    label="Erstellen"
+                                    fluid
+                                />
+                            </div>
+                        </Form>
+                    </TabPanel>
+
+                    <!-- Controller Tab -->
+                    <TabPanel v-if="activeTab === 1" :value="1">
+                        <Form
+                            v-slot="$form"
+                            :resolver="resolverController"
+                            :initial-values="getNewUserValues()"
+                            class="flex w-full flex-col gap-4"
+                            @submit="onCreateUserFormSubmit"
                         >
-                    </FloatLabel>
-                    <!-- @vue-expect-error -->
-                    <Message
-                        v-if="$form.firstName?.invalid"
-                        severity="error"
-                        size="small"
-                        variant="simple"
-                    >
-                        <!-- @vue-expect-error -->
-                        {{ $form.firstName.error?.message }}
-                    </Message>
-                </div>
+                            <!-- Username Field -->
+                            <div class="mt-2 flex flex-col gap-1">
+                                <FloatLabel variant="on">
+                                    <InputText
+                                        id="username"
+                                        name="username"
+                                        fluid
+                                    />
+                                    <label
+                                        for="username"
+                                        class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
+                                        >Nutzername</label
+                                    >
+                                </FloatLabel>
+                                <!-- @vue-expect-error -->
+                                <Message
+                                    v-if="$form.username?.invalid"
+                                    severity="error"
+                                    size="small"
+                                    variant="simple"
+                                >
+                                    <!-- @vue-expect-error -->
+                                    {{ $form.username.error?.message }}
+                                </Message>
+                            </div>
 
-                <!-- Last Name Field -->
-                <div class="flex flex-col gap-1">
-                    <FloatLabel variant="on">
-                        <InputText id="lastName" name="lastName" fluid />
-                        <label
-                            for="lastName"
-                            class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
-                            >Nachname</label
-                        >
-                    </FloatLabel>
-                    <!-- @vue-expect-error -->
-                    <Message
-                        v-if="$form.lastName?.invalid"
-                        severity="error"
-                        size="small"
-                        variant="simple"
-                    >
-                        <!-- @vue-expect-error -->
-                        {{ $form.lastName.error?.message }}
-                    </Message>
-                </div>
+                            <!-- Password Field -->
+                            <div class="flex flex-col gap-1">
+                                <FloatLabel variant="on">
+                                    <Password
+                                        id="password"
+                                        name="password"
+                                        fluid
+                                        toggle-mask
+                                        :feedback="false"
+                                    />
+                                    <label
+                                        for="password"
+                                        class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
+                                        >Initiales Passwort</label
+                                    >
+                                </FloatLabel>
+                                <!-- @vue-expect-error -->
+                                <Message
+                                    v-if="$form.password?.invalid"
+                                    severity="error"
+                                    size="small"
+                                    variant="simple"
+                                >
+                                    <!-- @vue-expect-error -->
+                                    {{ $form.password.error?.message }}
+                                </Message>
+                            </div>
 
-                <!-- Role Selection -->
-                <div class="flex flex-col gap-1">
-                    <FloatLabel variant="on">
-                        <Select
-                            label-id="role-select"
-                            name="role"
-                            :options="roles"
-                            option-label="label"
-                            option-value="value"
-                            fluid
-                        ></Select>
-                        <label
-                            for="role-select"
-                            class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
-                            >Rolle</label
-                        >
-                    </FloatLabel>
-                    <!-- @vue-expect-error -->
-                    <Message
-                        v-if="$form.role?.invalid"
-                        severity="error"
-                        size="small"
-                        variant="simple"
-                    >
-                        <!-- @vue-expect-error -->
-                        {{ $form.role.error?.message }}
-                    </Message>
-                </div>
+                            <!-- First Name Field -->
+                            <div class="flex flex-col gap-1">
+                                <FloatLabel variant="on">
+                                    <InputText
+                                        id="firstName"
+                                        name="firstName"
+                                        fluid
+                                    />
+                                    <label
+                                        for="firstName"
+                                        class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
+                                        >Vorname</label
+                                    >
+                                </FloatLabel>
+                                <!-- @vue-expect-error -->
+                                <Message
+                                    v-if="$form.firstName?.invalid"
+                                    severity="error"
+                                    size="small"
+                                    variant="simple"
+                                >
+                                    <!-- @vue-expect-error -->
+                                    {{ $form.firstName.error?.message }}
+                                </Message>
+                            </div>
 
-                <!-- Footer -->
-                <div class="flex flex-row">
-                    <Button
-                        label="Abbrechen"
-                        icon="pi pi-times"
-                        text
-                        @click="hideDialog"
-                        fluid
-                    />
-                    <Button
-                        type="submit"
-                        icon="pi pi-check"
-                        label="Erstellen"
-                        fluid
-                    />
-                </div>
-            </Form>
+                            <!-- Last Name Field -->
+                            <div class="flex flex-col gap-1">
+                                <FloatLabel variant="on">
+                                    <InputText
+                                        id="lastName"
+                                        name="lastName"
+                                        fluid
+                                    />
+                                    <label
+                                        for="lastName"
+                                        class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
+                                        >Nachname</label
+                                    >
+                                </FloatLabel>
+                                <!-- @vue-expect-error -->
+                                <Message
+                                    v-if="$form.lastName?.invalid"
+                                    severity="error"
+                                    size="small"
+                                    variant="simple"
+                                >
+                                    <!-- @vue-expect-error -->
+                                    {{ $form.lastName.error?.message }}
+                                </Message>
+                            </div>
+                            <InputText type="hidden" id="role" name="role" />
+
+                            <div class="flex flex-row">
+                                <Button
+                                    label="Abbrechen"
+                                    icon="pi pi-times"
+                                    text
+                                    @click="hideDialog"
+                                    fluid
+                                />
+                                <Button
+                                    type="submit"
+                                    icon="pi pi-check"
+                                    label="Erstellen"
+                                    fluid
+                                />
+                            </div>
+                        </Form>
+                    </TabPanel>
+                </TabPanels>
+            </Tabs>
         </Dialog>
     </div>
 </template>

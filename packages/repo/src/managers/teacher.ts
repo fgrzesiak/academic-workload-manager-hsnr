@@ -1,4 +1,5 @@
 import { Teacher as ITeacher } from "@workspace/database";
+import { ITeacherResponse } from "@workspace/shared";
 import { singleton } from "tsyringe";
 
 import { PrismaService } from "../services/index.js";
@@ -39,8 +40,12 @@ export class TeacherManager {
   }
 
   // get all teachers
-  async findAll(): Promise<ITeacher[]> {
-    return await this.prisma.teacher.findMany(); // returns a list of all teachers
+  async findAll(): Promise<ITeacherResponse[]> {
+    return await this.prisma.teacher.findMany({
+      include: {
+        user: true,
+      },
+    }); // returns a list of all teachers
   }
 
   //create a new teacher
@@ -50,7 +55,10 @@ export class TeacherManager {
   }
 
   //update a teacher
-  async update(id: number, data: Partial<Omit<ITeacher, "id" | "createdAt">>,): Promise<void> {
+  async update(
+    id: number,
+    data: Partial<Omit<ITeacher, "id" | "createdAt">>,
+  ): Promise<void> {
     await this.prisma.teacher.update({
       data,
       where: { id },

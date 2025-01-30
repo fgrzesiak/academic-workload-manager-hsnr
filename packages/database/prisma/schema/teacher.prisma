@@ -1,7 +1,7 @@
 model Teacher {
   id                 Int      @id @default(autoincrement())
   userId             Int      @unique
-  retirementDate     DateTime
+  retirementDate     DateTime @db.Date
   totalTeachingDuty  Float
   teachingGroups     TeachingGroup[]
   teachingDuties     TeachingDutyPerSemester[]

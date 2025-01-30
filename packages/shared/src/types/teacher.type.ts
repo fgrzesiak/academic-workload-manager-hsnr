@@ -1,7 +1,13 @@
 import { Teacher as ITeacher } from "@workspace/database";
 
+import { IUserResponse } from "./user.type";
+
 // defines the response type for a teacher, excluding sensitive or irrelevant properties
-export type ITeacherResponse = Omit<ITeacher, "accessToken" | "refreshToken" | "createdAt">;
+export type ITeacherResponse = ITeacher & {
+  user: Pick<IUserResponse, "firstName" | "lastName" | "username">;
+};
+
+export type ICreateTeacherRequest = Pick<ITeacher, "retirementDate">;
 
 // class representing a teacher, including methods for initialization and data handling
 export class Teacher implements ITeacher {

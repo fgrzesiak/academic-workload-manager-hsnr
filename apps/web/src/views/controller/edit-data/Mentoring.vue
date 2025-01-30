@@ -2,12 +2,20 @@
 import { FilterMatchMode } from '@primevue/core/api'
 import { onBeforeMount, ref } from 'vue'
 import SupervisionService from '@/service/supervision.service'
-import { ISupervisionResponse, ICreateSupervisionRequest } from '@workspace/shared'
+import {
+    ISupervisionResponse,
+    ICreateSupervisionRequest,
+} from '@workspace/shared'
 import SupervisionTypeService from '@/service/supervisionType.service'
 import SemesterService from '@/service/semester.service'
 import TeacherService from '@/service/teacher.service'
 import CommentService from '@/service/comment.service'
-import { ISupervisionTypeResponse, ISemesterResponse, ITeacherResponse, ICommentResponse } from '@workspace/shared'
+import {
+    ISupervisionTypeResponse,
+    ISemesterResponse,
+    ITeacherResponse,
+    ICommentResponse,
+} from '@workspace/shared'
 import {
     DataTableFilterMeta,
     DataTableRowEditSaveEvent,
@@ -19,8 +27,8 @@ import { zodResolver } from '@primevue/forms/resolvers/zod'
 import { Form, FormSubmitEvent } from '@primevue/forms'
 
 interface SelectOption {
-    label: string;
-    value: number;
+    label: string
+    value: number
 }
 
 const supervisions = ref<ISupervisionResponse[]>([])
@@ -34,8 +42,8 @@ const userSelect = ref<SelectOption[]>([])
 const expandedRowGroups = ref<number[]>([])
 
 const updateSupervisions = (data: ISupervisionResponse[]) => {
-    supervisions.value = data.map((d) => { 
-        return d 
+    supervisions.value = data.map((d) => {
+        return d
     })
 }
 
@@ -52,8 +60,8 @@ const newSupervisionSchema = z.object({
     commentId: z.number(),
 })
 const resolver = ref(zodResolver(newSupervisionSchema))
-const currentCommentContent = ref("")
-const currentCommentDate = ref("")
+const currentCommentContent = ref('')
+const currentCommentDate = ref('')
 const commentDrawerVisible = ref(false)
 
 const openNew = () => {
@@ -68,7 +76,7 @@ const hideDialog = () => {
 
 const deleteEntry = (id: number) => {
     try {
-        SupervisionService.deleteSupervision(id);
+        SupervisionService.deleteSupervision(id)
 
         toast.add({
             severity: 'success',
@@ -76,8 +84,10 @@ const deleteEntry = (id: number) => {
             detail: 'Betreuung gelöscht',
             life: 3000,
         })
-            
-        supervisions.value = supervisions.value.filter(event => event.id !== id);
+
+        supervisions.value = supervisions.value.filter(
+            (event) => event.id !== id
+        )
     } catch (error) {
         toast.add({
             severity: 'error',
@@ -98,10 +108,14 @@ const getNewSupervisionValues = (): z.infer<typeof newSupervisionSchema> => {
     } satisfies ICreateSupervisionRequest
 }
 
-const onCreateSupervisionFormSubmit = async ({ valid, states }: FormSubmitEvent) => {
+const onCreateSupervisionFormSubmit = async ({
+    valid,
+    states,
+}: FormSubmitEvent) => {
     if (valid) {
         newSupervisionSubmitted.value = true
-        const newSupervision = getFormStatesAsType<ICreateSupervisionRequest>(states)
+        const newSupervision =
+            getFormStatesAsType<ICreateSupervisionRequest>(states)
         // newSupervision.programId = null
         SupervisionService.createSupervision(newSupervision).then((res) => {
             const { data, error } = res
@@ -138,7 +152,9 @@ const onRowEditSave = ({ newData }: DataTableRowEditSaveEvent) => {
                 life: 5000,
             })
         } else {
-            updateSupervisions(supervisions.value.map((u) => (u.id === data.id ? data : u)))
+            updateSupervisions(
+                supervisions.value.map((u) => (u.id === data.id ? data : u))
+            )
             toast.add({
                 severity: 'success',
                 summary: 'Erfolgreich',
@@ -168,36 +184,38 @@ onBeforeMount(() => {
     SupervisionTypeService.getSupervisionTypes().then((res) => {
         const { data, error } = res
         if (error) {
-            console.warn("[Mentoring-Overview] Couldn`t load supervisionTypes")
+            console.warn('[Mentoring-Overview] Couldn`t load supervisionTypes')
         } else {
-            typeSelect.value = data.map((supervisionType: ISupervisionTypeResponse) => ({
-                label: supervisionType.typeOfSupervision,
-                value: supervisionType.typeOfSupervisionId,
-            }));
+            typeSelect.value = data.map(
+                (supervisionType: ISupervisionTypeResponse) => ({
+                    label: supervisionType.typeOfSupervision,
+                    value: supervisionType.typeOfSupervisionId,
+                })
+            )
         }
     })
 
     SemesterService.getSemesters().then((res) => {
         const { data, error } = res
         if (error) {
-            console.warn("[Mentoring-Overview] Couldn`t load semster")
+            console.warn('[Mentoring-Overview] Couldn`t load semster')
         } else {
             semesterSelect.value = data.map((semester: ISemesterResponse) => ({
                 label: semester.name,
                 value: semester.id,
-            }));
+            }))
         }
     })
 
     TeacherService.getTeachers().then((res) => {
         const { data, error } = res
         if (error) {
-            console.warn("[Mentoring-Overview] Couldn`t load teachers")
+            console.warn('[Mentoring-Overview] Couldn`t load teachers')
         } else {
             userSelect.value = data.map((teacher: ITeacherResponse) => ({
-                label: teacher.firstName + " " + teacher.lastName,
+                label: teacher.user.firstName + ' ' + teacher.user.lastName,
                 value: teacher.id,
-            }));
+            }))
         }
     })
 
@@ -208,9 +226,9 @@ onBeforeMount(() => {
 // Initialize filters
 function initFilters() {
     filters.value = {
-        global: { 
-            value: null, 
-            matchMode: FilterMatchMode.CONTAINS ,
+        global: {
+            value: null,
+            matchMode: FilterMatchMode.CONTAINS,
         },
         name: {
             value: null,
@@ -220,80 +238,90 @@ function initFilters() {
 }
 
 const showComment = async (commentId: number) => {
-    const commentData = await fetchCommentById(commentId);
-    currentCommentContent.value = commentData ? commentData.commentContent : "Kein Inhalt.";
-    currentCommentDate.value = commentData ? formatDate(commentData.commentDate.toString()) : "Kein Datum.";
-    commentDrawerVisible.value = true;
-};
+    const commentData = await fetchCommentById(commentId)
+    currentCommentContent.value = commentData
+        ? commentData.commentContent
+        : 'Kein Inhalt.'
+    currentCommentDate.value = commentData
+        ? formatDate(commentData.commentDate.toString())
+        : 'Kein Datum.'
+    commentDrawerVisible.value = true
+}
 
-const fetchCommentById = async (commentId: number): Promise<ICommentResponse | null> => {
+const fetchCommentById = async (
+    commentId: number
+): Promise<ICommentResponse | null> => {
     try {
-        const res = await CommentService.getComments();
-        const { data, error } = res;
+        const res = await CommentService.getComments()
+        const { data, error } = res
 
         if (error) {
-            console.log("Error Laden von Comments");
-            return null;
+            console.log('Error Laden von Comments')
+            return null
         }
 
-        const response = data.find((item) => item.commentId === commentId);
-        return response || null;
+        const response = data.find((item) => item.commentId === commentId)
+        return response || null
     } catch (e) {
-        console.error("Ein Fehler ist aufgetreten:", e);
-        return null;
+        console.error('Ein Fehler ist aufgetreten:', e)
+        return null
     }
-};
+}
 
 const onRowGroupExpand = (event: any) => {
-    const customEvent = event as { group: number; data: any[] };
-    const groupId = customEvent.group;
+    const customEvent = event as { group: number; data: any[] }
+    const groupId = customEvent.group
     if (!expandedRowGroups.value.includes(groupId)) {
-        expandedRowGroups.value.push(groupId);
+        expandedRowGroups.value.push(groupId)
     }
-};
+}
 
 const onRowGroupCollapse = (event: any) => {
-    const customEvent = event as { group: number; data: any[] };
-    const groupId = customEvent.group;
-    expandedRowGroups.value = expandedRowGroups.value.filter(id => id !== groupId);
-};
+    const customEvent = event as { group: number; data: any[] }
+    const groupId = customEvent.group
+    expandedRowGroups.value = expandedRowGroups.value.filter(
+        (id) => id !== groupId
+    )
+}
 
 const closeCommentDrawer = () => {
-    commentDrawerVisible.value = false;
-    currentCommentContent.value = "";
-    currentCommentDate.value = "";
-};
+    commentDrawerVisible.value = false
+    currentCommentContent.value = ''
+    currentCommentDate.value = ''
+}
 
 const formatDate = (value: string) => {
-    if (!value) return '';
-    const date = new Date(value);
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = date.getFullYear();
-    return `${day}.${month}.${year}`;
+    if (!value) return ''
+    const date = new Date(value)
+    const day = String(date.getDate()).padStart(2, '0')
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const year = date.getFullYear()
+    return `${day}.${month}.${year}`
 }
 
 //convert semester ID into Name
 const getSemesterName = (id: number) => {
-    const semester = semesterSelect.value.find((s) => s.value === id);
-    return semester ? semester.label : 'Unbekannt';
-};
+    const semester = semesterSelect.value.find((s) => s.value === id)
+    return semester ? semester.label : 'Unbekannt'
+}
 
 const getUserName = (id: number) => {
-    const user = userSelect.value.find((s) => s.value === id);
-    return user ? user.label : 'Unbekannt';
-};
+    const user = userSelect.value.find((s) => s.value === id)
+    return user ? user.label : 'Unbekannt'
+}
 
 const getTypeName = (id: number) => {
-    const type = typeSelect.value.find((s) => s.value === id);
-    return type ? type.label : 'Unbekannt';
-};
+    const type = typeSelect.value.find((s) => s.value === id)
+    return type ? type.label : 'Unbekannt'
+}
 </script>
 
 <template>
     <div class="card">
-        <div class="flex justify-between mb-4">
-            <h1 class="mb-4 text-xl font-semibold">Übersicht der Betreuungen</h1>
+        <div class="mb-4 flex justify-between">
+            <h1 class="mb-4 text-xl font-semibold">
+                Übersicht der Betreuungen
+            </h1>
             <Button
                 label="Neue Betreuung"
                 icon="pi pi-plus"
@@ -311,9 +339,9 @@ const getTypeName = (id: number) => {
             scrollHeight="70vh"
             v-model:expandedRowGroups="expandedRowGroups"
             expandableRowGroups
-            @rowgroup-expand="onRowGroupExpand" 
+            @rowgroup-expand="onRowGroupExpand"
             @rowgroup-collapse="onRowGroupCollapse"
-            rowGroupMode="subheader" 
+            rowGroupMode="subheader"
             groupRowsBy="teacherId"
             :row-hover="true"
             :loading="loading"
@@ -322,12 +350,13 @@ const getTypeName = (id: number) => {
             v-model:editing-rows="editingRows"
             editMode="row"
             sortMode="multiple"
-            removableSort 
+            removableSort
             @row-edit-save="onRowEditSave"
         >
-
             <template #groupheader="{ data }">
-                <span class="align-middle ml-2 font-bold leading-normal">{{ getUserName(data.teacherId) }}</span>
+                <span class="ml-2 align-middle font-bold leading-normal">{{
+                    getUserName(data.teacherId)
+                }}</span>
             </template>
             <!-- Table Header -->
             <template #header>
@@ -365,9 +394,17 @@ const getTypeName = (id: number) => {
                 style="min-width: 8rem"
                 sortable
             >
-                <template #body="{ data }">{{ getTypeName(data.supervisionTypeId) }}</template>
+                <template #body="{ data }">{{
+                    getTypeName(data.supervisionTypeId)
+                }}</template>
                 <template #editor="{ data, field }">
-                    <Select v-model="data[field]" :options="typeSelect" option-label="label" option-value="value" fluid />
+                    <Select
+                        v-model="data[field]"
+                        :options="typeSelect"
+                        option-label="label"
+                        option-value="value"
+                        fluid
+                    />
                 </template>
             </Column>
 
@@ -379,7 +416,12 @@ const getTypeName = (id: number) => {
             >
                 <template #body="{ data }">{{ data.studentId }}</template>
                 <template #editor="{ data, field }">
-                    <InputNumber v-model="data[field]" fluid :useGrouping="false" :min="0" />
+                    <InputNumber
+                        v-model="data[field]"
+                        fluid
+                        :useGrouping="false"
+                        :min="0"
+                    />
                 </template>
             </Column>
 
@@ -390,9 +432,17 @@ const getTypeName = (id: number) => {
                 style="min-width: 8rem"
                 sortable
             >
-                <template #body="{ data }">{{ getSemesterName(data.semesterPeriodId) }}</template>
+                <template #body="{ data }">{{
+                    getSemesterName(data.semesterPeriodId)
+                }}</template>
                 <template #editor="{ data, field }">
-                    <Select v-model="data[field]" :options="semesterSelect" option-label="label" option-value="value" fluid />
+                    <Select
+                        v-model="data[field]"
+                        :options="semesterSelect"
+                        option-label="label"
+                        option-value="value"
+                        fluid
+                    />
                 </template>
             </Column>
 
@@ -403,8 +453,8 @@ const getTypeName = (id: number) => {
             ></Column>
 
             <Column
-            style="width: 4rem; text-align: center"
-            :headerStyle="{ textAlign: 'center' }"
+                style="width: 4rem; text-align: center"
+                :headerStyle="{ textAlign: 'center' }"
             >
                 <template #body="{ data }">
                     <Button
@@ -417,8 +467,8 @@ const getTypeName = (id: number) => {
             </Column>
 
             <Column
-            style="width: 4rem; text-align: center"
-            :headerStyle="{ textAlign: 'center' }"
+                style="width: 4rem; text-align: center"
+                :headerStyle="{ textAlign: 'center' }"
             >
                 <template #body="{ data }">
                     <Button
@@ -430,20 +480,24 @@ const getTypeName = (id: number) => {
             </Column>
         </DataTable>
 
-        <Drawer v-model:visible="commentDrawerVisible" header="Kommentar" position="right">
-            <div class="flex flex-wrap flex-col gap-4">
-                <p>Kommentar vom: {{currentCommentDate}}</p>
+        <Drawer
+            v-model:visible="commentDrawerVisible"
+            header="Kommentar"
+            position="right"
+        >
+            <div class="flex flex-col flex-wrap gap-4">
+                <p>Kommentar vom: {{ currentCommentDate }}</p>
                 <Textarea
-                v-model="currentCommentContent"
-                id="comment"
-                rows="8"
-                readonly
+                    v-model="currentCommentContent"
+                    id="comment"
+                    rows="8"
+                    readonly
                 />
                 <Button
-                label="Schließen"
-                class="p-button-secondary"
-                icon="pi pi-times"
-                @click="closeCommentDrawer"
+                    label="Schließen"
+                    class="p-button-secondary"
+                    icon="pi pi-times"
+                    @click="closeCommentDrawer"
                 />
             </div>
         </Drawer>
@@ -462,9 +516,8 @@ const getTypeName = (id: number) => {
                 class="flex w-full flex-col gap-4"
                 @submit="onCreateSupervisionFormSubmit"
             >
-
                 <!-- SupervisionType Field -->
-                <div class="flex flex-col gap-1 mt-2">
+                <div class="mt-2 flex flex-col gap-1">
                     <FloatLabel variant="on">
                         <Select
                             label-id="supervisionTypeId"
@@ -492,11 +545,16 @@ const getTypeName = (id: number) => {
                     </Message>
                 </div>
 
-                
                 <!-- Matricelnumber Field -->
                 <div class="flex flex-col gap-1">
                     <FloatLabel variant="on">
-                        <InputNumber id="studentId" name="studentId" :useGrouping="false" :min="0" fluid />
+                        <InputNumber
+                            id="studentId"
+                            name="studentId"
+                            :useGrouping="false"
+                            :min="0"
+                            fluid
+                        />
                         <label
                             for="studentId"
                             class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"

@@ -33,7 +33,22 @@ export const getFormStatesAsType = <T>(
     states: Record<string, FormFieldState>
 ): T => {
     return Object.fromEntries(
-        Object.entries(states).map(([key, state]) => [key, state.value])
+        Object.entries(states).map(([key, state]) => {
+            //if key is string with dot, split and set nested object
+            const keys = key.split('.')
+            if (keys.length > 1) {
+                const [firstKey, ...restKeys] = keys
+                return [
+                    firstKey,
+                    {
+                        ...getFormStatesAsType({
+                            [restKeys.join('.')]: state,
+                        }),
+                    },
+                ]
+            }
+            return [key, state.value]
+        })
     ) as T
 }
 /**

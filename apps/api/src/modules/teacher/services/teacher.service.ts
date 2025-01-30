@@ -14,11 +14,7 @@ export class TeacherService {
    * @returns a Promise that resolves to an array of teacher responses (ITeacherResponse[]).
    */
   async findAll(): Promise<ITeacherResponse[]> {
-    return (await teachers.findAll()).map((teacher) => {
-      // removes unnecessary fields from the response before returning
-      const { ...rest } = teacher;
-      return rest;
-    });
+    return await teachers.findAll();
   }
 
   // /**

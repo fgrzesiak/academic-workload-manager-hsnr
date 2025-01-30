@@ -1,11 +1,5 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Post,
-  Put,
-} from "@nestjs/common";
-import { ITeacherResponse } from "@workspace/shared";
+import { Body, Controller, Get, Post, Put } from "@nestjs/common";
+import { ICreateTeacherRequest, ITeacherResponse } from "@workspace/shared";
 
 import { Auth } from "../../../common/decorators/auth.decorator";
 import { Role } from "../../../common/enums/role.enum";
@@ -28,19 +22,6 @@ export class TeacherController {
   async teacher(): Promise<ITeacherResponse[]> {
     return await this.teacherService.findAll();
   }
-
-  /**
-   * endpoint: POST /
-   * role: only accessible by users with the CONTROLLER role
-   * purpose: creates a new teacher
-   * request body: ICreateTeacherRequest - contains details of the teacher to create
-   * returns: the created teacher as an ITeacherResponse object
-   */
-  // @Post("/")
-  // @Auth(Role.CONTROLLER)
-  // async createTeacher(@Body() teacher: ICreateTeacherRequest): Promise<ITeacherResponse> {
-  //   return await this.teacherService.create(teacher);
-  // }
 
   /**
    * endpoint: PUT /
