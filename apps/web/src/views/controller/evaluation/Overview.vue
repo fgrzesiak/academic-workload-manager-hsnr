@@ -108,7 +108,7 @@ onBeforeMount(loadData)
 const tableData = computed(() => {
     return teachers.value.map((teacher) => {
         const row: { teacherName: string; [key: string]: string } = {
-            teacherName: `${teacher.user.firstName} ${teacher.user.lastName}`,
+            teacherName: `${teacher.firstName} ${teacher.lastName}`,
         }
         semesters.value.forEach((semester) => {
             const hasSubmitted = deputats.value.some(

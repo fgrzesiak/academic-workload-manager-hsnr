@@ -225,7 +225,7 @@ onBeforeMount(() => {
             console.warn('[Course-Overview] Couldn`t load teachers')
         } else {
             userSelect.value = data.map((teacher: ITeacherResponse) => ({
-                label: teacher.user.firstName + ' ' + teacher.user.lastName,
+                label: teacher.firstName + ' ' + teacher.lastName,
                 value: teacher.id,
             }))
         }
