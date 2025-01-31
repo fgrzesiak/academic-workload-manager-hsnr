@@ -201,7 +201,7 @@ const getSetting = (key: string) => {
                         ></i>
                     </div>
                 </div>
-                <span class="text-xs text-muted-color">*Die Anzahl der Semester, die nach dem ersten aktiven Semester rückwirkend für die Erstellung des Saldos berücksichtigt werden sollen.</span>
+                <span class="text-xs text-muted-color">*Die Anzahl der Stunden, die maximal für die Anrechnung pro Semester eines jeden Lehrenden berücksichtigt werden sollen. <br><strong>(vgl. §4 Abs. 5 LVV)</strong></span>
             </div>
         </div>
         <div class="col-span-12 lg:col-span-6 xl:col-span-3">
