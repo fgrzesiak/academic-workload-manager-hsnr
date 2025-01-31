@@ -261,20 +261,6 @@ const fetchCommentById = async (commentId: number): Promise<ICommentResponse | n
     }
 };
 
-const onRowGroupExpand = (event: any) => {
-    const customEvent = event as { group: number; data: any[] };
-    const groupId = customEvent.group;
-    if (!expandedRowGroups.value.includes(groupId)) {
-        expandedRowGroups.value.push(groupId);
-    }
-};
-
-const onRowGroupCollapse = (event: any) => {
-    const customEvent = event as { group: number; data: any[] };
-    const groupId = customEvent.group;
-    expandedRowGroups.value = expandedRowGroups.value.filter(id => id !== groupId);
-};
-
 const closeCommentDrawer = () => {
     commentDrawerVisible.value = false;
     currentCommentContent.value = "";
@@ -330,8 +316,6 @@ const formatDate = (value: string) => {
             scrollHeight="70vh"
             v-model:expandedRowGroups="expandedRowGroups"
             expandableRowGroups
-            @rowgroup-expand="onRowGroupExpand" 
-            @rowgroup-collapse="onRowGroupCollapse"
             rowGroupMode="subheader" 
             groupRowsBy="teacherId"
             :row-hover="true"
@@ -340,14 +324,8 @@ const formatDate = (value: string) => {
             :global-filter-fields="['description', 'supervisor']"
             v-model:editing-rows="editingRows"
             editMode="row"
-            sortMode="multiple"
-            removableSort 
             @row-edit-save="onRowEditSave"
         >
-
-            <template #groupheader="{ data }">
-                <span class="align-middle ml-2 font-bold leading-normal">{{ getUserName(data.teacherId) }}</span>
-            </template>
             <!-- Table Header -->
             <template #header>
                 <div class="flex justify-between">
@@ -371,6 +349,11 @@ const formatDate = (value: string) => {
 
             <!-- Empty Table State -->
             <template #empty>Keine Ermäßigung gefunden.</template>
+
+            <!-- Group Header -->
+            <template #groupheader="{ data }">
+                <span class="align-middle ml-2 font-bold leading-normal">{{ getUserName(data.teacherId) }}</span>
+            </template>
 
             <!-- ID Column -->
             <Column field="id" header="ID" style="min-width: 1rem" sortable>

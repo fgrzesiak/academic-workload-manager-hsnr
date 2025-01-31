@@ -282,24 +282,6 @@ const fetchCommentById = async (
     }
 }
 
-// handling the group extension (grouped display in the table)
-const onRowGroupExpand = (event: any) => {
-    const customEvent = event as { group: number; data: any[] }
-    const groupId = customEvent.group
-    if (!expandedRowGroups.value.includes(groupId)) {
-        expandedRowGroups.value.push(groupId)
-    }
-}
-
-// handling the group closure
-const onRowGroupCollapse = (event: any) => {
-    const customEvent = event as { group: number; data: any[] }
-    const groupId = customEvent.group
-    expandedRowGroups.value = expandedRowGroups.value.filter(
-        (id) => id !== groupId
-    )
-}
-
 // closes the comment overlay
 const closeCommentDrawer = () => {
     commentDrawerVisible.value = false
@@ -366,8 +348,6 @@ const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein')
             scrollHeight="70vh"
             v-model:expandedRowGroups="expandedRowGroups"
             expandableRowGroups
-            @rowgroup-expand="onRowGroupExpand"
-            @rowgroup-collapse="onRowGroupCollapse"
             rowGroupMode="subheader"
             groupRowsBy="teacherId"
             :row-hover="true"
@@ -376,16 +356,8 @@ const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein')
             :global-filter-fields="['name']"
             v-model:editing-rows="editingRows"
             editMode="row"
-            sortMode="multiple"
-            removableSort
             @row-edit-save="onRowEditSave"
         >
-            <!-- grouping the data by teacher -->
-            <template #groupheader="{ data }">
-                <span class="ml-2 align-middle font-bold leading-normal">{{
-                    getUserName(data.teacherId)
-                }}</span>
-            </template>
             <!-- Table Header -->
             <template #header>
                 <div class="flex justify-between">
@@ -409,6 +381,13 @@ const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein')
 
             <!-- Empty Table State -->
             <template #empty>Keine Lehrveranstaltungen gefunden.</template>
+
+            <!-- Group Header -->
+            <template #groupheader="{ data }">
+                <span class="ml-2 align-middle font-bold leading-normal">{{
+                    getUserName(data.teacherId)
+                }}</span>
+            </template>
 
             <!-- ID Column -->
             <Column field="id" header="ID" style="min-width: 1rem" sortable>
