@@ -208,7 +208,7 @@ onBeforeMount(() => {
             console.warn("[Discount-Overview] Couldn`t load teachers")
         } else {
             userSelect.value = data.map((teacher: ITeacherResponse) => ({
-                label: teacher.firstName + " " + teacher.lastName,
+                label: teacher.user.firstName + " " + teacher.user.lastName,
                 value: teacher.id,
             }));
         }

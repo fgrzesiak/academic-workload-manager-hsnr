@@ -304,7 +304,7 @@ const tableData = computed(() => {
         }, 0)
 
         return {
-            teacherName: `${teacher.lastName}, ${teacher.firstName}`,
+            teacherName: `${teacher.user.lastName}, ${teacher.user.firstName}`,
             totalOrderedDiscounts: formatNumber(totalOrderedDiscounts),
             totalOrderedCourses: formatNumber(totalOrderedCourses),
         }
@@ -386,7 +386,7 @@ const tableData = computed(() => {
             const halfDutyWarning = totalHours < individualDeputat / lowerLimit
 
             return {
-                teacherName: `${teacher.lastName}, ${teacher.firstName}`,
+                teacherName: `${teacher.user.lastName}, ${teacher.user.firstName}`,
                 semesterName: semester.name,
                 sumCourses: formatNumber(sumCourses),
                 sumOrderedCourses: formatNumber(sumOrderedCourses),

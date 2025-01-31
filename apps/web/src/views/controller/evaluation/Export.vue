@@ -102,7 +102,7 @@ type RowData = {
 const tableData = computed(() => {
     return teachers.value.map((teacher) => {
         const rowData: RowData = {
-            name: `${teacher.lastName}`,
+            name: `${teacher.user.lastName}`,
         }
 
         // Für jedes Semester die sumBalance hinzufügen
