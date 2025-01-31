@@ -154,7 +154,7 @@ const getSetting = (key: string) => {
 
 <template>
     <div class="grid grid-cols-12 gap-8 mb-4">
-        <div class="col-span-12 lg:col-span-6 xl:col-span-4">
+        <div class="col-span-12 lg:col-span-6 xl:col-span-3">
             <div class="card mb-0">
                 <div class="mb-4 flex justify-between">
                     <div>
@@ -179,12 +179,37 @@ const getSetting = (key: string) => {
                 <span class="text-xs text-muted-color">*Die Anzahl der Semester, die nach dem ersten aktiven Semester rückwirkend für die Erstellung des Saldos berücksichtigt werden sollen.</span>
             </div>
         </div>
-        <div class="col-span-12 lg:col-span-6 xl:col-span-4">
+        <div class="col-span-12 lg:col-span-6 xl:col-span-3">
             <div class="card mb-0">
                 <div class="mb-4 flex justify-between">
                     <div>
                         <span class="mb-4 block font-medium text-muted-color"
-                            >Obergrenze des Deputats (Multiplikationsfaktor)</span
+                            >Maximale SWS für Betreuungen</span
+                        >
+                        <div
+                            class="mb-4 text-xl font-medium text-surface-900 dark:text-surface-0"
+                        >
+                            {{ getSetting("max_hours_supervisions") }}
+                        </div>
+                    </div>
+                    <div
+                        class="flex items-center justify-center bg-red-100 rounded-border dark:bg-red-400/10"
+                        style="width: 2.5rem; height: 2.5rem"
+                    >
+                        <i
+                            class="pi pi-shield !text-xl text-red-500"
+                        ></i>
+                    </div>
+                </div>
+                <span class="text-xs text-muted-color">*Die Anzahl der Semester, die nach dem ersten aktiven Semester rückwirkend für die Erstellung des Saldos berücksichtigt werden sollen.</span>
+            </div>
+        </div>
+        <div class="col-span-12 lg:col-span-6 xl:col-span-3">
+            <div class="card mb-0">
+                <div class="mb-4 flex justify-between">
+                    <div>
+                        <span class="mb-4 block font-medium text-muted-color"
+                            >Obergrenze des Deputats (*Faktor)</span
                         >
                         <div
                             class="mb-4 text-xl font-medium text-surface-900 dark:text-surface-0"
@@ -202,12 +227,12 @@ const getSetting = (key: string) => {
                 <span class="text-xs text-muted-color">*Der Multiplikationsfaktor, um den das zu erreichende Saldo pro Semester das tatsächlich zu erreichende individuelle Deputat nicht überschreiten darf.</span>
             </div>
         </div>
-        <div class="col-span-12 lg:col-span-6 xl:col-span-4">
+        <div class="col-span-12 lg:col-span-6 xl:col-span-3">
             <div class="card mb-0">
                 <div class="mb-4 flex justify-between">
                     <div>
                         <span class="mb-4 block font-medium text-muted-color"
-                            >Untergrenze des Deputats (Multiplikationsfaktor)</span
+                            >Untergrenze des Deputats (*Faktor)</span
                         >
                         <div
                             class="mb-4 text-xl font-medium text-surface-900 dark:text-surface-0"
