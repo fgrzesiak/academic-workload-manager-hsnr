@@ -35,6 +35,7 @@ const calculationOverlayVisible = ref(false)
 var dialogData = ref<RowData | null>(null)
 let upperLimit = 2
 let lowerLimit = 2
+let maxSupervisions = 3.0
 
 const totalOrderedDiscounts = ref(0)
 const totalOrderedCourses = ref(0)
@@ -171,6 +172,12 @@ const loadData = () => {
             lowerLimit = lowerLimitSetting
                 ? parseInt(lowerLimitSetting.value, 10) || 2
                 : 2
+            const maxSupervisionsSetting = settingsData.find(
+                (s: { key: string }) => s.key === 'max_hours_supervisions'
+            )
+            maxSupervisions = maxSupervisionsSetting
+                ? parseFloat(maxSupervisionsSetting.value) || 3
+                : 3
         }
 
         // find the latest active semester
@@ -361,9 +368,6 @@ const tableData = computed(() => {
                 0
             )
 
-            // limit of supervisions
-            const maxSupervisions = 3.0
-
             const supervisionsExpire =
                 sumSupervisions > maxSupervisions
                     ? sumSupervisions - maxSupervisions
@@ -374,7 +378,7 @@ const tableData = computed(() => {
             )
 
             const totalHours = sumCourses + sumDiscounts + adjustedSupervisions
-            const maxAllowedHours = individualDeputat * 2
+            const maxAllowedHours = individualDeputat * upperLimit
             const hoursExpire =
                 totalHours > maxAllowedHours ? totalHours - maxAllowedHours : 0
             const adjustedTotalHours = Math.min(totalHours, maxAllowedHours)
@@ -394,6 +398,7 @@ const tableData = computed(() => {
                 sumOrderedDiscounts: formatNumber(sumOrderedDiscounts),
                 sumSupervisions: formatNumber(sumSupervisions),
                 supervisionsExpire: formatNumber(supervisionsExpire),
+                maxSupervisions: maxSupervisions,
                 individualDeputat: formatNumber(individualDeputat),
                 sumBalance: formatNumber(sumBalance),
                 result: formatNumber(result),
@@ -416,6 +421,7 @@ interface RowData {
     sumDiscounts: number
     sumOrderedDiscounts: number
     sumSupervisions: number
+    maxSupervisions: number
     supervisionsExpire: number
     individualDeputat: number
     sumBalance: number
@@ -611,17 +617,17 @@ const calculateSaldo = (data: RowData | null) => {
                         :style="{
                             color: data.isFirstRow
                                 ? 'grey'
-                                : data.sumSupervisions > 3.0
+                                : data.sumSupervisions > data.maxSupervisions
                                   ? 'white'
                                   : 'inherit',
                             fontStyle: data.isFirstRow ? 'italic' : 'normal',
                             fontWeight: data.isFirstRow
                                 ? 'normal'
-                                : data.sumSupervisions > 3.0
+                                : data.sumSupervisions > data.maxSupervisions
                                   ? 'bold'
                                   : 'normal',
                             backgroundColor:
-                                data.sumSupervisions > 3.0 && !data.isFirstRow
+                                data.sumSupervisions > data.maxSupervisions && !data.isFirstRow
                                     ? 'red'
                                     : 'transparent',
                             display: 'flex',
@@ -633,7 +639,7 @@ const calculateSaldo = (data: RowData | null) => {
                         <span>{{ data.sumSupervisions }}</span>
                         <div
                             v-if="
-                                data.sumSupervisions > 3.0 && !data.isFirstRow
+                                data.sumSupervisions > data.maxSupervisions && !data.isFirstRow
                             "
                             class="flex-row items-center"
                         >
