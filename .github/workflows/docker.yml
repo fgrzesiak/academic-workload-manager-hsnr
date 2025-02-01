@@ -21,7 +21,7 @@ jobs:
         with:
           filters: |
             api_changed:
-              - '**'
+              - 'apps/api/**'
             web_changed:
               - '**'
             db_changed:

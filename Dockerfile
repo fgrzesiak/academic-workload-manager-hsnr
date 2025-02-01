@@ -49,8 +49,10 @@ CMD [ "npm", "run", "start:prod" ]
 FROM base AS web
 COPY --from=build /prod/web /app
 WORKDIR /app
-EXPOSE 4173
-CMD [ "npm", "run", "preview" ]
+# Use Serve to serve the static files
+RUN npm install -g serve
+EXPOSE 3000
+CMD [ "serve", "-s", "dist" ]
 
 
     
