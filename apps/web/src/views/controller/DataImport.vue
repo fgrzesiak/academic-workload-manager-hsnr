@@ -68,6 +68,8 @@ export default {
         semesterSelect: SelectOption[]
         teacherSelect: SelectOption[]
         mentoringSum: number
+        coursesSum: number
+        reductionsSum: number
         toast: any
     } {
         return {
@@ -109,6 +111,8 @@ export default {
             semesterSelect: [] as SelectOption[],
             teacherSelect: [] as SelectOption[],
             mentoringSum: 0,
+            coursesSum: 0,
+            reductionsSum: 0,
             toast: null,
         }
     },
@@ -116,6 +120,18 @@ export default {
         mentoring: {
             handler() {
                 this.calculateMentoringSum()
+            },
+            deep: true,
+        },
+        courses: {
+            handler() {
+                this.calculateCoursesSum()
+            },
+            deep: true,
+        },
+        reductions: {
+            handler() {
+                this.calculateReductionsSum()
             },
             deep: true,
         },
@@ -196,6 +212,8 @@ export default {
                 },
             ]
             this.mentoringSum = 0
+            this.coursesSum = 0
+            this.reductionsSum = 0
         },
         async checkTeachingDuty(
             semesterId: number,
@@ -229,6 +247,16 @@ export default {
                     (type) => type.value === mentor.type
                 )
                 return sum + (selectedType?.calculation || 0)
+            }, 0)
+        },
+        calculateCoursesSum() {
+            this.coursesSum = this.courses.reduce((sum, course) => {
+                return sum + (course.sws || 0)
+            }, 0)
+        },
+        calculateReductionsSum() {
+            this.reductionsSum = this.reductions.reduce((sum, reduction) => {
+                return sum + (reduction.sws || 0)
             }, 0)
         },
         async createComment(content: string): Promise<number> {
@@ -679,6 +707,11 @@ export default {
                         </div>
                     </Drawer>
                 </div>
+                <div class="mb-4 flex-row items-center">
+                    <p class="font-semibold">
+                        Summe (SWS): {{ coursesSum.toFixed(1) }}
+                    </p>
+                </div>
                 <Button
                     label="Lehrveranstaltung hinzufügen"
                     icon="pi pi-plus"
@@ -757,10 +790,10 @@ export default {
                 </div>
                 <div class="mb-4 flex-row items-center">
                     <p class="font-semibold">
-                        Aktuelle SWS-Summe: {{ mentoringSum.toFixed(1) }}
+                        Summe (SWS): {{ mentoringSum.toFixed(1) }}
                     </p>
                     <p v-if="mentoringSum > 3.1" class="font-bold text-red-500">
-                        Die maximal anrechenbaren 3 SWS wurden überschritten!
+                        Die maximal anrechenbaren SWS wurden überschritten!
                         (gemäß
                         <a
                             href="https://www.lexsoft.de/cgi-bin/lexsoft/justizportal_nrw.cgi?xid=3804662,5"
@@ -905,6 +938,11 @@ export default {
                             />
                         </div>
                     </Drawer>
+                </div>
+                <div class="mb-4 flex-row items-center">
+                    <p class="font-semibold">
+                        Summe (SWS): {{ reductionsSum.toFixed(1) }}
+                    </p>
                 </div>
                 <Button
                     label="Ermäßigung hinzufügen"
