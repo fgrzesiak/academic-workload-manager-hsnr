@@ -21,8 +21,7 @@ COPY package.json pnpm-lock.yaml ./
 RUN npm install -g turbo
 
 # Use Docker buildkit caching for pnpm
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
-    pnpm install --frozen-lockfile
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
 # Now copy the rest of your code
 COPY . /usr/src/app
