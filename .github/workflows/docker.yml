@@ -21,8 +21,7 @@ jobs:
         with:
           filters: |
             api_changed:
-              - 'apps/api/**'
-              - 'Dockerfile'
+              - '**'
             web_changed:
               - '**'
             db_changed:
@@ -45,16 +44,18 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       # ---------------------------------------
-      # 1) Build + Push DB Image (if changed)
+      # 1) Build + Push Prisma DB Image (if changed)
       # ---------------------------------------
       - name: Build and Push DB Image
         if: ${{ needs.paths-filter.outputs.db_changed == 'true' }}
         uses: docker/build-push-action@v6
         with:
           # The Dockerfile for DB is assumed in packages/database/
-          context: ./packages/database
+          context: .
+          file: ./Dockerfile
+          target: database
           push: true
-          tags: ${{ vars.DOCKERHUB_USERNAME }}/dpt:db-latest
+          tags: ${{ vars.DOCKERHUB_USERNAME }}/dpt:prisma-db-latest
 
       # ---------------------------------------
       # 2) Build + Push API Image (if changed)
