@@ -2,12 +2,12 @@
   "name": "@workspace/shared",
   "version": "1.0.0",
   "description": "",
-  "main": "build/index.js",
+  "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
     "lint": "npx eslint .",
-    "start": "node build/main.js"
+    "start": "node dist/main.js"
   },
   "keywords": [],
   "author": "",
