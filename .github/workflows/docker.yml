@@ -20,6 +20,7 @@ jobs:
         uses: dorny/paths-filter@v3
         with:
           filters: |
+            # Adjust these filters as you see fit
             api_changed:
               - '**'
             web_changed:
@@ -73,7 +74,9 @@ jobs:
       - name: Build and Push API Image
         uses: docker/build-push-action@v6
         with:
-          context: ./apps/api
+          context: .
+          file: ./Dockerfile
+          target: api
           push: true
           tags: ${{ vars.DOCKERHUB_USERNAME }}/dpt:api-latest
 
@@ -98,6 +101,8 @@ jobs:
       - name: Build and Push Web Image
         uses: docker/build-push-action@v6
         with:
-          context: ./apps/web
+          context: .
+          file: ./Dockerfile
+          target: web
           push: true
           tags: ${{ vars.DOCKERHUB_USERNAME }}/dpt:web-latest
