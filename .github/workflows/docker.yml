@@ -3,7 +3,7 @@ name: Docker
 on:
   push:
     branches:
-      - docker
+      - main
 
 jobs:
   paths-filter:
@@ -23,7 +23,7 @@ jobs:
             api_changed:
               - 'apps/api/**'
             web_changed:
-              - '**'
+              - 'apps/web/**'
             db_changed:
               - 'packages/database/**'
 

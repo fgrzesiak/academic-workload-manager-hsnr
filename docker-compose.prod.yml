@@ -1,7 +1,7 @@
 name: dpt-prod
 services:
   db:
-    image: mysql:latest
+    image: mysql:9
     container_name: dpt-db
     ports:
       # Expose MySQL on host port 3307
