@@ -15,7 +15,7 @@ FROM base AS build
 WORKDIR /usr/src/app
 
 # Copy only package.json and lockfile first for better caching
-COPY package.json pnpm-lock.yaml ./
+COPY . ./
 
 # Install Turbo globally (if your monorepo uses Turbo)
 RUN npm install -g turbo
