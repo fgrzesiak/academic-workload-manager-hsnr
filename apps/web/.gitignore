@@ -6,10 +6,10 @@ coverage
 .cache
 .output
 .env
-dist
 .DS_Store
 .idea
 .eslintcache
+dist
 api-generator/typedoc.json
 **/.DS_Store
 vite.config.mts.timestamp-*.mjs
