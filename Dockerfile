@@ -18,13 +18,12 @@ WORKDIR /usr/src/app
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
 RUN npm install -g turbo
-RUN pnpm turbo run build
+RUN pnpm build
 
 # Deploy to /prod folders
 RUN pnpm deploy --filter=api --prod /prod/api
 RUN pnpm deploy --filter=web --prod /prod/web
-RUN ls -la
-COPY /apps/web/dist /prod/web/dist
+COPY apps/web/dist /prod/web/dist
 RUN pnpm deploy --filter=@workspace/database --prod /prod/database
 
 # --------------------------------------
