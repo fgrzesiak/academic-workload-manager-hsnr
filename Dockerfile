@@ -11,7 +11,7 @@ RUN corepack enable
 # --------------------------------------
 FROM base AS build
 
-COPY . /usr/src/app
+COPY ./apps /usr/src/app
 
 WORKDIR /usr/src/app
 
