@@ -7,10 +7,8 @@ ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable
 
 # https://stackoverflow.com/a/77490465
-# Define build arguments for environment variables
-ARG VITE_API_BASE_URL
 # Set environment variables during the build process
-ENV VITE_API_BASE_URL=http://localhost:4000
+ENV VITE_API_URL=http://localhost:4000
 
 # --------------------------------------
 # 2) Build Stage
