@@ -479,8 +479,6 @@ const calculateSaldo = (data: RowData | null) => {
         sumBalance: parseFloat(data.result.toString()),
     }
 
-    console.log(updateData)
-
     // send the updated data to the database
     TeachingDutyService.updateTeachingDuty(updateData).then((res) => {
         const { error } = res

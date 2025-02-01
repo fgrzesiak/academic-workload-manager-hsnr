@@ -57,7 +57,7 @@ const newDiscountSchema = z.object({
     approvalDate: z.date(),
     supervisor: z.string().trim().min(5).max(255),
     commentId: z.number(),
-    description: z.string().trim().min(5).max(255),
+    description: z.string().trim().min(2).max(255),
     scope: z.number(),
 })
 const resolver = ref(zodResolver(newDiscountSchema))
@@ -430,7 +430,7 @@ const formatDate = (value: string) => {
             >
                 <template #body="{ data }">{{ data.scope }}</template>
                 <template #editor="{ data, field }">
-                    <InputNumber v-model="data[field]" fluid :min="0" />
+                    <InputNumber v-model="data[field]" fluid :min="0" :step="0.1" />
                 </template>
             </Column>
 

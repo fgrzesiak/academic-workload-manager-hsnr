@@ -678,7 +678,6 @@ export default {
                             />
                         </div>
                     </Drawer>
-                    <!--TO-DO: Kommentar speichern -->
                 </div>
                 <Button
                     label="Lehrveranstaltung hinzufügen"
@@ -821,6 +820,7 @@ export default {
                                     label-id="sws-course"
                                     v-model="reduction.sws"
                                     :min="0"
+                                    :step="0.1"
                                 />
                                 <label
                                     for="sws-course"
