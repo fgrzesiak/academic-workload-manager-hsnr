@@ -18,8 +18,9 @@ WORKDIR /usr/src/app
 # Use Docker buildkit caching for pnpm
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
+RUN npm install -g turbo
 # Build
-RUN pnpm run -r build
+RUN pnpm turbo run build
 
 # Deploy to /prod folders
 RUN pnpm deploy --filter=api --prod /prod/api
