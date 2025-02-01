@@ -14,22 +14,24 @@ jobs:
       db_changed: ${{ steps.filter.outputs.db_changed }}
     steps:
       - uses: actions/checkout@v4
-      - uses: dorny/paths-filter@v3
+
+      - name: Filter changed paths
         id: filter
+        uses: dorny/paths-filter@v3
         with:
           filters: |
             api_changed:
-                - 'apps/api/**'
+              - '**'
             web_changed:
-                - 'apps/web/**'
+              - '**'
             db_changed:
-                - 'packages/database/prisma/**'
+              - '**'
 
-  build_and_push_docker_images:
-    name: Build and Push Docker Images
+  build_and_push_db_image:
+    name: Build and Push DB Image
     runs-on: ubuntu-latest
     needs: paths-filter
-    if: needs.paths-filter.outputs.api_changed == 'true' || needs.paths-filter.outputs.web_changed == 'true' || needs.paths-filter.outputs.db_changed == 'true'
+    if: ${{ needs.paths-filter.outputs.db_changed == 'true' }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -44,23 +46,56 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build and Push DB Image
-        if: needs.paths-filter.outputs.db_changed == 'true'
         uses: docker/build-push-action@v6
         with:
           context: ./packages/database
           push: true
           tags: ${{ vars.DOCKERHUB_USERNAME }}/dpt:db-latest
 
+  build_and_push_api_image:
+    name: Build and Push API Image
+    runs-on: ubuntu-latest
+    needs: paths-filter
+    if: ${{ needs.paths-filter.outputs.api_changed == 'true' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
       - name: Build and Push API Image
-        if: needs.paths-filter.outputs.api_changed == 'true'
         uses: docker/build-push-action@v6
         with:
           context: ./apps/api
           push: true
           tags: ${{ vars.DOCKERHUB_USERNAME }}/dpt:api-latest
 
+  build_and_push_web_image:
+    name: Build and Push Web Image
+    runs-on: ubuntu-latest
+    needs: paths-filter
+    if: ${{ needs.paths-filter.outputs.web_changed == 'true' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
       - name: Build and Push Web Image
-        if: needs.paths-filter.outputs.web_changed == 'true'
         uses: docker/build-push-action@v6
         with:
           context: ./apps/web
