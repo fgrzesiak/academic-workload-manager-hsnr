@@ -23,6 +23,7 @@ RUN pnpm turbo run build
 # Deploy to /prod folders
 RUN pnpm deploy --filter=api --prod /prod/api
 RUN pnpm deploy --filter=web --prod /prod/web
+COPY ./apps/web/dist /prod/web/dist
 RUN pnpm deploy --filter=@workspace/database --prod /prod/database
 
 # --------------------------------------
@@ -49,7 +50,6 @@ CMD [ "npm", "run", "start:prod" ]
 FROM base AS web
 COPY --from=build /prod/web /app
 WORKDIR /app
-RUN npm i -g serve
 EXPOSE 4173
 CMD [ "npm", "run", "preview" ]
 
