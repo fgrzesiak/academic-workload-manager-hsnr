@@ -20,6 +20,7 @@ import SupervisionService from '@/service/supervision.service'
 import DiscountService from '@/service/discount.service'
 import TeachingDutyService from '@/service/teachingDuty.service'
 import CommentService from '@/service/comment.service'
+import EvaluationSettingsService from '@/service/evaluationSettings.service'
 import { useToast } from 'primevue/usetoast'
 
 interface SelectOption {
@@ -72,6 +73,7 @@ export default {
         reductionsSum: number
         totalBalance: number
         balanceDifference: number
+        maxSupervisions: number
         toast: any
     } {
         return {
@@ -117,6 +119,7 @@ export default {
             reductionsSum: 0,
             totalBalance: 0,
             balanceDifference: 0,
+            maxSupervisions: 3.0,
             toast: null,
         }
     },
@@ -267,6 +270,8 @@ export default {
                 )
                 return sum + (selectedType?.calculation || 0)
             }, 0)
+
+            this.mentoringSum = Math.ceil(this.mentoringSum * 1000) / 1000
         },
         calculateCoursesSum() {
             this.coursesSum = this.courses.reduce((sum, course) => {
@@ -546,6 +551,21 @@ export default {
                 }
             })
         },
+        async loadEvaluationSettings() {
+            EvaluationSettingsService.getEvaluationSettings().then((res) => {
+                const { data, error } = res
+                if (error) {
+                    console.warn('Couldn`t load evaluation settings')
+                } else {
+                    const maxSupervisionsSetting = data.find(
+                        (s: { key: string }) => s.key === 'max_hours_supervisions'
+                    )
+                    this.maxSupervisions = maxSupervisionsSetting
+                        ? parseFloat(maxSupervisionsSetting.value)
+                        : 3.0
+                }
+            })
+        },
     },
     created() {
         this.toast = useToast()
@@ -555,6 +575,7 @@ export default {
         await this.loadReductionTypes()
         await this.loadSemesters()
         await this.loadTeachers()
+        await this.loadEvaluationSettings()
     },
 } as ComponentOptions
 </script>
@@ -831,7 +852,7 @@ export default {
                     <p class="font-semibold">
                         Summe (SWS): {{ mentoringSum.toFixed(3) }}
                     </p>
-                    <p v-if="mentoringSum > 3.1" class="font-bold text-red-500">
+                    <p v-if="mentoringSum > maxSupervisions" class="font-bold text-red-500">
                         Die maximal anrechenbaren SWS wurden überschritten!
                         (gemäß
                         <a
