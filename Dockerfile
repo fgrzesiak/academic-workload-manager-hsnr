@@ -50,8 +50,8 @@ FROM base AS web
 COPY --from=build /prod/web /app
 WORKDIR /app
 RUN npm i -g serve
-EXPOSE 3000
-CMD [ "serve", "-s", "dist" ]
+EXPOSE 4173
+CMD [ "npm", "run", "preview" ]
 
 
     
