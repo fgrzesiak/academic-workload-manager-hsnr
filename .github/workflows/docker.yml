@@ -21,7 +21,8 @@ jobs:
         with:
           filters: |
             api_changed:
-              - '**'
+              - 'apps/api/**'
+              - 'Dockerfile'
             web_changed:
               - '**'
             db_changed:

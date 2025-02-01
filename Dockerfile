@@ -26,15 +26,12 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 # Now copy the rest of your code
 COPY . /usr/src/app
 
-# (If you really need to remove the web folder, do it here)
-# RUN rm -rf /usr/src/app/apps/web
-
 # Build
 RUN pnpm turbo run build
 
 # Deploy to /prod folders
-RUN pnpm deploy --filter=api --prod /prod/api
-RUN pnpm deploy --filter=web --prod /prod/web
+RUN pnpm deploy --filter apps/api --prod /prod/api
+RUN pnpm deploy --filter apps/web --prod /prod/web
 
 # --------------------------------------
 # 3) Final API Stage
