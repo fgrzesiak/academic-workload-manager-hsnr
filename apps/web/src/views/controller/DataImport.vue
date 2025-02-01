@@ -70,6 +70,8 @@ export default {
         mentoringSum: number
         coursesSum: number
         reductionsSum: number
+        totalBalance: number
+        balanceDifference: number
         toast: any
     } {
         return {
@@ -113,6 +115,8 @@ export default {
             mentoringSum: 0,
             coursesSum: 0,
             reductionsSum: 0,
+            totalBalance: 0,
+            balanceDifference: 0,
             toast: null,
         }
     },
@@ -120,20 +124,33 @@ export default {
         mentoring: {
             handler() {
                 this.calculateMentoringSum()
+                this.calculateTotalBalance()
             },
             deep: true,
         },
         courses: {
             handler() {
                 this.calculateCoursesSum()
+                this.calculateTotalBalance()
             },
             deep: true,
         },
         reductions: {
             handler() {
                 this.calculateReductionsSum()
+                this.calculateTotalBalance()
             },
             deep: true,
+        },
+        individualDeputat: {
+            handler() {
+                this.calculateBalanceDifference()
+            },
+        },
+        totalBalance: {
+            handler() {
+                this.calculateBalanceDifference()
+            },
         },
     },
     methods: {
@@ -214,6 +231,8 @@ export default {
             this.mentoringSum = 0
             this.coursesSum = 0
             this.reductionsSum = 0
+            this.totalBalance = 0
+            this.balanceDifference = 0
         },
         async checkTeachingDuty(
             semesterId: number,
@@ -258,6 +277,13 @@ export default {
             this.reductionsSum = this.reductions.reduce((sum, reduction) => {
                 return sum + (reduction.sws || 0)
             }, 0)
+        },
+        calculateTotalBalance() {
+            this.totalBalance =
+                this.coursesSum + this.mentoringSum + this.reductionsSum
+        },
+        calculateBalanceDifference() {
+            this.balanceDifference = this.totalBalance - this.individualDeputat
         },
         async createComment(content: string): Promise<number> {
             const newComment: ICreateCommentRequest = {
@@ -536,66 +562,68 @@ export default {
 <template>
     <div>
         <Form v-slot="" class="flex w-full flex-col" @submit="submitForm">
-            <div
-                class="card flex flex-wrap items-start items-center justify-between"
-            >
-                <div class="flex items-center gap-2">
-                    <h1 class="text-xl font-semibold">Deputatsmeldung für</h1>
-                    <FloatLabel variant="on">
-                        <Select
-                            v-model="teacher"
-                            option-label="label"
-                            option-value="value"
-                            name="type"
-                            :options="teacherSelect"
-                            :style="{ width: '180px' }"
-                        ></Select>
-                        <label
-                            for="mentor-type"
-                            class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
-                            >Lehrperson</label
-                        >
-                    </FloatLabel>
-                    <h1 class="text-xl font-semibold">im</h1>
-                    <FloatLabel variant="on">
-                        <Select
-                            v-model="semester"
-                            option-label="label"
-                            option-value="value"
-                            name="type"
-                            :options="semesterSelect"
-                            :style="{ width: '180px' }"
-                        ></Select>
-                        <label
-                            for="mentor-type"
-                            class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
-                            >Semester</label
-                        >
-                    </FloatLabel>
-                </div>
-                <div class="flex items-center gap-2">
-                    <p class="text-m font-semibold">
-                        Individuelles Lehrdeputat:
-                    </p>
-                    <FloatLabel variant="on">
-                        <InputNumber
-                            v-model="individualDeputat"
-                            label-id="indvDeputat"
-                            placeholder="18"
-                            :min="0"
+            <div class="card">
+                <div
+                    class="flex flex-wrap items-start items-center justify-between mb-4"
+                >
+                    <div class="flex items-center gap-2">
+                        <h1 class="text-xl font-semibold">Deputatsmeldung für</h1>
+                        <FloatLabel variant="on">
+                            <Select
+                                v-model="teacher"
+                                option-label="label"
+                                option-value="value"
+                                name="type"
+                                :options="teacherSelect"
+                                :style="{ width: '180px' }"
+                            ></Select>
+                            <label
+                                for="mentor-type"
+                                class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
+                                >Lehrperson</label
+                            >
+                        </FloatLabel>
+                        <h1 class="text-xl font-semibold">im</h1>
+                        <FloatLabel variant="on">
+                            <Select
+                                v-model="semester"
+                                option-label="label"
+                                option-value="value"
+                                name="type"
+                                :options="semesterSelect"
+                                :style="{ width: '180px' }"
+                            ></Select>
+                            <label
+                                for="mentor-type"
+                                class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
+                                >Semester</label
+                            >
+                        </FloatLabel>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <p class="text-m font-semibold">
+                            Individuelles Lehrdeputat:
+                        </p>
+                        <FloatLabel variant="on">
+                            <InputNumber
+                                v-model="individualDeputat"
+                                label-id="indvDeputat"
+                                placeholder="18"
+                                :min="0"
+                            />
+                            <label
+                                for="indvDeputat"
+                                class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
+                                >Umfang (SWS)</label
+                            >
+                        </FloatLabel>
+                        <Button
+                            label="Abschicken"
+                            class="p-button-success"
+                            icon="pi pi-send"
+                            @click="openDialog"
                         />
-                        <label
-                            for="indvDeputat"
-                            class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
-                            >Umfang (SWS)</label
-                        >
-                    </FloatLabel>
-                    <Button
-                        label="Abschicken"
-                        class="p-button-success"
-                        icon="pi pi-send"
-                        @click="openDialog"
-                    />
+                    </div>
                     <Dialog
                         v-model:visible="display"
                         header="Deputat melden"
@@ -623,6 +651,14 @@ export default {
                             />
                         </template>
                     </Dialog>
+                </div>
+                <div class="flex items-center gap-2 justify-end">
+                    <p class="text-m font-semibold">
+                        Vorläufig berechnetes Saldo:
+                    </p>
+                    <p class="text-m font-semibold">
+                        {{ balanceDifference.toFixed(2) }} SWS
+                    </p>
                 </div>
             </div>
 
@@ -709,7 +745,7 @@ export default {
                 </div>
                 <div class="mb-4 flex-row items-center">
                     <p class="font-semibold">
-                        Summe (SWS): {{ coursesSum.toFixed(1) }}
+                        Summe (SWS): {{ coursesSum.toFixed(2) }}
                     </p>
                 </div>
                 <Button
@@ -790,7 +826,7 @@ export default {
                 </div>
                 <div class="mb-4 flex-row items-center">
                     <p class="font-semibold">
-                        Summe (SWS): {{ mentoringSum.toFixed(1) }}
+                        Summe (SWS): {{ mentoringSum.toFixed(3) }}
                     </p>
                     <p v-if="mentoringSum > 3.1" class="font-bold text-red-500">
                         Die maximal anrechenbaren SWS wurden überschritten!
@@ -941,7 +977,7 @@ export default {
                 </div>
                 <div class="mb-4 flex-row items-center">
                     <p class="font-semibold">
-                        Summe (SWS): {{ reductionsSum.toFixed(1) }}
+                        Summe (SWS): {{ reductionsSum.toFixed(2) }}
                     </p>
                 </div>
                 <Button
