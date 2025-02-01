@@ -31,6 +31,7 @@ RUN pnpm deploy --filter=@workspace/database --prod /prod/database
 FROM base as database
 COPY --from=build /prod/database /app
 WORKDIR /app
+RUN npx prisma generate
 CMD [ "npx", "prisma", "migrate", "deploy" ]
 
 # --------------------------------------
@@ -46,11 +47,10 @@ CMD [ "npm", "run", "start:prod" ]
 # 5) Web Stage
 # --------------------------------------
 FROM base AS web
-RUN npm install -g http-server
 COPY --from=build /prod/web /app
 WORKDIR /app
 EXPOSE 5173
-CMD [ "http-server", "dist", "-p", "5173" ]
+CMD [ "npm", "run", "preview" ]
 
 
     

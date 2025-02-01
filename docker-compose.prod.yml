@@ -1,0 +1,43 @@
+name: dpt-prod
+services:
+  db:
+    image: mysql:latest
+    container_name: dpt-db
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: core
+      MYSQL_USER: system
+      MYSQL_PASSWORD: systempassword
+    healthcheck:
+      test: mysqladmin ping -h 127.0.0.1 -P 3306 -u $$MYSQL_USER --password=$$MYSQL_PASSWORD
+      interval: 1s
+      timeout: 1s
+      retries: 30
+  api:
+    image: fabianjg/dpt:api-latest
+    network_mode: host
+    depends_on:
+      - db
+    environment:
+      MYSQL_SYSTEM_PASSWORD: systempassword
+      DATABASE_URL: mysql://system:systempassword@127.0.0.1:3307/core
+      FRONTEND_URL: http://127.0.0.1:5173
+      JWT_SECRET: dcfc188353a965b21965fbaf6a3584917bd32bce5f863177398617c70cc7431b
+      INITIAL_CONTROLLER_USERNAME: admin
+      INITIAL_CONTROLLER_PASSWORD: admin
+  web:
+    image: fabianjg/dpt:web-latest
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_URL: http://127.0.0.1:4000
+  prisma:
+    image: fabianjg/dpt:prisma-db-latest
+    network_mode: host
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: mysql://root:rootpassword@127.0.0.1:3307/core
+    command: ["npx", "prisma", "migrate", "deploy"]
