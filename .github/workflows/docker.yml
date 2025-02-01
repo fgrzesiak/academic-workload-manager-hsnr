@@ -21,15 +21,9 @@ jobs:
         with:
           filters: |
             api_changed:
-              - 'apps/api/**'
-              - 'Dockerfile'          # If changes to root Dockerfile also affect the API
-              - 'pnpm-lock.yaml'
-              - 'turbo.json'
+              - '**'
             web_changed:
-              - 'apps/web/**'
-              - 'Dockerfile'          # If changes to root Dockerfile also affect the Web
-              - 'pnpm-lock.yaml'
-              - 'turbo.json'
+              - '**'
             db_changed:
               - 'packages/database/**'
 
