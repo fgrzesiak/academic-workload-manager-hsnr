@@ -11,27 +11,19 @@ RUN corepack enable
 # --------------------------------------
 FROM base AS build
 
-# Create and switch to the app directory
+COPY . /usr/src/app
+
 WORKDIR /usr/src/app
-
-# Copy only package.json and lockfile first for better caching
-COPY . ./
-
-# Install Turbo globally (if your monorepo uses Turbo)
-RUN npm install -g turbo
 
 # Use Docker buildkit caching for pnpm
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
-# Now copy the rest of your code
-COPY . /usr/src/app
-
 # Build
-RUN pnpm turbo run build
+RUN pnpm run -r build
 
 # Deploy to /prod folders
-RUN pnpm deploy --filter web --prod /prod/web
-RUN pnpm deploy --filter api --prod /prod/api
+RUN pnpm deploy --filter=api --prod /prod/api
+RUN pnpm deploy --filter=web --prod /prod/web
 
 # --------------------------------------
 # 3) Final API Stage
