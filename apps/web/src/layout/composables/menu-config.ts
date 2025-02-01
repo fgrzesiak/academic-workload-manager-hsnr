@@ -34,6 +34,11 @@ export const CONTROLLER_MENU: MenuItem[] = [
                 icon: 'pi pi-fw pi-money-bill',
                 to: '/controlling/edit-data/discounts',
             },
+            {
+                label: 'Deputate',
+                icon: 'pi pi-fw pi-wallet',
+                to: '/controlling/edit-data/deputats',
+            },
         ],
     },
     {

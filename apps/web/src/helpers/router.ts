@@ -70,6 +70,18 @@ const router = createRouter({
                                 icon: 'pi pi-fw pi-money-bill',
                             },
                         },
+                        {
+                            path: 'deputats',
+                            name: 'c.deputats',
+                            component: () =>
+                                import(
+                                    '@/views/controller/edit-data/Deputat.vue'
+                                ),
+                            meta: {
+                                label: 'Deputats',
+                                icon: 'pi pi-fw pi-wallet',
+                            },
+                        },
                     ],
                 },
                 {
