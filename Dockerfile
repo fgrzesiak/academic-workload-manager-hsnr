@@ -49,8 +49,9 @@ CMD [ "npm", "run", "start:prod" ]
 FROM base AS web
 COPY --from=build /prod/web /app
 WORKDIR /app
-EXPOSE 5173
-CMD [ "npm", "run", "preview" ]
+RUN npm i -g serve
+EXPOSE 3000
+CMD [ "serve", "-s", "dist" ]
 
 
     
