@@ -141,6 +141,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@primevue/auto-import-resolver':
+        specifier: ^4.2.3
+        version: 4.2.3
       '@primevue/core':
         specifier: ^4.2.3
         version: 4.2.3(vue@3.5.13)
@@ -184,9 +187,6 @@ importers:
         specifier: ^3.23.8
         version: 3.23.8
     devDependencies:
-      '@primevue/auto-import-resolver':
-        specifier: ^4.2.3
-        version: 4.2.3
       '@rushstack/eslint-patch':
         specifier: ^1.8.0
         version: 1.10.4
@@ -1807,7 +1807,7 @@ packages:
     engines: {node: '>=12.11.0'}
     dependencies:
       '@primevue/metadata': 4.2.3
-    dev: true
+    dev: false
 
   /@primevue/core@4.2.3(vue@3.5.13):
     resolution: {integrity: sha512-Qjxl6rPzkvLaUQQeM5wXlmFQK9Pox+rSC+r7sX9ZGXeacD0LJny9YAF0APDv/V5Z1RiXApDvfOQGeu7Xg50vyg==}
@@ -1844,7 +1844,7 @@ packages:
   /@primevue/metadata@4.2.3:
     resolution: {integrity: sha512-ou47oOgcmsEyeXE85VHHXpefb2OS/XlYFWRoWZS6p1W6rHaEWI3TMBD6NwgsFZ5F4zRVnR/SPXuCURIm5HBi+Q==}
     engines: {node: '>=12.11.0'}
-    dev: true
+    dev: false
 
   /@primevue/themes@4.2.3:
     resolution: {integrity: sha512-hzHEwUWkTQihUEDmT9U3QADoAsYbA6mif6RJSR/hDTnPdXIcmr5RuZGq3pnLl943KfJTBiSp98F6LvSB8boJAw==}
