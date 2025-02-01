@@ -36,14 +36,6 @@ RUN pnpm turbo run build
 RUN pnpm deploy --filter=api --prod /prod/api
 RUN pnpm deploy --filter=web --prod /prod/web
 
-# Fix the Prisma bug by copying .prisma/client to the correct location
-RUN find . -path '*/node_modules/.pnpm/@prisma+client*/node_modules/.prisma/client' \
-    | xargs -r -I{} sh -c "rm -rf /prod/web/{} && cp -R {} /prod/web/{}"
-
-RUN find . -path '*/node_modules/.pnpm/@prisma+client*/node_modules/.prisma/client' \
-    | xargs -r -I{} sh -c "rm -rf /prod/api/{} && cp -R {} /prod/api/{}"
-
-
 # --------------------------------------
 # 3) Final API Stage
 # --------------------------------------
