@@ -28,7 +28,7 @@ RUN pnpm deploy --filter=@workspace/database --prod /prod/database
 # --------------------------------------
 # 3) Prisma (DB Migration) Stage
 # --------------------------------------
-FROM base as prisma
+FROM base as database
 COPY --from=build /prod/database /app
 WORKDIR /app
 CMD [ "npx", "prisma", "migrate", "deploy" ]
