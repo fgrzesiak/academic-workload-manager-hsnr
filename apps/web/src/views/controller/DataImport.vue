@@ -656,7 +656,10 @@ export default {
                     <p class="text-m font-semibold">
                         Vorläufig berechnetes Saldo:
                     </p>
-                    <p class="text-m font-semibold">
+                    <p
+                        class="text-m font-semibold"
+                        :style="{ color: balanceDifference < 0 ? 'red' : 'green', fontWeight: 'bold', fontSize: '1.2rem' }"
+                    >
                         {{ balanceDifference.toFixed(2) }} SWS
                     </p>
                 </div>
