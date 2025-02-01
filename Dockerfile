@@ -1,7 +1,7 @@
 # --------------------------------------
 # 1) Base
 # --------------------------------------
-FROM node:lts-alpine AS base
+FROM node:lts AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable
@@ -50,7 +50,7 @@ RUN npm install -g http-server
 COPY --from=build /prod/web /app
 WORKDIR /app
 EXPOSE 5173
-CMD [ "http-server", "dist" ]
+CMD [ "http-server", "dist", "-p", "5173" ]
 
 
     
