@@ -5,7 +5,8 @@ networks:
 services:
   api:
     depends_on:
-    - db
+      prisma:
+        condition: service_completed_successfully
     environment:
       DATABASE_URL: mysql://system:systempassword@db:3306/core
       FRONTEND_URL: http://localhost:3000
@@ -44,7 +45,8 @@ services:
     - migrate
     - deploy
     depends_on:
-    - db
+      db:
+        condition: service_healthy
     environment:
       DATABASE_URL: mysql://root:rootpassword@db:3306/core
     image: fabianjg/dpt:prisma-db-latest

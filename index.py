@@ -27,6 +27,25 @@ def reset_to_defaults():
     save_config(config)
     log_output.insert(tk.END, "Standardwerte wurden zurückgesetzt.\n")
     log_output.see(tk.END)
+    reload_gui_values()
+
+
+def reload_gui_values():
+    config = load_config()
+    frontend_port_entry.delete(0, tk.END)
+    frontend_port_entry.insert(0, config["services"]["web"]["ports"][0].split(":")[0])
+    mysql_root_password_entry.delete(0, tk.END)
+    mysql_root_password_entry.insert(
+        0, config["services"]["db"]["environment"]["MYSQL_ROOT_PASSWORD"]
+    )
+    mysql_user_password_entry.delete(0, tk.END)
+    mysql_user_password_entry.insert(
+        0, config["services"]["db"]["environment"]["MYSQL_PASSWORD"]
+    )
+    initial_controller_password_entry.delete(0, tk.END)
+    initial_controller_password_entry.insert(
+        0, config["services"]["api"]["environment"]["INITIAL_CONTROLLER_PASSWORD"]
+    )
 
 
 def run_command(command, on_complete=None):
@@ -72,7 +91,7 @@ def stop_application():
 
     threading.Thread(
         target=run_command,
-        args=("docker-compose -f " + docker_compose_file + " down", update_status),
+        args=("docker-compose -f " + docker_compose_file + " stop", update_status),
     ).start()
 
 
@@ -99,6 +118,7 @@ def update_config():
 
 def create_gui():
     global log_output, status_label, root, start_button, stop_button
+    global frontend_port_entry, mysql_root_password_entry, mysql_user_password_entry, initial_controller_password_entry
     config = load_config()
 
     root = tk.Tk()
@@ -109,13 +129,11 @@ def create_gui():
     status_label.pack()
 
     tk.Label(root, text="Frontend Port (Web)").pack()
-    global frontend_port_entry
     frontend_port_entry = tk.Entry(root)
     frontend_port_entry.insert(0, config["services"]["web"]["ports"][0].split(":")[0])
     frontend_port_entry.pack()
 
     tk.Label(root, text="MySQL Root Password").pack()
-    global mysql_root_password_entry
     mysql_root_password_entry = tk.Entry(root)
     mysql_root_password_entry.insert(
         0, config["services"]["db"]["environment"]["MYSQL_ROOT_PASSWORD"]
@@ -123,7 +141,6 @@ def create_gui():
     mysql_root_password_entry.pack()
 
     tk.Label(root, text="MySQL User Password").pack()
-    global mysql_user_password_entry
     mysql_user_password_entry = tk.Entry(root)
     mysql_user_password_entry.insert(
         0, config["services"]["db"]["environment"]["MYSQL_PASSWORD"]
@@ -131,7 +148,6 @@ def create_gui():
     mysql_user_password_entry.pack()
 
     tk.Label(root, text="Initial Controller Password").pack()
-    global initial_controller_password_entry
     initial_controller_password_entry = tk.Entry(root)
     initial_controller_password_entry.insert(
         0, config["services"]["api"]["environment"]["INITIAL_CONTROLLER_PASSWORD"]
