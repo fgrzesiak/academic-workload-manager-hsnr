@@ -79,6 +79,16 @@ export const CONTROLLER_MENU: MenuItem[] = [
                 icon: 'pi pi-fw pi-users',
                 to: '/controlling/administration/roles',
             },
+            {
+                label: 'Lehrgruppen',
+                icon: 'pi pi-fw pi-window-maximize',
+                to: '/controlling/administration/evaluationGroups',
+            },
+            {
+                label: 'Ruhestände',
+                icon: 'pi pi-fw pi-calendar-times',
+                to: '/controlling/administration/retirements',
+            },
         ],
     },
 ]

@@ -119,7 +119,7 @@ const router = createRouter({
                                     '@/views/controller/evaluation/Saldation.vue'
                                 ),
                             meta: {
-                                label: 'Saladation',
+                                label: 'Saldation',
                                 icon: 'pi pi-fw pi-calculator',
                             },
                         },
@@ -148,6 +148,26 @@ const router = createRouter({
                             meta: {
                                 label: 'Users',
                                 icon: 'pi pi-fw pi-users',
+                            },
+                        },
+                        {
+                            path: 'evaluationGroups',
+                            name: 'c.evaluationGroups',
+                            component: () =>
+                                import('@/views/controller/admin/EvaluationGroup.vue'),
+                            meta: {
+                                label: 'Saldation-Groups',
+                                icon: 'pi pi-fw pi-window-maximize',
+                            },
+                        },
+                        {
+                            path: 'retirements',
+                            name: 'c.retirements',
+                            component: () =>
+                                import('@/views/controller/admin/Retirements.vue'),
+                            meta: {
+                                label: 'Retirements',
+                                icon: 'pi pi-fw pi-calendar-times',
                             },
                         },
                     ],
