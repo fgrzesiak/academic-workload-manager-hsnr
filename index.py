@@ -5,7 +5,6 @@ import threading
 import os
 
 docker_compose_file = "docker-compose.prod.yml"
-docker_compose_backup = "docker-compose.prod.yml.bak"
 
 
 def load_config():
@@ -19,14 +18,15 @@ def save_config(config):
 
 
 def reset_to_defaults():
-    if os.path.exists(docker_compose_backup):
-        with open(docker_compose_backup, "r") as file:
-            with open(docker_compose_file, "w") as dest:
-                dest.write(file.read())
-        log_output.insert(
-            tk.END, "Docker Compose Datei auf Standardwerte zurückgesetzt.\n"
-        )
-        log_output.see(tk.END)
+    config = load_config()
+    config["services"]["api"]["environment"]["FRONTEND_URL"] = "http://localhost:3000"
+    config["services"]["api"]["environment"]["INITIAL_CONTROLLER_PASSWORD"] = "admin"
+    config["services"]["web"]["ports"] = ["3000:3000"]
+    config["services"]["db"]["environment"]["MYSQL_ROOT_PASSWORD"] = "rootpassword"
+    config["services"]["db"]["environment"]["MYSQL_PASSWORD"] = "systempassword"
+    save_config(config)
+    log_output.insert(tk.END, "Standardwerte wurden zurückgesetzt.\n")
+    log_output.see(tk.END)
 
 
 def run_command(command, on_complete=None):
@@ -38,7 +38,6 @@ def run_command(command, on_complete=None):
         text=True,
         bufsize=1,
     )
-
     start_button.config(state=tk.DISABLED)
     stop_button.config(state=tk.DISABLED)
 
@@ -48,23 +47,15 @@ def run_command(command, on_complete=None):
             log_output.see(tk.END)
             log_output.update_idletasks()
 
-    stdout_thread = threading.Thread(
-        target=read_stream, args=(process.stdout,), daemon=True
-    )
-    stderr_thread = threading.Thread(
-        target=read_stream, args=(process.stderr,), daemon=True
-    )
+    threading.Thread(target=read_stream, args=(process.stdout,), daemon=True).start()
+    threading.Thread(target=read_stream, args=(process.stderr,), daemon=True).start()
 
-    stdout_thread.start()
-    stderr_thread.start()
-
-    process.wait()  # Warte, bis der Prozess beendet ist
-
+    process.wait()
     start_button.config(state=tk.NORMAL)
     stop_button.config(state=tk.NORMAL)
 
     if on_complete:
-        root.after(100, on_complete)  # GUI-Update nach Abschluss des Prozesses
+        root.after(100, on_complete)
 
 
 def start_application():
@@ -102,6 +93,8 @@ def update_config():
         "INITIAL_CONTROLLER_PASSWORD"
     ] = initial_controller_password_entry.get()
     save_config(config)
+    log_output.insert(tk.END, "Konfiguration gespeichert.\n")
+    log_output.see(tk.END)
 
 
 def create_gui():
@@ -145,26 +138,29 @@ def create_gui():
     )
     initial_controller_password_entry.pack()
 
-    save_button = tk.Button(root, text="Speichern", command=update_config)
-    save_button.pack(pady=5)
-
     button_frame = tk.Frame(root)
     button_frame.pack(pady=5)
 
+    save_button = tk.Button(button_frame, text="Speichern", command=update_config)
+    save_button.pack(side=tk.LEFT, padx=10)
+
+    reset_button = tk.Button(
+        button_frame, text="Standardwerte wiederherstellen", command=reset_to_defaults
+    )
+    reset_button.pack(side=tk.RIGHT, padx=10)
+
+    button_frame2 = tk.Frame(root)
+    button_frame2.pack(pady=5)
+
     start_button = tk.Button(
-        button_frame, text="Anwendung starten", command=start_application
+        button_frame2, text="Anwendung starten", command=start_application
     )
     start_button.pack(side=tk.LEFT, padx=10)
 
     stop_button = tk.Button(
-        button_frame, text="Anwendung stoppen", command=stop_application
+        button_frame2, text="Anwendung stoppen", command=stop_application
     )
     stop_button.pack(side=tk.RIGHT, padx=10)
-
-    reset_button = tk.Button(
-        root, text="Standardwerte wiederherstellen", command=reset_to_defaults
-    )
-    reset_button.pack(pady=5)
 
     tk.Label(root, text="Konsolenausgabe:").pack()
     log_output = tk.Text(root, height=10, width=70)
