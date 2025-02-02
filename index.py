@@ -48,7 +48,30 @@ def reload_gui_values():
     )
 
 
+def disable_controls():
+    start_button.config(state=tk.DISABLED)
+    stop_button.config(state=tk.DISABLED)
+    save_button.config(state=tk.DISABLED)
+    reset_button.config(state=tk.DISABLED)
+    frontend_port_entry.config(state=tk.DISABLED)
+    mysql_root_password_entry.config(state=tk.DISABLED)
+    mysql_user_password_entry.config(state=tk.DISABLED)
+    initial_controller_password_entry.config(state=tk.DISABLED)
+
+
+def enable_controls():
+    start_button.config(state=tk.NORMAL)
+    stop_button.config(state=tk.NORMAL)
+    save_button.config(state=tk.NORMAL)
+    reset_button.config(state=tk.NORMAL)
+    frontend_port_entry.config(state=tk.NORMAL)
+    mysql_root_password_entry.config(state=tk.NORMAL)
+    mysql_user_password_entry.config(state=tk.NORMAL)
+    initial_controller_password_entry.config(state=tk.NORMAL)
+
+
 def run_command(command, on_complete=None):
+    disable_controls()
     process = subprocess.Popen(
         command,
         shell=True,
@@ -57,8 +80,6 @@ def run_command(command, on_complete=None):
         text=True,
         bufsize=1,
     )
-    start_button.config(state=tk.DISABLED)
-    stop_button.config(state=tk.DISABLED)
 
     def read_stream(stream):
         for line in iter(stream.readline, ""):
@@ -70,24 +91,51 @@ def run_command(command, on_complete=None):
     threading.Thread(target=read_stream, args=(process.stderr,), daemon=True).start()
 
     process.wait()
-    start_button.config(state=tk.NORMAL)
-    stop_button.config(state=tk.NORMAL)
-
+    enable_controls()
     if on_complete:
         root.after(100, on_complete)
 
 
 def start_application():
-    status_label.config(text="Anwendung läuft...", fg="green")
+    status_label.config(text="Anwendung startet...", fg="red")
+    start_button.config(state=tk.DISABLED)
+    stop_button.config(state=tk.DISABLED)
+
+    def update_status():
+        status_label.config(text="Anwendung läuft...", fg="green")
+        start_button.config(state=tk.DISABLED)
+        stop_button.config(state=tk.NORMAL)
+        save_button.config(state=tk.DISABLED)
+        reset_button.config(state=tk.DISABLED)
+        frontend_port_entry.config(state=tk.DISABLED)
+        mysql_root_password_entry.config(state=tk.DISABLED)
+        mysql_user_password_entry.config(state=tk.DISABLED)
+        initial_controller_password_entry.config(state=tk.DISABLED)
+
     threading.Thread(
         target=run_command,
-        args=("docker-compose -f " + docker_compose_file + " up -d --pull always",),
+        args=(
+            "docker-compose -f " + docker_compose_file + " up -d --pull always",
+            update_status,
+        ),
     ).start()
 
 
 def stop_application():
+    status_label.config(text="Anwendung wird gestoppt...", fg="red")
+    start_button.config(state=tk.DISABLED)
+    stop_button.config(state=tk.DISABLED)
+
     def update_status():
         status_label.config(text="Anwendung gestoppt", fg="red")
+        start_button.config(state=tk.NORMAL)
+        stop_button.config(state=tk.DISABLED)
+        save_button.config(state=tk.NORMAL)
+        reset_button.config(state=tk.NORMAL)
+        frontend_port_entry.config(state=tk.NORMAL)
+        mysql_root_password_entry.config(state=tk.NORMAL)
+        mysql_user_password_entry.config(state=tk.NORMAL)
+        initial_controller_password_entry.config(state=tk.NORMAL)
 
     threading.Thread(
         target=run_command,
@@ -117,12 +165,12 @@ def update_config():
 
 
 def create_gui():
-    global log_output, status_label, root, start_button, stop_button
+    global log_output, status_label, root, start_button, stop_button, save_button, reset_button
     global frontend_port_entry, mysql_root_password_entry, mysql_user_password_entry, initial_controller_password_entry
     config = load_config()
 
     root = tk.Tk()
-    root.title("Docker Compose GUI")
+    root.title("Deputatsverwaltung Boot Manager")
     root.geometry("600x500")
 
     status_label = tk.Label(root, text="Anwendung nicht gestartet", fg="red")
