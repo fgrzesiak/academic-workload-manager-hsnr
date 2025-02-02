@@ -2,7 +2,8 @@ import tkinter as tk
 import subprocess
 import yaml
 import threading
-import os
+import webbrowser
+import atexit
 
 docker_compose_file = "docker-compose.prod.yml"
 
@@ -15,6 +16,14 @@ def load_config():
 def save_config(config):
     with open(docker_compose_file, "w", newline="\n") as file:
         yaml.safe_dump(config, file, default_flow_style=False)
+
+
+def open_frontend():
+    config = load_config()
+    frontend_url = config["services"]["api"]["environment"].get(
+        "FRONTEND_URL", "http://localhost:3000"
+    )
+    webbrowser.open(frontend_url)
 
 
 def reset_to_defaults():
@@ -176,6 +185,11 @@ def create_gui():
     status_label = tk.Label(root, text="Anwendung nicht gestartet", fg="red")
     status_label.pack()
 
+    open_browser_button = tk.Button(
+        root, text="Deputatsverwaltung im Browser öffnen", command=open_frontend
+    )
+    open_browser_button.pack(pady=5)
+
     tk.Label(root, text="Frontend Port (Web)").pack()
     frontend_port_entry = tk.Entry(root)
     frontend_port_entry.insert(0, config["services"]["web"]["ports"][0].split(":")[0])
@@ -232,6 +246,17 @@ def create_gui():
 
     root.mainloop()
 
+
+def stop_docker_compose():
+    subprocess.run(["docker-compose", "-f", docker_compose_file, "stop"])
+
+
+def on_closing():
+    stop_docker_compose()
+    root.destroy()
+
+
+atexit.register(stop_docker_compose)
 
 if __name__ == "__main__":
     create_gui()
