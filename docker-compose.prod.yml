@@ -1,65 +1,60 @@
 name: dpt-prod
-services:
-  db:
-    image: mysql:9
-    container_name: dpt-db
-    ports:
-      # Expose MySQL on host port 3307
-      - "3307:3306"
-    environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: core
-      MYSQL_USER: system
-      MYSQL_PASSWORD: systempassword
-    # Healthcheck: verifies MySQL is alive
-    healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "mysqladmin ping -h 127.0.0.1 -p$${MYSQL_ROOT_PASSWORD} || exit 1",
-        ]
-      interval: 5s
-      timeout: 3s
-      retries: 30
-    networks:
-      - dpt-network
-
-  api:
-    image: fabianjg/dpt:api-latest
-    depends_on:
-      - db
-    ports:
-      - "4000:4000"
-    environment:
-      DATABASE_URL: mysql://system:systempassword@db:3306/core
-      FRONTEND_URL: http://localhost:3000
-      JWT_SECRET: dcfc188353a965b21965fbaf6a3584917bd32bce5f863177398617c70cc7431b
-      INITIAL_CONTROLLER_USERNAME: admin
-      INITIAL_CONTROLLER_PASSWORD: admin
-      MYSQL_SYSTEM_PASSWORD: systempassword
-    networks:
-      - dpt-network
-
-  web:
-    image: fabianjg/dpt:web-latest
-    depends_on:
-      - api
-    ports:
-      - "3000:3000"
-    # we need to pass environment variables during the build (see Dockerfile)
-    networks:
-      - dpt-network
-
-  prisma:
-    image: fabianjg/dpt:prisma-db-latest
-    depends_on:
-      - db
-    environment:
-      DATABASE_URL: mysql://root:rootpassword@db:3306/core
-    command: ["npx", "prisma", "migrate", "deploy"]
-    networks:
-      - dpt-network
-
 networks:
   dpt-network:
     driver: bridge
+services:
+  api:
+    depends_on:
+    - db
+    environment:
+      DATABASE_URL: mysql://system:systempassword@db:3306/core
+      FRONTEND_URL: http://localhost:3000
+      INITIAL_CONTROLLER_PASSWORD: admin
+      INITIAL_CONTROLLER_USERNAME: admin
+      JWT_SECRET: dcfc188353a965b21965fbaf6a3584917bd32bce5f863177398617c70cc7431b
+      MYSQL_SYSTEM_PASSWORD: systempassword
+    image: fabianjg/dpt:api-latest
+    networks:
+    - dpt-network
+    ports:
+    - 4000:4000
+  db:
+    container_name: dpt-db
+    environment:
+      MYSQL_DATABASE: core
+      MYSQL_PASSWORD: systempassword
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_USER: system
+    healthcheck:
+      interval: 5s
+      retries: 30
+      test:
+      - CMD-SHELL
+      - mysqladmin ping -h 127.0.0.1 -p$${MYSQL_ROOT_PASSWORD} || exit 1
+      timeout: 3s
+    image: mysql:9
+    networks:
+    - dpt-network
+    ports:
+    - 3307:3306
+  prisma:
+    command:
+    - npx
+    - prisma
+    - migrate
+    - deploy
+    depends_on:
+    - db
+    environment:
+      DATABASE_URL: mysql://root:rootpassword@db:3306/core
+    image: fabianjg/dpt:prisma-db-latest
+    networks:
+    - dpt-network
+  web:
+    depends_on:
+    - api
+    image: fabianjg/dpt:web-latest
+    networks:
+    - dpt-network
+    ports:
+    - 3000:3000
