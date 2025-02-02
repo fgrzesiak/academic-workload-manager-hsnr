@@ -44,7 +44,7 @@ const updateTeachingDuties = (data: ITeachingDutyResponse[]) => {
 //         toast.add({
 //             severity: 'success',
 //             summary: 'Erfolgreich',
-//             detail: 'Lehrveranstaltung gelöscht',
+//             detail: 'Deputat gelöscht',
 //             life: 3000,
 //         })
 
@@ -79,7 +79,7 @@ const onRowEditSave = ({ newData }: DataTableRowEditSaveEvent) => {
             toast.add({
                 severity: 'success',
                 summary: 'Erfolgreich',
-                detail: 'Lehrveranstaltung aktualisiert',
+                detail: 'Deputat aktualisiert',
                 life: 3000,
             })
         }
@@ -111,7 +111,7 @@ onBeforeMount(() => {
     SemesterService.getSemesters().then((res) => {
         const { data, error } = res
         if (error) {
-            console.warn('[Course-Overview] Couldn`t load semster')
+            console.warn('[Deputat-Overview] Couldn`t load semster')
         } else {
             semesterSelect.value = data.map((semester: ISemesterResponse) => ({
                 label: semester.name,
@@ -124,7 +124,7 @@ onBeforeMount(() => {
     TeacherService.getTeachers().then((res) => {
         const { data, error } = res
         if (error) {
-            console.warn('[Course-Overview] Couldn`t load teachers')
+            console.warn('[Deputat-Overview] Couldn`t load teachers')
         } else {
             userSelect.value = data.map((teacher: ITeacherResponse) => ({
                 label: teacher.user.firstName + ' ' + teacher.user.lastName,
