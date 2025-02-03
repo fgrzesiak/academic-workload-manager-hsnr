@@ -58,6 +58,7 @@ const newSupervisionSchema = z.object({
     supervisionTypeId: z.number(),
     teacherId: z.number(),
     commentId: z.number(),
+    supervisionShare: z.number(),
 })
 const resolver = ref(zodResolver(newSupervisionSchema))
 const currentCommentContent = ref('')
@@ -105,6 +106,7 @@ const getNewSupervisionValues = (): z.infer<typeof newSupervisionSchema> => {
         supervisionTypeId: 0,
         teacherId: 0,
         commentId: 0,
+        supervisionShare: 0,
     } satisfies ICreateSupervisionRequest
 }
 
@@ -298,6 +300,15 @@ const getTypeName = (id: number) => {
     const type = typeSelect.value.find((s) => s.value === id)
     return type ? type.label : 'Unbekannt'
 }
+
+// formats numbers with one decimal place
+const formatNumber = (value: number) => {
+    if (value == null) return '/' // Leere Anzeige, falls der Wert null oder undefined ist
+    return value.toLocaleString('de-DE', {
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1,
+    })
+}
 </script>
 
 <template>
@@ -386,6 +397,21 @@ const getTypeName = (id: number) => {
                         option-label="label"
                         option-value="value"
                         fluid
+                    />
+                </template>
+            </Column>
+
+            <!-- SupervisionShare Column -->
+            <Column field="supervisionShare" header="Anteil" style="min-width: 4rem">
+                <template #body="{ data }">{{ formatNumber(data.supervisionShare)}} %</template>
+                <template #editor="{ data, field }">
+                    <InputNumber
+                        v-model="data[field]"
+                        fluid
+                        :useGrouping="false"
+                        :min="0"
+                        :max="100"
+                        :step="0.1"
                     />
                 </template>
             </Column>
@@ -552,6 +578,36 @@ const getTypeName = (id: number) => {
                     >
                         <!-- @vue-expect-error -->
                         {{ $form.studentId.error?.message }}
+                    </Message>
+                </div>
+
+                <!-- SupervisionShare Field -->
+                <div class="flex flex-col gap-1">
+                    <FloatLabel variant="on">
+                        <InputNumber
+                            v-tooltip="'Nur relevant für Praxissemester!'"
+                            id="supervisionShare"
+                            name="supervisionShare"
+                            :min="0"
+                            :max="100"
+                            :step="0.1"
+                            fluid
+                        />
+                        <label
+                            for="supervisionShare"
+                            class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
+                            >Betreuungsanteil (in %)</label
+                        >
+                    </FloatLabel>
+                    <!-- @vue-expect-error -->
+                    <Message
+                        v-if="$form.supervisionShare?.invalid"
+                        severity="error"
+                        size="small"
+                        variant="simple"
+                    >
+                        <!-- @vue-expect-error -->
+                        {{ $form.supervisionShare.error?.message }}
                     </Message>
                 </div>
 

@@ -52,6 +52,7 @@ export default {
             matriculationNumber: number
             comment: string
             showComment: boolean
+            supervisionShare: number
         }[]
         reductions: {
             type: number
@@ -95,6 +96,7 @@ export default {
                     matriculationNumber: 0,
                     comment: '',
                     showComment: false,
+                    supervisionShare: 0,
                 },
             ],
             reductions: [
@@ -175,6 +177,7 @@ export default {
                 matriculationNumber: 0,
                 comment: '',
                 showComment: false,
+                supervisionShare: 0,
             })
         },
         removeMentoring(index: number) {
@@ -217,6 +220,7 @@ export default {
                     matriculationNumber: 0,
                     comment: '',
                     showComment: false,
+                    supervisionShare: 0,
                 },
             ]
             this.reductions = [
@@ -391,14 +395,13 @@ export default {
                                 )
                             }
 
-                            console.log(commentId)
-
                             const newSupervision: ICreateSupervisionRequest = {
                                 studentId: mentoring.matriculationNumber,
                                 semesterPeriodId: this.semester,
                                 supervisionTypeId: mentoring.type,
                                 teacherId: this.teacher,
                                 commentId: commentId,
+                                supervisionShare: mentoring.supervisionShare,
                             }
 
                             SupervisionService.createSupervision(
@@ -427,8 +430,6 @@ export default {
                                     reduction.comment
                                 )
                             }
-
-                            console.log(commentId)
 
                             const orderedBoolean =
                                 Array.isArray(reduction.ordered) &&
@@ -814,6 +815,20 @@ export default {
                             for="mentor-matriculationNumber"
                             class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
                             >Matrikelnummer</label
+                        >
+                    </FloatLabel>
+                    <FloatLabel variant="on" v-if="mentor.type === 4">
+                        <InputNumber
+                            label-id="mentor-supervisionShare"
+                            v-model="mentor.supervisionShare"
+                            :min="0"
+                            :max="100"
+                            :step="0.1"
+                        />
+                        <label
+                            for="mentor-supervisionShare"
+                            class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
+                            >Betreuungsanteil (in %)</label
                         >
                     </FloatLabel>
                     <Button

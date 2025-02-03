@@ -186,7 +186,7 @@ const exportCSV = () => {
             <Column
                 field="name"
                 header="Lehrperson"
-                :style="{ width: '200px' }"
+                :style="{ minWidth: '150px' }"
             />
 
             <!-- Dynamische Semester-Spalten mit benutzerdefiniertem Slot -->
@@ -194,7 +194,7 @@ const exportCSV = () => {
                 <Column
                     :header="semester.name"
                     :field="getSemesterName(semester.id)"
-                    :style="{ textAlign: 'center' }"
+                    :style="{ textAlign: 'center', minWidth: '150px' }"
                 >
                     <template v-slot:body="{ data }">
                         {{ formatSumBalance(data[semester.id]) ?? '-' }}

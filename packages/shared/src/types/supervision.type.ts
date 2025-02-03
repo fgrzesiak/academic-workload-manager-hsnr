@@ -6,22 +6,22 @@ type OptionalExceptFor<T, TRequired extends keyof T> = Partial<T> & Pick<T, TReq
 // defines the response type for a supervision, including only specific properties
 export type ISupervisionResponse = Pick<
   ISupervision,
-  "id" | "studentId" | "semesterPeriodId" | "supervisionTypeId" | "teacherId" | "commentId"
+  "id" | "studentId" | "semesterPeriodId" | "supervisionTypeId" | "teacherId" | "commentId" | "supervisionShare"
 >;
 
 // defines the request type for creating a new supervision
 export type ICreateSupervisionRequest = Pick<
   ISupervision,
-  "studentId" | "semesterPeriodId" | "supervisionTypeId" | "teacherId" | "commentId"
+  "studentId" | "semesterPeriodId" | "supervisionTypeId" | "teacherId" | "commentId" | "supervisionShare"
 >;
 
 // defines the request type for updating an existing supervision, with optional fields except for required ones
 export type IUpdateSupervisionRequest = OptionalExceptFor<
   Pick<
     ISupervision,
-    "id" | "studentId" | "semesterPeriodId" | "supervisionTypeId" | "teacherId" | "commentId"
+    "id" | "studentId" | "semesterPeriodId" | "supervisionTypeId" | "teacherId" | "commentId" | "supervisionShare"
   >,
-  "id" | "commentId"
+  "id" | "commentId" | "supervisionShare"
 >;
 
 // class representing a supervision, including methods for initialization and serialization
@@ -32,6 +32,7 @@ export class Supervision implements ISupervision {
   supervisionTypeId!: number; // identifier for the type of supervision
   teacherId!: number; // identifier for the supervising teacher
   commentId!: number; // identifier for the associated comment
+  supervisionShare!: number | null; //share for praxis supervision
 
   /**
    * constructor for the Supervision class.

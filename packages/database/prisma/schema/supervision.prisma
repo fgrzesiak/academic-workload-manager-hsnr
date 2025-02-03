@@ -1,6 +1,7 @@
 model Supervision {
   id                Int        @id @default(autoincrement())
   studentId         Int
+  supervisionShare  Float?
   semesterPeriod    SemesterPeriod @relation(fields: [semesterPeriodId], references: [id])
   semesterPeriodId  Int
   supervisionType   SupervisionType @relation(fields: [supervisionTypeId], references: [typeOfSupervisionId])
