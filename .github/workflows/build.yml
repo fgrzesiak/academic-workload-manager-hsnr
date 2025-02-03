@@ -31,14 +31,10 @@ jobs:
         run: |
           copy docker-compose.prod.yml dist\docker-compose.prod.yml
 
-      - name: Create version number
-        id: version
-        run: echo "VERSION=1.0.${{ github.run_number }}" >> $GITHUB_ENV
-
       - name: Upload EXE as artifact (v4)
         uses: actions/upload-artifact@v4
         with:
-          name: DockerGUI-${{ env.VERSION }}
+          name: DockerGUI-1.0.${{ github.run_number }}
           path: dist/*
           compression-level: 0
           retention-days: 30
@@ -47,8 +43,8 @@ jobs:
         uses: softprops/action-gh-release@v1
         if: github.ref == 'refs/heads/main'
         with:
-          tag_name: v${{ env.VERSION }}
-          name: Release v${{ env.VERSION }}
+          tag_name: v1.0.${{ github.run_number }}
+          name: Release v1.0.${{ github.run_number }}
           draft: false
           prerelease: false
           files: dist/*
