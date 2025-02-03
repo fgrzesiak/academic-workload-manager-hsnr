@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - docker
     paths:
       - "dpt-boot-manager.py.py"
       - "docker-compose.prod.yml"
