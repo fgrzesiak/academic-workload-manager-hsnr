@@ -3,10 +3,9 @@ name: Build and Release Windows EXE
 on:
   push:
     branches:
-      - main
       - docker
     paths:
-      - "dpt-boot-manager.py.py"
+      - "dpt-boot-manager.py"
       - "docker-compose.prod.yml"
 
 jobs:
