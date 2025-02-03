@@ -25,7 +25,7 @@ jobs:
 
       - name: Build EXE
         run: |
-          pyinstaller --onefile --windowed dpt-boot-manager.py.py
+          pyinstaller --onefile --windowed dpt-boot-manager.py
 
       - name: Copy docker-compose file
         run: |
