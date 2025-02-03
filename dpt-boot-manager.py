@@ -4,6 +4,22 @@ import yaml
 import threading
 import webbrowser
 import atexit
+import time
+import os
+import sys
+
+
+# https://stackoverflow.com/a/53605128
+def resource_path(relative_path):
+    """Get absolute path to resource, works for dev and for PyInstaller"""
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
+
 
 docker_compose_file = "docker-compose.prod.yml"
 
@@ -105,11 +121,47 @@ def run_command(command, on_complete=None):
         root.after(100, on_complete)
 
 
-def start_application():
-    status_label.config(text="Anwendung startet...", fg="red")
-    start_button.config(state=tk.DISABLED)
-    stop_button.config(state=tk.DISABLED)
+def is_docker_running():
+    try:
+        result = subprocess.run(
+            ["docker", "info"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+        return result.returncode == 0
+    except FileNotFoundError:
+        return False
 
+
+def start_docker_if_needed():
+    def docker_thread():
+        if not is_docker_running():
+            root.after(
+                0,
+                lambda: log_output.insert(tk.END, "Docker Desktop wird gestartet...\n"),
+            )
+            root.after(0, log_output.see, tk.END)
+            subprocess.run(
+                ["start", "", "C:\\Program Files\\Docker\\Docker\\Docker Desktop.exe"],
+                shell=True,
+            )
+            time.sleep(10)  # Wartezeit für Docker Desktop-Start
+            while not is_docker_running():
+                time.sleep(5)
+                root.after(
+                    0,
+                    lambda: log_output.insert(tk.END, "Warte auf Docker Desktop...\n"),
+                )
+                root.after(0, log_output.see, tk.END)
+            root.after(0, lambda: log_output.insert(tk.END, "Docker Desktop läuft.\n"))
+            root.after(0, log_output.see, tk.END)
+        start_docker_compose()
+
+    threading.Thread(target=docker_thread, daemon=True).start()
+
+
+def start_docker_compose():
     def update_status():
         status_label.config(text="Anwendung läuft...", fg="green")
         start_button.config(state=tk.DISABLED)
@@ -128,6 +180,14 @@ def start_application():
             update_status,
         ),
     ).start()
+
+
+def start_application():
+    status_label.config(text="Anwendung startet...", fg="red")
+    start_button.config(state=tk.DISABLED)
+    stop_button.config(state=tk.DISABLED)
+
+    start_docker_if_needed()
 
 
 def stop_application():
