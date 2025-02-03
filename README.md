@@ -1,4 +1,8 @@
 # DPT - Deputat Management System
+![university](https://img.shields.io/badge/university-HSNR-blue)
+![size](https://img.shields.io/github/repo-size/fgrzesiak/dpt-testing)
+![commit](https://img.shields.io/github/last-commit/fgrzesiak/dpt-testing)
+
 
 ## Name and Description
 
