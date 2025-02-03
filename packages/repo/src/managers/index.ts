@@ -12,6 +12,7 @@ import { TeachingEventManager } from "./teachingEvent.js";
 import { TeachingDutyManager } from "./teachingDuty.js";
 import { CommentManager } from "./comment.js";
 import { EvaluationSettingsManager } from "./evaluationSettings.js";
+import { TeachingGroupManager } from "./teachingGroup.js";
 
 export const users = container.resolve(UserManager);
 export const controllers = container.resolve(ControllerManager);
@@ -25,3 +26,4 @@ export const teachingEvents = container.resolve(TeachingEventManager);
 export const teachingDuties = container.resolve(TeachingDutyManager);
 export const comments = container.resolve(CommentManager);
 export const evaluationSettings = container.resolve(EvaluationSettingsManager);
+export const teachingGroups = container.resolve(TeachingGroupManager);

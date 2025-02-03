@@ -15,6 +15,7 @@ export class Teacher implements ITeacher {
   accessToken!: string; // access token used for authentication
   refreshToken!: string; // refresh token used to get a new access token
   createdAt!: Date; // date when the teacher record was created
+  teachingGroupId!: number; // associated teaching group id
 
   // constructor to initialize the teacher instance with provided data
   constructor(private data: ITeacher) {

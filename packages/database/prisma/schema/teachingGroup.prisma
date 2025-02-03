@@ -1,7 +1,7 @@
 model TeachingGroup {
-  id          Int     @id @default(autoincrement())
-  groupName   String
-  groupBalance Float
-  teacher     Teacher @relation(fields: [teacherId], references: [id])
-  teacherId   Int
+  id                Int     @id @default(autoincrement())
+  groupName         String
+  groupDescription  String?
+  groupBalance      Float
+  teacher           Teacher[]
 }
