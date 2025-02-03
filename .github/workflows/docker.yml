@@ -22,10 +22,13 @@ jobs:
           filters: |
             api_changed:
               - 'apps/api/**'
+              - 'Dockerfile'
             web_changed:
               - 'apps/web/**'
+              - 'Dockerfile'
             db_changed:
               - 'packages/database/**'
+              - 'Dockerfile'
 
   build_and_push_images:
     runs-on: ubuntu-latest

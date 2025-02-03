@@ -4,7 +4,8 @@
 FROM node:lts AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
-RUN corepack enable
+RUN npm install -g corepack@latest
+RUN corepack enable && corepack prepare pnpm@latest --activate
 
 # https://stackoverflow.com/a/77490465
 # Set environment variables during the build process
