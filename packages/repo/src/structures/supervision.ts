@@ -10,6 +10,7 @@ export class Supervision implements ISupervision {
   supervisionTypeId!: number; // ID of the type of supervision
   teacherId!: number; // ID of the teacher supervising the student
   commentId!: number; // ID of the comment related to this supervision
+  supervisionShare!: number | null; //share for praxis supervision
 
   // constructor to initialize the supervision with provided data
   constructor(private data: ISupervision) {

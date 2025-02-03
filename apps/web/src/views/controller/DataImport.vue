@@ -20,6 +20,7 @@ import SupervisionService from '@/service/supervision.service'
 import DiscountService from '@/service/discount.service'
 import TeachingDutyService from '@/service/teachingDuty.service'
 import CommentService from '@/service/comment.service'
+import EvaluationSettingsService from '@/service/evaluationSettings.service'
 import { useToast } from 'primevue/usetoast'
 
 interface SelectOption {
@@ -51,6 +52,7 @@ export default {
             matriculationNumber: number
             comment: string
             showComment: boolean
+            supervisionShare: number
         }[]
         reductions: {
             type: number
@@ -68,6 +70,11 @@ export default {
         semesterSelect: SelectOption[]
         teacherSelect: SelectOption[]
         mentoringSum: number
+        coursesSum: number
+        reductionsSum: number
+        totalBalance: number
+        balanceDifference: number
+        maxSupervisions: number
         toast: any
     } {
         return {
@@ -89,6 +96,7 @@ export default {
                     matriculationNumber: 0,
                     comment: '',
                     showComment: false,
+                    supervisionShare: 0,
                 },
             ],
             reductions: [
@@ -109,6 +117,11 @@ export default {
             semesterSelect: [] as SelectOption[],
             teacherSelect: [] as SelectOption[],
             mentoringSum: 0,
+            coursesSum: 0,
+            reductionsSum: 0,
+            totalBalance: 0,
+            balanceDifference: 0,
+            maxSupervisions: 3.0,
             toast: null,
         }
     },
@@ -116,8 +129,33 @@ export default {
         mentoring: {
             handler() {
                 this.calculateMentoringSum()
+                this.calculateTotalBalance()
             },
             deep: true,
+        },
+        courses: {
+            handler() {
+                this.calculateCoursesSum()
+                this.calculateTotalBalance()
+            },
+            deep: true,
+        },
+        reductions: {
+            handler() {
+                this.calculateReductionsSum()
+                this.calculateTotalBalance()
+            },
+            deep: true,
+        },
+        individualDeputat: {
+            handler() {
+                this.calculateBalanceDifference()
+            },
+        },
+        totalBalance: {
+            handler() {
+                this.calculateBalanceDifference()
+            },
         },
     },
     methods: {
@@ -139,6 +177,7 @@ export default {
                 matriculationNumber: 0,
                 comment: '',
                 showComment: false,
+                supervisionShare: 0,
             })
         },
         removeMentoring(index: number) {
@@ -181,6 +220,7 @@ export default {
                     matriculationNumber: 0,
                     comment: '',
                     showComment: false,
+                    supervisionShare: 0,
                 },
             ]
             this.reductions = [
@@ -196,6 +236,10 @@ export default {
                 },
             ]
             this.mentoringSum = 0
+            this.coursesSum = 0
+            this.reductionsSum = 0
+            this.totalBalance = 0
+            this.balanceDifference = 0
         },
         async checkTeachingDuty(
             semesterId: number,
@@ -230,6 +274,25 @@ export default {
                 )
                 return sum + (selectedType?.calculation || 0)
             }, 0)
+
+            this.mentoringSum = Math.ceil(this.mentoringSum * 1000) / 1000
+        },
+        calculateCoursesSum() {
+            this.coursesSum = this.courses.reduce((sum, course) => {
+                return sum + (course.sws || 0)
+            }, 0)
+        },
+        calculateReductionsSum() {
+            this.reductionsSum = this.reductions.reduce((sum, reduction) => {
+                return sum + (reduction.sws || 0)
+            }, 0)
+        },
+        calculateTotalBalance() {
+            this.totalBalance =
+                this.coursesSum + this.mentoringSum + this.reductionsSum
+        },
+        calculateBalanceDifference() {
+            this.balanceDifference = this.totalBalance - this.individualDeputat
         },
         async createComment(content: string): Promise<number> {
             const newComment: ICreateCommentRequest = {
@@ -332,14 +395,13 @@ export default {
                                 )
                             }
 
-                            console.log(commentId)
-
                             const newSupervision: ICreateSupervisionRequest = {
                                 studentId: mentoring.matriculationNumber,
                                 semesterPeriodId: this.semester,
                                 supervisionTypeId: mentoring.type,
                                 teacherId: this.teacher,
                                 commentId: commentId,
+                                supervisionShare: mentoring.supervisionShare,
                             }
 
                             SupervisionService.createSupervision(
@@ -368,8 +430,6 @@ export default {
                                     reduction.comment
                                 )
                             }
-
-                            console.log(commentId)
 
                             const orderedBoolean =
                                 Array.isArray(reduction.ordered) &&
@@ -492,6 +552,21 @@ export default {
                 }
             })
         },
+        async loadEvaluationSettings() {
+            EvaluationSettingsService.getEvaluationSettings().then((res) => {
+                const { data, error } = res
+                if (error) {
+                    console.warn('Couldn`t load evaluation settings')
+                } else {
+                    const maxSupervisionsSetting = data.find(
+                        (s: { key: string }) => s.key === 'max_hours_supervisions'
+                    )
+                    this.maxSupervisions = maxSupervisionsSetting
+                        ? parseFloat(maxSupervisionsSetting.value)
+                        : 3.0
+                }
+            })
+        },
     },
     created() {
         this.toast = useToast()
@@ -501,6 +576,7 @@ export default {
         await this.loadReductionTypes()
         await this.loadSemesters()
         await this.loadTeachers()
+        await this.loadEvaluationSettings()
     },
 } as ComponentOptions
 </script>
@@ -508,66 +584,68 @@ export default {
 <template>
     <div>
         <Form v-slot="" class="flex w-full flex-col" @submit="submitForm">
-            <div
-                class="card flex flex-wrap items-start items-center justify-between"
-            >
-                <div class="flex items-center gap-2">
-                    <h1 class="text-xl font-semibold">Deputatsmeldung für</h1>
-                    <FloatLabel variant="on">
-                        <Select
-                            v-model="teacher"
-                            option-label="label"
-                            option-value="value"
-                            name="type"
-                            :options="teacherSelect"
-                            :style="{ width: '180px' }"
-                        ></Select>
-                        <label
-                            for="mentor-type"
-                            class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
-                            >Lehrperson</label
-                        >
-                    </FloatLabel>
-                    <h1 class="text-xl font-semibold">im</h1>
-                    <FloatLabel variant="on">
-                        <Select
-                            v-model="semester"
-                            option-label="label"
-                            option-value="value"
-                            name="type"
-                            :options="semesterSelect"
-                            :style="{ width: '180px' }"
-                        ></Select>
-                        <label
-                            for="mentor-type"
-                            class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
-                            >Semester</label
-                        >
-                    </FloatLabel>
-                </div>
-                <div class="flex items-center gap-2">
-                    <p class="text-m font-semibold">
-                        Individuelles Lehrdeputat:
-                    </p>
-                    <FloatLabel variant="on">
-                        <InputNumber
-                            v-model="individualDeputat"
-                            label-id="indvDeputat"
-                            placeholder="18"
-                            :min="0"
+            <div class="card">
+                <div
+                    class="flex flex-wrap items-start items-center justify-between mb-4"
+                >
+                    <div class="flex items-center gap-2">
+                        <h1 class="text-xl font-semibold">Deputatsmeldung für</h1>
+                        <FloatLabel variant="on">
+                            <Select
+                                v-model="teacher"
+                                option-label="label"
+                                option-value="value"
+                                name="type"
+                                :options="teacherSelect"
+                                :style="{ width: '180px' }"
+                            ></Select>
+                            <label
+                                for="mentor-type"
+                                class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
+                                >Lehrperson</label
+                            >
+                        </FloatLabel>
+                        <h1 class="text-xl font-semibold">im</h1>
+                        <FloatLabel variant="on">
+                            <Select
+                                v-model="semester"
+                                option-label="label"
+                                option-value="value"
+                                name="type"
+                                :options="semesterSelect"
+                                :style="{ width: '180px' }"
+                            ></Select>
+                            <label
+                                for="mentor-type"
+                                class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
+                                >Semester</label
+                            >
+                        </FloatLabel>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <p class="text-m font-semibold">
+                            Individuelles Lehrdeputat:
+                        </p>
+                        <FloatLabel variant="on">
+                            <InputNumber
+                                v-model="individualDeputat"
+                                label-id="indvDeputat"
+                                placeholder="18"
+                                :min="0"
+                            />
+                            <label
+                                for="indvDeputat"
+                                class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
+                                >Umfang (SWS)</label
+                            >
+                        </FloatLabel>
+                        <Button
+                            label="Abschicken"
+                            class="p-button-success"
+                            icon="pi pi-send"
+                            @click="openDialog"
                         />
-                        <label
-                            for="indvDeputat"
-                            class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
-                            >Umfang (SWS)</label
-                        >
-                    </FloatLabel>
-                    <Button
-                        label="Abschicken"
-                        class="p-button-success"
-                        icon="pi pi-send"
-                        @click="openDialog"
-                    />
+                    </div>
                     <Dialog
                         v-model:visible="display"
                         header="Deputat melden"
@@ -595,6 +673,17 @@ export default {
                             />
                         </template>
                     </Dialog>
+                </div>
+                <div class="flex items-center gap-2 justify-end">
+                    <p class="text-m font-semibold">
+                        Vorläufig berechnetes Saldo:
+                    </p>
+                    <p
+                        class="text-m font-semibold"
+                        :style="{ color: balanceDifference < 0 ? 'red' : 'green', fontWeight: 'bold', fontSize: '1.2rem' }"
+                    >
+                        {{ balanceDifference.toFixed(2) }} SWS
+                    </p>
                 </div>
             </div>
 
@@ -679,6 +768,11 @@ export default {
                         </div>
                     </Drawer>
                 </div>
+                <div class="mb-4 flex-row items-center">
+                    <p class="font-semibold">
+                        Summe (SWS): {{ coursesSum.toFixed(2) }}
+                    </p>
+                </div>
                 <Button
                     label="Lehrveranstaltung hinzufügen"
                     icon="pi pi-plus"
@@ -723,6 +817,20 @@ export default {
                             >Matrikelnummer</label
                         >
                     </FloatLabel>
+                    <FloatLabel variant="on" v-if="mentor.type === 4">
+                        <InputNumber
+                            label-id="mentor-supervisionShare"
+                            v-model="mentor.supervisionShare"
+                            :min="0"
+                            :max="100"
+                            :step="0.1"
+                        />
+                        <label
+                            for="mentor-supervisionShare"
+                            class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
+                            >Betreuungsanteil (in %)</label
+                        >
+                    </FloatLabel>
                     <Button
                         label="Entfernen"
                         icon="pi pi-trash"
@@ -757,10 +865,10 @@ export default {
                 </div>
                 <div class="mb-4 flex-row items-center">
                     <p class="font-semibold">
-                        Aktuelle SWS-Summe: {{ mentoringSum.toFixed(1) }}
+                        Summe (SWS): {{ mentoringSum.toFixed(3) }}
                     </p>
-                    <p v-if="mentoringSum > 3.1" class="font-bold text-red-500">
-                        Die maximal anrechenbaren 3 SWS wurden überschritten!
+                    <p v-if="mentoringSum > maxSupervisions" class="font-bold text-red-500">
+                        Die maximal anrechenbaren SWS wurden überschritten!
                         (gemäß
                         <a
                             href="https://www.lexsoft.de/cgi-bin/lexsoft/justizportal_nrw.cgi?xid=3804662,5"
@@ -905,6 +1013,11 @@ export default {
                             />
                         </div>
                     </Drawer>
+                </div>
+                <div class="mb-4 flex-row items-center">
+                    <p class="font-semibold">
+                        Summe (SWS): {{ reductionsSum.toFixed(2) }}
+                    </p>
                 </div>
                 <Button
                     label="Ermäßigung hinzufügen"

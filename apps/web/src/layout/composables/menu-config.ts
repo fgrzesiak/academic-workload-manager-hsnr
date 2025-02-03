@@ -34,6 +34,11 @@ export const CONTROLLER_MENU: MenuItem[] = [
                 icon: 'pi pi-fw pi-money-bill',
                 to: '/controlling/edit-data/discounts',
             },
+            {
+                label: 'Deputate',
+                icon: 'pi pi-fw pi-wallet',
+                to: '/controlling/edit-data/deputats',
+            },
         ],
     },
     {
@@ -73,6 +78,16 @@ export const CONTROLLER_MENU: MenuItem[] = [
                 label: 'Rollen',
                 icon: 'pi pi-fw pi-users',
                 to: '/controlling/administration/roles',
+            },
+            {
+                label: 'Lehrgruppen',
+                icon: 'pi pi-fw pi-window-maximize',
+                to: '/controlling/administration/evaluationGroups',
+            },
+            {
+                label: 'Ruhestände',
+                icon: 'pi pi-fw pi-calendar-times',
+                to: '/controlling/administration/retirements',
             },
         ],
     },

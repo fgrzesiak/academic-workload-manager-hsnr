@@ -248,16 +248,6 @@ function formatDate(value: Date) {
             v-model:editing-rows="editingRows"
             editMode="row"
             @row-edit-save="onRowEditSave"
-            :pt="{
-                table: { style: 'min-width: 50rem' },
-                column: {
-                    bodycell: ({ state }: any) => ({
-                        style:
-                            state['d_editing'] &&
-                            'padding-top: 0.75rem; padding-bottom: 0.75rem',
-                    }),
-                },
-            }"
         >
             <!-- Table Header Global Search -->
             <template #header>
