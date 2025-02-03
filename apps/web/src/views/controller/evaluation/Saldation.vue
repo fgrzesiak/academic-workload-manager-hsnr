@@ -362,7 +362,10 @@ const tableData = computed(() => {
                             type.typeOfSupervisionId ===
                             supervision.supervisionTypeId
                     )
-                    const factor = supervisionType?.calculationFactor || 0
+                    let factor = supervisionType?.calculationFactor || 0
+                    if (supervision.supervisionTypeId === 4) {
+                        factor *= (supervision.supervisionShare || 0) / 100
+                    }
                     return acc + factor
                 },
                 0

@@ -95,8 +95,8 @@ onBeforeMount(() => {
 })
 
 type RowData = {
-    [key: number]: number | null // Werte für jedes Semester
-    name: string // Name des Lehrers
+    [key: number]: number | null // values for each semester
+    name: string // teacher's name
 }
 
 const tableData = computed(() => {
@@ -105,7 +105,7 @@ const tableData = computed(() => {
             name: `${teacher.user.lastName}`,
         }
 
-        // Für jedes Semester die sumBalance hinzufügen
+        // add sumBalance for each semester
         semesters.value.forEach((semester) => {
             const duty = deputats.value.find(
                 (d) =>
@@ -119,24 +119,24 @@ const tableData = computed(() => {
     })
 })
 
-// Helper-Funktionen für Formatierung
+// helper functions for formatting
 const formatSumBalance = (value: number | null) => {
     return value !== null ? value.toFixed(2) : '-'
 }
 
 const getSemesterName = (id: number) => {
     const semester = semesters.value.find((s) => s.id === id)
-    return semester ? semester.name : 'Unbekannt'
+    return semester ? semester.name : 'Unknown'
 }
 
 const exportCSV = () => {
-    // Header erstellen (Name + Semester-Namen)
+    // create header (name + semester names)
     const headers = [
         'Name',
         ...semesters.value.map((semester) => getSemesterName(semester.id)),
     ]
 
-    // Zeilen erstellen (Name + Werte für jedes Semester)
+    // create rows (name + values for each semester)
     const rows = tableData.value.map((row) => {
         return [
             row.name,
@@ -144,16 +144,16 @@ const exportCSV = () => {
         ]
     })
 
-    // CSV-Daten zusammenfügen
+    // concatenate CSV data
     const csvContent = [
-        headers.join(','), // Header
+        headers.join(','), // header
         ...rows.map((row) => row.join(',')),
     ].join('\n')
 
-    // Blob erzeugen
+    // create blob
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
 
-    // Link erstellen und Datei herunterladen
+    // create link and download file
     const link = document.createElement('a')
     link.href = URL.createObjectURL(blob)
     link.download = 'exportSalden.csv'
@@ -179,17 +179,17 @@ const exportCSV = () => {
             showGridlines
             size="small"
         >
-            <!-- Empty Table State -->
+            <!-- empty table state -->
             <template #empty>Keine Daten gefunden.</template>
 
-            <!-- Spalten mit benutzerdefiniertem Slot -->
+            <!-- columns with custom slot -->
             <Column
                 field="name"
                 header="Lehrperson"
                 :style="{ minWidth: '150px' }"
             />
 
-            <!-- Dynamische Semester-Spalten mit benutzerdefiniertem Slot -->
+            <!-- dynamic semester columns with custom slot -->
             <template v-for="semester in semesters" :key="semester.id">
                 <Column
                     :header="semester.name"
