@@ -202,7 +202,6 @@ def show_update_progress(latest_version, latest_assets):
     update_window.title("Update läuft")
     update_window.geometry("400x200")
 
-    status_label_ = ttk.Label(
     status_label = ttk.Label(
         update_window, text=f"Update auf {latest_version} wird durchgeführt..."
     )
@@ -282,7 +281,7 @@ def download_and_replace_files(
             update_window.update_idletasks()
 
         except Exception as e:
-            status_label_.config(text=f"Fehler beim Download: {e}")
+            status_label.config(text=f"Fehler beim Download: {e}")
             status_label.config(text=f"Fehler beim Download: {e}")
             progress_bar.stop()
             sys.exit(1)
@@ -304,7 +303,7 @@ def download_and_replace_files(
         update_window.update()
         progress_bar["value"] = 0
         new_compose_path = os.path.join(
-            f"docker-compose-{latest_version}.yml",
+            os.path.dirname(DOCKER_COMPOSE_FILE), f"docker-compose-{latest_version}.yml"
         )
         download_file(compose_download_url, new_compose_path)
 
@@ -313,12 +312,13 @@ def download_and_replace_files(
     progress_bar.stop()
     update_window.update()
     time.sleep(2)
-    restart_application(status_label_, new_exe_path, update_window)
-
+    restart_application(status_label, new_exe_path, update_window)
 
     """
     Beendet die aktuelle Anwendung vollständig und startet die neue EXE.
     """
+
+
 def restart_application(status_label, new_exe_path, update_window):
     try:
         status_label.config(text="Beende alte Version...")
