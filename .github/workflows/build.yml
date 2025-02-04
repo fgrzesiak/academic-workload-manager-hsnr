@@ -47,7 +47,7 @@ jobs:
       - name: Build EXE
         run: |
           pyinstaller --onefile --windowed dpt-boot-manager.py ^
-            --name "dpt-boot-manager-1.0.${{ github.run_number }}"
+            --name dpt-boot-manager-1.0.${{ github.run_number }}
 
       # -----------------------------------------------------------
       # 3) Docker-Compose-Versionierung
