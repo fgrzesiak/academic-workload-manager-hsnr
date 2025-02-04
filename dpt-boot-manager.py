@@ -18,6 +18,7 @@ from tkinter import messagebox, ttk
 # GitHub-Repository und API
 GITHUB_REPO = "fgrzesiak/dpt-testing"
 GITHUB_API_BASE_URL = "https://api.github.com"
+# ACHTUNG: Der Token sollte niemals öffentlich sichtbar sein (Rechte sind aber nur lesend)
 GITHUB_ACCESS_TOKEN = "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"
 
 # Versionsangabe der Anwendung (wird per CI/CD aktualisiert)
@@ -43,9 +44,12 @@ def get_app_folder():
 
 
 # Pfade zur aktuell laufenden Anwendung und Docker-Compose-Datei
-EXE_PATH = os.path.abspath(sys.argv[0])  # Absoluter Pfad der laufenden EXE
+EXE_PATH = os.path.abspath(sys.argv[0])
 APP_FOLDER = get_app_folder()
-DOCKER_COMPOSE_FILE = os.path.join(APP_FOLDER, "docker-compose.prod.yml")
+
+# Statt fester "docker-compose.prod.yml" verwenden wir nun eine
+# versionierte Compose-Datei (z. B. "docker-compose-1.0.0.yml").
+DOCKER_COMPOSE_FILE = os.path.join(APP_FOLDER, COMPOSE_NAME)
 
 # Globale Variablen für das GUI
 root = None
@@ -63,13 +67,13 @@ mysql_user_password_entry = None
 initial_controller_password_entry = None
 
 # ============================================================================
-#   HILFSFUNKTIONEN ZUM DATENLADEN AUS DER YAML-FILE
+#   HILFSFUNKTIONEN ZUM DATENLADEN AUS DER YAML-DATEI
 # ============================================================================
 
 
 def load_config():
     """
-    Lädt die Konfiguration aus der docker-compose.prod.yml.
+    Lädt die Konfiguration aus der versionierten docker-compose-Datei.
     """
     with open(DOCKER_COMPOSE_FILE, "r", newline="\n") as file:
         return yaml.safe_load(file)
@@ -77,7 +81,7 @@ def load_config():
 
 def save_config(config):
     """
-    Speichert die geänderte Konfiguration in der docker-compose.prod.yml.
+    Speichert die geänderte Konfiguration in der versionierten docker-compose-Datei.
     """
     with open(DOCKER_COMPOSE_FILE, "w", newline="\n") as file:
         yaml.safe_dump(config, file, default_flow_style=False)
@@ -246,22 +250,17 @@ def download_and_replace_files(
                     downloaded += len(chunk)
                     progress_bar["value"] = min(downloaded, progress_bar["maximum"])
                     update_window.update()
-
         # Fortschrittsbalken am Ende füllen
         progress_bar["value"] = progress_bar["maximum"]
 
-    # Neue EXE herunterladen (z.B. in dasselbe Verzeichnis)
-    new_exe_path = os.path.join(
-        os.path.dirname(EXE_PATH), f"dpt-boot-manager-{CURRENT_VERSION}.exe"
-    )
+    # Neue EXE herunterladen (in dasselbe Verzeichnis wie die alte EXE)
+    new_exe_path = os.path.join(os.path.dirname(EXE_PATH), EXE_NAME)
     exe_download_url = get_asset_download_url(exe_asset_id)
     if exe_download_url:
         download_file(exe_download_url, new_exe_path)
 
     # Neue Docker-Compose Datei herunterladen
-    new_compose_path = os.path.join(
-        os.path.dirname(DOCKER_COMPOSE_FILE), f"docker-compose-{CURRENT_VERSION}.yml"
-    )
+    new_compose_path = os.path.join(os.path.dirname(DOCKER_COMPOSE_FILE), COMPOSE_NAME)
     compose_download_url = get_asset_download_url(compose_asset_id)
     if compose_download_url:
         download_file(compose_download_url, new_compose_path)
@@ -382,7 +381,7 @@ def stop_docker_compose():
 
 def reset_to_defaults():
     """
-    Setzt die Konfiguration in docker-compose.prod.yml auf Standardwerte zurück.
+    Setzt die Konfiguration in der versionierten Compose-Datei auf Standardwerte zurück.
     """
     config = load_config()
 
@@ -402,7 +401,7 @@ def reset_to_defaults():
 def reload_gui_values():
     """
     Aktualisiert die Werte in den Eingabefeldern des GUIs, basierend auf
-    dem aktuellen Inhalt der docker-compose.prod.yml.
+    dem aktuellen Inhalt der versionierten docker-compose-Datei.
     """
     config = load_config()
 
@@ -432,15 +431,15 @@ def reload_gui_values():
 def update_config():
     """
     Liest die Werte aus den Eingabefeldern und speichert sie in der
-    docker-compose.prod.yml ab.
+    versionierten docker-compose-Datei ab.
     """
     config = load_config()
 
     frontend_port = frontend_port_entry.get()
-    config["services"]["api"]["environment"]["FRONTEND_URL"] = (
-        "http://localhost:" + frontend_port
-    )
-    config["services"]["web"]["ports"] = [frontend_port + ":3000"]
+    config["services"]["api"]["environment"][
+        "FRONTEND_URL"
+    ] = f"http://localhost:{frontend_port}"
+    config["services"]["web"]["ports"] = [f"{frontend_port}:3000"]
     config["services"]["db"]["environment"][
         "MYSQL_ROOT_PASSWORD"
     ] = mysql_root_password_entry.get()
@@ -540,7 +539,7 @@ def stop_application():
 
 def open_frontend():
     """
-    Öffnet das im docker-compose.prod.yml hinterlegte FRONTEND_URL im Standardbrowser.
+    Öffnet die in der docker-compose-<VERSION>.yml hinterlegte FRONTEND_URL im Standardbrowser.
     """
     config = load_config()
     frontend_url = config["services"]["api"]["environment"].get(
@@ -660,7 +659,7 @@ def create_gui():
 
 
 # ============================================================================
-#   PROGRAMMEINSTIEG
+#   PROGRAMMAUSTIEG
 # ============================================================================
 
 
@@ -671,6 +670,10 @@ def cleanup_on_exit():
     """
     stop_docker_compose()
 
+
+# ============================================================================
+#   PROGRAMMEINSTIEG
+# ============================================================================
 
 if __name__ == "__main__":
     create_gui()
