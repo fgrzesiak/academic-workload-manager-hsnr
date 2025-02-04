@@ -137,7 +137,7 @@ def get_asset_download_url(asset_id):
 def check_for_updates_background():
     """
     Prüft im Hintergrund nach einer neuen Version und aktualisiert den Update-Button.
-    - Ist eine neuere Version verfügbar, wird der Button rot und führt bei Klick confirm_update aus.
+    - Ist eine neuere Version verfügbar, wird der Button farblich markiert (rot) und führt bei Klick confirm_update aus.
     - Ist die Version bereits aktuell, wird der Button grün und bei Klick erfolgt erneut ein check_for_updates.
     """
     latest_version, latest_assets = get_latest_release()
@@ -148,23 +148,23 @@ def check_for_updates_background():
         log_output.see(tk.END)
         return
 
-    # Wenn neuere Version verfügbar:
     if latest_version != CURRENT_VERSION:
+        # Neuere Version verfügbar
         log_output.insert(tk.END, f"Neue Version verfügbar: {latest_version}\n")
         log_output.see(tk.END)
-        # Achtung: TTK-Widgets akzeptieren keine 'fg' Option.
-        # Man müsste stattdessen über Styles gehen. Hier vereinfachend weggelassen.
-        update_button.config(
+        update_button.configure(
             text=f"Update verfügbar ({latest_version})",
+            style="UpdateOrange.TButton",
             command=lambda: confirm_update(latest_version, latest_assets),
         )
     else:
         # Aktuelle Version = neuester Stand
         log_output.insert(tk.END, "Ihre Version ist aktuell.\n")
         log_output.see(tk.END)
-        update_button.config(
+        update_button.configure(
             text=f"Version {CURRENT_VERSION} – aktuell",
-            command=check_for_updates,  # Falls User nochmals manuell prüfen möchte
+            style="UpdateGreen.TButton",
+            command=check_for_updates,
         )
 
 
@@ -291,10 +291,7 @@ def download_and_replace_files(
             os.path.dirname(EXE_PATH),
             f"BootManagerDPT_{latest_version}.exe",
         )
-        download_file(
-            exe_download_url,
-            new_exe_path,
-        )
+        download_file(exe_download_url, new_exe_path)
 
     # Neue Docker-Compose Datei herunterladen
     compose_download_url = get_asset_download_url(compose_asset_id)
@@ -403,9 +400,8 @@ def start_docker_compose():
     """
 
     def update_status():
-        # Achtung: TTK-Labels akzeptieren keine 'fg' Option direkt.
-        # Man müsste stattdessen über Styles gehen. Hier nur ein Beispiel:
-        status_label.config(text="Anwendung läuft...")
+        # Anwendung läuft => grün
+        status_label.configure(text="Anwendung läuft...", style="GreenLabel.TLabel")
         stop_button.config(state=tk.NORMAL)
 
     cmd = f"docker-compose -f {DOCKER_COMPOSE_FILE} up -d --pull always"
@@ -560,9 +556,7 @@ def start_application():
     Wird aufgerufen, wenn der Benutzer 'Anwendung starten' klickt.
     Docker wird ggf. gestartet, danach wird 'docker-compose up' ausgeführt.
     """
-    # Achtung: TTK-Labels akzeptieren keine 'fg' Option direkt.
-    # Man müsste stattdessen über Styles gehen. Hier nur exemplarisch:
-    status_label.config(text="Anwendung startet...")
+    status_label.configure(text="Anwendung startet...", style="OrangeLabel.TLabel")
     disable_action_buttons()
     start_docker_if_needed()
 
@@ -572,11 +566,13 @@ def stop_application():
     Wird aufgerufen, wenn der Benutzer 'Anwendung stoppen' klickt.
     Führt 'docker-compose stop' aus und aktualisiert den Anwendungsstatus.
     """
-    status_label.config(text="Anwendung wird gestoppt...")
+    status_label.configure(
+        text="Anwendung wird gestoppt...", style="OrangeLabel.TLabel"
+    )
     disable_action_buttons()
 
     def update_status():
-        status_label.config(text="Anwendung gestoppt")
+        status_label.configure(text="Anwendung gestoppt", style="OrangeLabel.TLabel")
         enable_action_buttons()
         stop_button.config(state=tk.DISABLED)
 
@@ -623,11 +619,28 @@ def create_gui():
     root.title(f"Deputatsverwaltung Boot Manager - {CURRENT_VERSION}")
     root.geometry("600x600")
 
+    # sun-valley-ttk Theme auswählen (dark oder light je nach OS).
+    sv_ttk.set_theme(darkdetect.theme())
+
+    # Style-Objekt erstellen und Farb-Styles definieren
+    style = ttk.Style(root)
+    style.configure("GreenLabel.TLabel", foreground="green")
+    style.configure("OrangeLabel.TLabel", foreground="orange")
+
+    # Für die Update-Buttons
+    style.configure("UpdateGreen.TButton", foreground="green")
+    style.configure("UpdateOrange.TButton", foreground="orange")
+    style.configure("UpdateBlue.TButton", foreground="sky blue")
+
+    # Für Start / Stop-Buttons
+    style.configure("Start.TButton", background="green")
+    style.configure("Stop.TButton", background="orange")
+
     # Haupt-Frame für den Inhalt (nun ttk.Frame)
     main_frame = ttk.Frame(root)
     main_frame.pack(padx=20, pady=20, fill="both", expand=True)
 
-    # Überschrift (ttk.Label)
+    # Überschrift (ttk.Label), ggf. neutral (weiße o.ä. Schrift)
     title_label = ttk.Label(
         main_frame,
         text=f"Deputatsverwaltung Boot Manager - {CURRENT_VERSION}",
@@ -635,23 +648,15 @@ def create_gui():
     )
     title_label.pack(pady=10)
 
-    # Statuslabel (ttk.Label)
     status_label = ttk.Label(
         main_frame,
         text="Anwendung nicht gestartet",
         font=("Arial", 10),
+        style="OrangeLabel.TLabel",
     )
     status_label.pack(pady=5)
 
-    # Button zum Öffnen der Anwendung im Browser (ttk.Button)
-    open_browser_button = ttk.Button(
-        main_frame,
-        text="Deputatsverwaltung im Browser öffnen",
-        command=open_frontend,
-    )
-    open_browser_button.pack(pady=5)
-
-    # Button für manuelle Update-Prüfung (ttk.Button)
+    # Button für manuelle Update-Prüfung (ttk.Button) – standardneutral
     update_button = ttk.Button(
         main_frame,
         text="Nach Updates suchen",
@@ -725,6 +730,7 @@ def create_gui():
         run_buttons,
         text="Anwendung starten",
         command=start_application,
+        style="UpdateBlue.TButton",
     )
     start_button.pack(side=tk.LEFT, padx=10)
 
@@ -733,8 +739,20 @@ def create_gui():
         text="Anwendung stoppen",
         command=stop_application,
         state=tk.DISABLED,
+        style="UpdateOrange.TButton",
     )
     stop_button.pack(side=tk.RIGHT, padx=10)
+
+    # Frame für Öffnen im Browser (ttk.Frame)
+    open_button = ttk.Frame(main_frame)
+    open_button.pack(pady=5)
+    # Button zum Öffnen der Anwendung im Browser (ttk.Button)
+    open_browser_button = ttk.Button(
+        open_button,
+        text="Deputatsverwaltung im Browser öffnen",
+        command=open_frontend,
+    )
+    open_browser_button.pack(padx=10)
 
     # Konsolenausgabe (hier weiterhin tk.Text, da ttk kein eigenes Text-Widget hat)
     ttk.Label(main_frame, text="Konsolenausgabe:", font=("Arial", 10, "bold")).pack(
@@ -751,9 +769,6 @@ def create_gui():
 
     # Eventhandler für das Schließen des Fensters
     root.protocol("WM_DELETE_WINDOW", on_closing)
-
-    # sun-valley-ttk Theme laden und anwenden
-    sv_ttk.set_theme("light")
 
     # Haupt-Loop starten
     root.mainloop()
