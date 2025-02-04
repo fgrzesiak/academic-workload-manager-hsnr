@@ -26,14 +26,42 @@ jobs:
           python -m pip install --upgrade pip
           pip install pyinstaller pyyaml
 
+      # -----------------------------------------------------------
+      # 1) Versionsbump im Python-Code
+      #
+      # Dieser Schritt ist nötig, wenn wir im Python-Script direkt
+      # den String CURRENT_VERSION = "x.y.z" anpassen wollen. Falls
+      # die Versionsnummer rein über die Release-Dateinamen erfolgen soll,
+      # kann man diesen Schritt nach Anpassung des Python Codes weglassen.
+      # -----------------------------------------------------------
+      - name: Update version in code
+        shell: bash
+        run: |
+          sed -i "s/^CURRENT_VERSION = .*/CURRENT_VERSION = \"1.0.${{ github.run_number }}\"/g" dpt-boot-manager.py
+
+      # -----------------------------------------------------------
+      # 2) Build EXE per PyInstaller
+      #    Hier wird der Name der erzeugten EXE auf Basis
+      #    von 1.0.${{ github.run_number }} gesetzt.
+      # -----------------------------------------------------------
       - name: Build EXE
         run: |
-          pyinstaller --onefile --windowed dpt-boot-manager.py
+          pyinstaller --onefile --windowed dpt-boot-manager.py ^
+            --name "dpt-boot-manager-1.0.${{ github.run_number }}"
 
+      # -----------------------------------------------------------
+      # 3) Docker-Compose-Versionierung
+      #    Wir kopieren die docker-compose.prod.yml in den dist/-Ordner
+      #    und hängen ebenfalls die Versionsnummer an den Dateinamen.
+      # -----------------------------------------------------------
       - name: Copy docker-compose file
         run: |
-          copy docker-compose.prod.yml dist\docker-compose.prod.yml
+          copy docker-compose.prod.yml dist\docker-compose-1.0.${{ github.run_number }}.yml
 
+      # -----------------------------------------------------------
+      # 4) Artefakte hochladen (Upload ins Actions-Log)
+      #    Damit man sie in den Actions "Artifacts" einsehen kann.
+      # -----------------------------------------------------------
       - name: Upload EXE as artifact (v4)
         uses: actions/upload-artifact@v4
         with:
@@ -42,6 +70,10 @@ jobs:
           compression-level: 0
           retention-days: 30
 
+      # -----------------------------------------------------------
+      # 5) GitHub Release erstellen
+      #    Wir verwenden run_number als Patch-Level, z.B. v1.0.123
+      # -----------------------------------------------------------
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         if: github.ref == 'refs/heads/main'
