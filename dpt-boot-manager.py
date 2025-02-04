@@ -56,14 +56,13 @@ APP_FOLDER = get_app_folder()
 # versionierte Compose-Datei (z. B. "docker-compose-1.0.0.yml").
 DOCKER_COMPOSE_FILE = os.path.join(APP_FOLDER, COMPOSE_NAME)
 
-# Globale Variablen für das GUI
+
+# ============================================================================
+#   GLOBALE VARIABLEN (GUI, STATUS, ETC.)
+# ============================================================================
+
 root = None
 log_output = None
-status_label = None
-start_button = None
-stop_button = None
-save_button = None
-reset_button = None
 update_button = None
 
 frontend_port_entry = None
@@ -71,8 +70,13 @@ mysql_root_password_entry = None
 mysql_user_password_entry = None
 initial_controller_password_entry = None
 
+# Toggle‐Button statt Start/Stop:
+toggle_button = None
+app_is_running = False  # Merkt sich, ob die Anwendung aktuell läuft
+
+
 # ============================================================================
-#   HILFSFUNKTIONEN ZUM DATENLADEN AUS DER YAML-DATEI
+#   KONFIGURATION LADEN / SPEICHERN
 # ============================================================================
 
 
@@ -93,7 +97,7 @@ def save_config(config):
 
 
 # ============================================================================
-#   UPDATE-FUNKTIONEN FÜR DIE ANWENDUNG
+#   UPDATE-FUNKTIONEN
 # ============================================================================
 
 
@@ -163,7 +167,7 @@ def check_for_updates_background():
         log_output.see(tk.END)
         update_button.configure(
             text=f"Version {CURRENT_VERSION} – aktuell",
-            style="UpdateGreen.TButton",
+            style="IsLatest.TButton",
             command=check_for_updates,
         )
 
@@ -199,9 +203,10 @@ def show_update_progress(latest_version, latest_assets):
     update_window.geometry("400x200")
 
     status_label_ = ttk.Label(
+    status_label = ttk.Label(
         update_window, text=f"Update auf {latest_version} wird durchgeführt..."
     )
-    status_label_.pack(pady=10)
+    status_label.pack(pady=10)
 
     progress_bar = ttk.Progressbar(
         update_window, orient="horizontal", length=300, mode="determinate"
@@ -216,7 +221,7 @@ def show_update_progress(latest_version, latest_assets):
         args=(
             latest_version,
             latest_assets,
-            status_label_,
+            status_label,
             progress_bar,
             update_window,
         ),
@@ -225,7 +230,7 @@ def show_update_progress(latest_version, latest_assets):
 
 
 def download_and_replace_files(
-    latest_version, latest_assets, status_label_, progress_bar, update_window
+    latest_version, latest_assets, status_label, progress_bar, update_window
 ):
     """
     Lädt die Assets (EXE und docker-compose.yml) herunter und ersetzt
@@ -242,7 +247,7 @@ def download_and_replace_files(
             compose_asset_id = asset["id"]
 
     if not exe_asset_id or not compose_asset_id:
-        status_label_.config(text="Fehler: Update-Dateien nicht gefunden.")
+        status_label.config(text="Fehler: Update-Dateien nicht gefunden.")
         progress_bar.stop()
         return
 
@@ -256,12 +261,12 @@ def download_and_replace_files(
                 url,
                 headers={"Authorization": f"Bearer {GITHUB_ACCESS_TOKEN}"},
                 stream=True,
-                timeout=10,  # Timeout hinzugefügt
+                timeout=10,
             )
             response.raise_for_status()
 
             total_size = int(response.headers.get("content-length", 0))
-            block_size = 8192  # 8 KB
+            block_size = 8192
             progress_bar["maximum"] = total_size if total_size else 100
 
             downloaded = 0
@@ -278,34 +283,32 @@ def download_and_replace_files(
 
         except Exception as e:
             status_label_.config(text=f"Fehler beim Download: {e}")
+            status_label.config(text=f"Fehler beim Download: {e}")
             progress_bar.stop()
             sys.exit(1)
 
     # Neue EXE herunterladen (in dasselbe Verzeichnis wie die alte EXE)
     exe_download_url = get_asset_download_url(exe_asset_id)
     if exe_download_url:
-        status_label_.config(text="Lade neue Anwendung (EXE) herunter...")
         update_window.update()
         progress_bar["value"] = 0
         new_exe_path = os.path.join(
-            os.path.dirname(EXE_PATH),
-            f"BootManagerDPT_{latest_version}.exe",
+            os.path.dirname(EXE_PATH), f"BootManagerDPT_{latest_version}.exe"
         )
         download_file(exe_download_url, new_exe_path)
 
     # Neue Docker-Compose Datei herunterladen
     compose_download_url = get_asset_download_url(compose_asset_id)
     if compose_download_url:
-        status_label_.config(text="Lade neue Docker-Compose-Datei herunter...")
+        status_label.config(text="Lade neue Docker-Compose-Datei herunter...")
         update_window.update()
         progress_bar["value"] = 0
         new_compose_path = os.path.join(
-            os.path.dirname(DOCKER_COMPOSE_FILE),
             f"docker-compose-{latest_version}.yml",
         )
         download_file(compose_download_url, new_compose_path)
 
-    status_label_.config(text="Update erfolgreich! Anwendung wird neu gestartet...")
+    status_label.config(text="Update erfolgreich! Anwendung wird neu gestartet...")
     progress_bar["value"] = progress_bar["maximum"]
     progress_bar.stop()
     update_window.update()
@@ -313,12 +316,12 @@ def download_and_replace_files(
     restart_application(status_label_, new_exe_path, update_window)
 
 
-def restart_application(status_label_, new_exe_path, update_window):
     """
     Beendet die aktuelle Anwendung vollständig und startet die neue EXE.
     """
+def restart_application(status_label, new_exe_path, update_window):
     try:
-        status_label_.config(text="Beende alte Version...")
+        status_label.config(text="Beende alte Version...")
         update_window.update()
 
         # Starte die neue EXE
@@ -335,7 +338,7 @@ def restart_application(status_label_, new_exe_path, update_window):
 
 
 # ============================================================================
-#   DOCKER-FUNKTIONEN (START, STOP, PRÜFUNG)
+#   DOCKER-FUNKTIONEN
 # ============================================================================
 
 
@@ -400,9 +403,12 @@ def start_docker_compose():
     """
 
     def update_status():
-        # Anwendung läuft => grün
-        status_label.configure(text="Anwendung läuft...", style="GreenLabel.TLabel")
-        stop_button.config(state=tk.NORMAL)
+        # Nach dem Start => app_is_running = True, Toggle-Button anpassen
+        global app_is_running
+        app_is_running = True
+        toggle_button.configure(
+            text="Anwendung stoppen", state=tk.NORMAL, style="UpdateOrange.TButton"
+        )
 
     cmd = f"docker-compose -f {DOCKER_COMPOSE_FILE} up -d --pull always"
     threading.Thread(target=run_command, args=(cmd, update_status), daemon=True).start()
@@ -425,8 +431,6 @@ def reset_to_defaults():
     Setzt die Konfiguration in der versionierten Compose-Datei auf Standardwerte zurück.
     """
     config = load_config()
-
-    # Beispielhafte Defaults – bitte anpassen falls benötigt
     config["services"]["api"]["environment"]["FRONTEND_URL"] = "http://localhost:3000"
     config["services"]["api"]["environment"]["INITIAL_CONTROLLER_PASSWORD"] = "admin"
     config["services"]["web"]["ports"] = ["3000:3000"]
@@ -434,7 +438,7 @@ def reset_to_defaults():
     config["services"]["db"]["environment"]["MYSQL_PASSWORD"] = "systempassword"
 
     save_config(config)
-    log_output.insert(tk.END, "Standardwerte wurden zurückgesetzt.\n")
+    log_output.insert(tk.END, "Standardwerte wurden wiederhergestellt.\n")
     log_output.see(tk.END)
     reload_gui_values()
 
@@ -497,7 +501,7 @@ def update_config():
 
 
 # ============================================================================
-#   HILFSFUNKTIONEN FÜR PROZESSE UND GUI
+#   HILFSFUNKTIONEN FÜR KOMMANDOS UND BUTTONS
 # ============================================================================
 
 
@@ -533,22 +537,37 @@ def disable_action_buttons():
     """
     Deaktiviert alle Aktions-Buttons (Start, Stop, Speichern, Reset, Update).
     """
-    start_button.config(state=tk.DISABLED)
-    stop_button.config(state=tk.DISABLED)
+    toggle_button.config(state=tk.DISABLED)
+    update_button.config(state=tk.DISABLED)
     save_button.config(state=tk.DISABLED)
     reset_button.config(state=tk.DISABLED)
-    update_button.config(state=tk.DISABLED)
 
 
 def enable_action_buttons():
     """
     Aktiviert alle Aktions-Buttons (Start, Stop, Speichern, Reset, Update).
     """
-    start_button.config(state=tk.NORMAL)
-    stop_button.config(state=tk.NORMAL)
+    toggle_button.config(state=tk.NORMAL)
+    update_button.config(state=tk.NORMAL)
     save_button.config(state=tk.NORMAL)
     reset_button.config(state=tk.NORMAL)
-    update_button.config(state=tk.NORMAL)
+
+
+# ============================================================================
+#   NEUE TOGGLE-FUNKTION FÜR EINEN EINZIGEN BUTTON
+# ============================================================================
+
+
+def toggle_start_stop():
+    """
+    Schaltet zwischen Start und Stop um.
+    - Falls die Anwendung nicht läuft, wird start_application() aufgerufen.
+    - Läuft die Anwendung, wird stop_application() aufgerufen.
+    """
+    if not app_is_running:
+        start_application()
+    else:
+        stop_application()
 
 
 def start_application():
@@ -556,9 +575,11 @@ def start_application():
     Wird aufgerufen, wenn der Benutzer 'Anwendung starten' klickt.
     Docker wird ggf. gestartet, danach wird 'docker-compose up' ausgeführt.
     """
-    status_label.configure(text="Anwendung startet...", style="OrangeLabel.TLabel")
+    toggle_button.configure(text="Anwendung startet...", style="UpdateOrange.TButton")
     disable_action_buttons()
     start_docker_if_needed()
+    # => Wenn docker-compose fertig ist, setzt start_docker_compose() app_is_running = True
+    #    und ändert den Toggle-Button auf "Stoppen".
 
 
 def stop_application():
@@ -566,15 +587,17 @@ def stop_application():
     Wird aufgerufen, wenn der Benutzer 'Anwendung stoppen' klickt.
     Führt 'docker-compose stop' aus und aktualisiert den Anwendungsstatus.
     """
-    status_label.configure(
-        text="Anwendung wird gestoppt...", style="OrangeLabel.TLabel"
+    toggle_button.configure(
+        text="Anwendung wird gestoppt...", style="UpdateOrange.TButton"
     )
     disable_action_buttons()
 
     def update_status():
-        status_label.configure(text="Anwendung gestoppt", style="OrangeLabel.TLabel")
         enable_action_buttons()
-        stop_button.config(state=tk.DISABLED)
+        # Nach dem Stop => app_is_running = False
+        global app_is_running
+        app_is_running = False
+        toggle_button.configure(text="Anwendung starten", style="UpdateBlue.TButton")
 
     cmd = f"docker-compose -f {DOCKER_COMPOSE_FILE} stop"
     threading.Thread(target=run_command, args=(cmd, update_status), daemon=True).start()
@@ -610,37 +633,28 @@ def create_gui():
     Erzeugt ein schlankes, optisch ansprechendes Hauptfenster
     für die Anwendung (Tkinter) und initialisiert alle Bedienelemente.
     """
-    global root, log_output, status_label
-    global start_button, stop_button, save_button, reset_button, update_button
+    global root, log_output
+    global update_button, toggle_button, save_button, reset_button
     global frontend_port_entry, mysql_root_password_entry, mysql_user_password_entry, initial_controller_password_entry
 
-    # Hauptfenster konfigurieren (tk.Tk bleibt bestehen)
     root = tk.Tk()
     root.title(f"Deputatsverwaltung Boot Manager - {CURRENT_VERSION}")
     root.geometry("600x600")
+    root.resizable(False, False)
 
     # sun-valley-ttk Theme auswählen (dark oder light je nach OS).
     sv_ttk.set_theme(darkdetect.theme())
 
     # Style-Objekt erstellen und Farb-Styles definieren
     style = ttk.Style(root)
-    style.configure("GreenLabel.TLabel", foreground="green")
-    style.configure("OrangeLabel.TLabel", foreground="orange")
-
-    # Für die Update-Buttons
     style.configure("UpdateGreen.TButton", foreground="green")
     style.configure("UpdateOrange.TButton", foreground="orange")
-    style.configure("UpdateBlue.TButton", foreground="sky blue")
+    style.configure("UpdateBlue.TButton", foreground="steel blue")
+    style.configure("IsLatest.TButton", foreground="sea green")
 
-    # Für Start / Stop-Buttons
-    style.configure("Start.TButton", background="green")
-    style.configure("Stop.TButton", background="orange")
-
-    # Haupt-Frame für den Inhalt (nun ttk.Frame)
     main_frame = ttk.Frame(root)
     main_frame.pack(padx=20, pady=20, fill="both", expand=True)
 
-    # Überschrift (ttk.Label), ggf. neutral (weiße o.ä. Schrift)
     title_label = ttk.Label(
         main_frame,
         text=f"Deputatsverwaltung Boot Manager - {CURRENT_VERSION}",
@@ -648,129 +662,92 @@ def create_gui():
     )
     title_label.pack(pady=10)
 
-    status_label = ttk.Label(
-        main_frame,
-        text="Anwendung nicht gestartet",
-        font=("Arial", 10),
-        style="OrangeLabel.TLabel",
-    )
-    status_label.pack(pady=5)
-
-    # Button für manuelle Update-Prüfung (ttk.Button) – standardneutral
+    # Update-Button
     update_button = ttk.Button(
         main_frame,
         text="Nach Updates suchen",
         command=check_for_updates,
+        style="UpdateBlue.TButton",
     )
     update_button.pack(pady=5)
 
-    # Ein separater Frame für die Konfigurationsfelder (ttk.Frame)
+    # Config-Frame
     config_frame = ttk.Frame(main_frame)
     config_frame.pack(pady=10)
 
-    # Frontend-Port (ttk.Label / ttk.Entry)
     ttk.Label(
-        config_frame,
-        text="Frontend Port (Web)",
-        font=("Arial", 10, "bold"),
+        config_frame, text="Frontend Port (Web)", font=("Arial", 10, "bold")
     ).grid(row=0, column=0, sticky="w")
     frontend_port_entry = ttk.Entry(config_frame)
     frontend_port_entry.grid(row=0, column=1, padx=10, pady=5)
 
-    # MySQL Root Passwort
     ttk.Label(
-        config_frame,
-        text="MySQL Root Password",
-        font=("Arial", 10, "bold"),
+        config_frame, text="MySQL Root Password", font=("Arial", 10, "bold")
     ).grid(row=1, column=0, sticky="w")
     mysql_root_password_entry = ttk.Entry(config_frame)
     mysql_root_password_entry.grid(row=1, column=1, padx=10, pady=5)
 
-    # MySQL User Passwort
     ttk.Label(
-        config_frame,
-        text="MySQL User Password",
-        font=("Arial", 10, "bold"),
+        config_frame, text="MySQL User Password", font=("Arial", 10, "bold")
     ).grid(row=2, column=0, sticky="w")
     mysql_user_password_entry = ttk.Entry(config_frame)
     mysql_user_password_entry.grid(row=2, column=1, padx=10, pady=5)
 
-    # Initiales Controller-Passwort
     ttk.Label(
-        config_frame,
-        text="Initial Controller Password",
-        font=("Arial", 10, "bold"),
+        config_frame, text="Initial Controller Password", font=("Arial", 10, "bold")
     ).grid(row=3, column=0, sticky="w")
     initial_controller_password_entry = ttk.Entry(config_frame)
     initial_controller_password_entry.grid(row=3, column=1, padx=10, pady=5)
 
-    # Frame für Speichern / Reset (ttk.Frame)
-    config_buttons = ttk.Frame(main_frame)
-    config_buttons.pack(pady=5)
+    # Parent Frame für die unteren Buttons
+    bottom_actions_buttons = ttk.Frame(main_frame)
+    bottom_actions_buttons.pack(pady=5, fill="x")
 
-    save_button = ttk.Button(
-        config_buttons,
-        text="Speichern",
-        command=update_config,
-    )
-    save_button.pack(side=tk.LEFT, padx=10)
+    # Frame für Save/Reset buttons
+    config_buttons = ttk.Frame(bottom_actions_buttons)
+    config_buttons.pack(fill="x", expand=True, padx=10, pady=5)
+
+    save_button = ttk.Button(config_buttons, text="Speichern", command=update_config)
+    save_button.pack(side=tk.LEFT, fill="x", expand=True, padx=5)
 
     reset_button = ttk.Button(
-        config_buttons,
-        text="Standardwerte wiederherstellen",
-        command=reset_to_defaults,
+        config_buttons, text="Standardwerte wiederherstellen", command=reset_to_defaults
     )
-    reset_button.pack(side=tk.RIGHT, padx=10)
+    reset_button.pack(side=tk.LEFT, fill="x", expand=True, padx=5)
 
-    # Frame für Start / Stop (ttk.Frame)
-    run_buttons = ttk.Frame(main_frame)
-    run_buttons.pack(pady=5)
+    # Frame für Start/Open Browser buttons
+    start_open_frame = ttk.Frame(bottom_actions_buttons)
+    start_open_frame.pack(fill="x", expand=True, padx=10, pady=5)
 
-    start_button = ttk.Button(
-        run_buttons,
+    # Toggle Start/Stop Button
+    toggle_button = ttk.Button(
+        start_open_frame,
         text="Anwendung starten",
-        command=start_application,
+        command=toggle_start_stop,
         style="UpdateBlue.TButton",
     )
-    start_button.pack(side=tk.LEFT, padx=10)
+    toggle_button.pack(side=tk.LEFT, fill="x", expand=True, padx=5)
 
-    stop_button = ttk.Button(
-        run_buttons,
-        text="Anwendung stoppen",
-        command=stop_application,
-        state=tk.DISABLED,
-        style="UpdateOrange.TButton",
-    )
-    stop_button.pack(side=tk.RIGHT, padx=10)
-
-    # Frame für Öffnen im Browser (ttk.Frame)
-    open_button = ttk.Frame(main_frame)
-    open_button.pack(pady=5)
-    # Button zum Öffnen der Anwendung im Browser (ttk.Button)
+    # Open in Browser Button
     open_browser_button = ttk.Button(
-        open_button,
+        start_open_frame,
         text="Deputatsverwaltung im Browser öffnen",
         command=open_frontend,
     )
-    open_browser_button.pack(padx=10)
+    open_browser_button.pack(side=tk.LEFT, fill="x", expand=True, padx=5)
 
-    # Konsolenausgabe (hier weiterhin tk.Text, da ttk kein eigenes Text-Widget hat)
     ttk.Label(main_frame, text="Konsolenausgabe:", font=("Arial", 10, "bold")).pack(
         pady=5
     )
-    log_output = tk.Text(main_frame, height=12, width=70, relief="solid", borderwidth=1)
-    log_output.pack()
+    log_text = tk.Text(main_frame, height=12, width=70, relief="solid", borderwidth=1)
+    log_text.pack()
 
-    # Automatisch beim Starten nach Updates suchen (Hintergrundprüfung)
+    global log_output
+    log_output = log_text
+
     root.after(100, check_for_updates_background)
-
-    # Konfigurationswerte in die GUI-Felder laden
     reload_gui_values()
 
-    # Eventhandler für das Schließen des Fensters
-    root.protocol("WM_DELETE_WINDOW", on_closing)
-
-    # Haupt-Loop starten
     root.mainloop()
 
 
