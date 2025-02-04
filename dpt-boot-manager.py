@@ -5,8 +5,121 @@ import threading
 import webbrowser
 import atexit
 import time
+import requests
 import os
 import sys
+from tkinter import messagebox
+
+GITHUB_REPO = "fgrzesiak/dpt-testing"
+CURRENT_VERSION = "1.0.0"  # This will be dynamically updated in CI/CD
+docker_compose_file = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "docker-compose.prod.yml"
+)
+exe_path = os.path.abspath(sys.argv[0])  # Path to the running exe file
+
+
+def get_latest_release():
+    """Fetch the latest release version from GitHub"""
+    headers = {
+        "Authorization": "Bearer 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"
+    }
+    url = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
+
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        data = response.json()
+        return data["tag_name"], data["assets"]
+    except requests.exceptions.RequestException as e:
+        log_output.insert(tk.END, f"Fehler beim Abrufen der neuesten Version: {e}\n")
+        log_output.see(tk.END)
+        return None, None
+
+
+def download_and_replace_files(latest_assets):
+    """Download and replace the application files if an update is found"""
+    global exe_path, docker_compose_file
+
+    exe_url = None
+    compose_url = None
+    headers = {"Authorization": "Bearer YOUR_GITHUB_ACCESS_TOKEN"}
+
+    for asset in latest_assets:
+        if asset["name"].endswith(".exe"):
+            exe_url = asset["browser_download_url"]
+        elif "docker-compose" in asset["name"]:
+            compose_url = asset["browser_download_url"]
+
+    if not exe_url or not compose_url:
+        log_output.insert(tk.END, "Update-Dateien konnten nicht gefunden werden.\n")
+        log_output.see(tk.END)
+        return
+
+    log_output.insert(tk.END, "Lade neueste Version herunter...\n")
+    log_output.see(tk.END)
+
+    # Download new EXE
+    new_exe_path = exe_path + ".new"
+    with requests.get(exe_url, headers=headers, stream=True) as r:
+        if r.status_code == 404:
+            log_output.insert(
+                tk.END, "Fehler: Exe-Datei nicht gefunden. Prüfe die Berechtigungen.\n"
+            )
+            log_output.see(tk.END)
+            return
+        r.raise_for_status()
+        with open(new_exe_path, "wb") as f:
+            for chunk in r.iter_content(chunk_size=8192):
+                f.write(chunk)
+
+    # Download new Docker Compose file
+    with requests.get(compose_url, headers=headers, stream=True) as r:
+        if r.status_code == 404:
+            log_output.insert(tk.END, "Fehler: Docker Compose Datei nicht gefunden.\n")
+            log_output.see(tk.END)
+            return
+        r.raise_for_status()
+        with open(docker_compose_file, "wb") as f:
+            for chunk in r.iter_content(chunk_size=8192):
+                f.write(chunk)
+
+    # Replace old EXE with new one
+    os.rename(exe_path, exe_path + ".old")
+    os.rename(new_exe_path, exe_path)
+
+    log_output.insert(tk.END, "Update abgeschlossen. Starte Anwendung neu...\n")
+    log_output.see(tk.END)
+
+    restart_application()
+
+
+def restart_application():
+    """Restart the application after an update"""
+    log_output.insert(tk.END, "Starte Anwendung neu...\n")
+    log_output.see(tk.END)
+    subprocess.Popen([exe_path])
+    sys.exit()
+
+
+def check_for_updates():
+    """Check for updates and prompt the user"""
+    latest_version, latest_assets = get_latest_release()
+    if not latest_version:
+        return
+
+    if latest_version != CURRENT_VERSION:
+        log_output.insert(tk.END, f"Neue Version verfügbar: {latest_version}\n")
+        log_output.see(tk.END)
+
+        update_prompt = messagebox.askyesno(
+            "Update verfügbar",
+            f"Version {latest_version} ist verfügbar. Jetzt aktualisieren?",
+        )
+        if update_prompt:
+            download_and_replace_files(latest_assets)
+    else:
+        log_output.insert(tk.END, "Ihre Version ist aktuell.\n")
+        log_output.see(tk.END)
 
 
 # https://stackoverflow.com/a/53605128
@@ -249,6 +362,11 @@ def create_gui():
         root, text="Deputatsverwaltung im Browser öffnen", command=open_frontend
     )
     open_browser_button.pack(pady=5)
+
+    update_button = tk.Button(
+        root, text="Nach Updates suchen", command=check_for_updates
+    )
+    update_button.pack(pady=5)
 
     tk.Label(root, text="Frontend Port (Web)").pack()
     frontend_port_entry = tk.Entry(root)
