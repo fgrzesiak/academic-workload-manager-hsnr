@@ -8,6 +8,8 @@ import tkinter as tk
 import webbrowser
 import yaml
 import requests
+import sv_ttk
+import darkdetect
 from tkinter import messagebox, ttk
 
 # ============================================================================
@@ -24,7 +26,12 @@ GITHUB_ACCESS_TOKEN = "github_pat_11ASP4ZBY0y6TSZdONoxFa_ZccQCPYpcrgsfFhdf3xknOx
 CURRENT_VERSION = "v1.0.10"
 
 # Namen der Dateien, die im Release erwartet werden
-COMPOSE_NAME = f"docker-compose-{CURRENT_VERSION}.yml"
+if getattr(sys, "frozen", False):
+    # Gefrorene Anwendung (EXE)
+    COMPOSE_NAME = f"docker-compose-{CURRENT_VERSION}.yml"
+else:
+    # Ungefrorener Python-Code
+    COMPOSE_NAME = f"docker-compose.prod.yml"
 
 
 def get_app_folder():
@@ -145,8 +152,9 @@ def check_for_updates_background():
     if latest_version != CURRENT_VERSION:
         log_output.insert(tk.END, f"Neue Version verfügbar: {latest_version}\n")
         log_output.see(tk.END)
+        # Achtung: TTK-Widgets akzeptieren keine 'fg' Option.
+        # Man müsste stattdessen über Styles gehen. Hier vereinfachend weggelassen.
         update_button.config(
-            fg="red",
             text=f"Update verfügbar ({latest_version})",
             command=lambda: confirm_update(latest_version, latest_assets),
         )
@@ -155,7 +163,6 @@ def check_for_updates_background():
         log_output.insert(tk.END, "Ihre Version ist aktuell.\n")
         log_output.see(tk.END)
         update_button.config(
-            fg="green",
             text=f"Version {CURRENT_VERSION} – aktuell",
             command=check_for_updates,  # Falls User nochmals manuell prüfen möchte
         )
@@ -191,7 +198,7 @@ def show_update_progress(latest_version, latest_assets):
     update_window.title("Update läuft")
     update_window.geometry("400x200")
 
-    status_label_ = tk.Label(
+    status_label_ = ttk.Label(
         update_window, text=f"Update auf {latest_version} wird durchgeführt..."
     )
     status_label_.pack(pady=10)
@@ -396,7 +403,9 @@ def start_docker_compose():
     """
 
     def update_status():
-        status_label.config(text="Anwendung läuft...", fg="green")
+        # Achtung: TTK-Labels akzeptieren keine 'fg' Option direkt.
+        # Man müsste stattdessen über Styles gehen. Hier nur ein Beispiel:
+        status_label.config(text="Anwendung läuft...")
         stop_button.config(state=tk.NORMAL)
 
     cmd = f"docker-compose -f {DOCKER_COMPOSE_FILE} up -d --pull always"
@@ -551,7 +560,9 @@ def start_application():
     Wird aufgerufen, wenn der Benutzer 'Anwendung starten' klickt.
     Docker wird ggf. gestartet, danach wird 'docker-compose up' ausgeführt.
     """
-    status_label.config(text="Anwendung startet...", fg="red")
+    # Achtung: TTK-Labels akzeptieren keine 'fg' Option direkt.
+    # Man müsste stattdessen über Styles gehen. Hier nur exemplarisch:
+    status_label.config(text="Anwendung startet...")
     disable_action_buttons()
     start_docker_if_needed()
 
@@ -561,11 +572,11 @@ def stop_application():
     Wird aufgerufen, wenn der Benutzer 'Anwendung stoppen' klickt.
     Führt 'docker-compose stop' aus und aktualisiert den Anwendungsstatus.
     """
-    status_label.config(text="Anwendung wird gestoppt...", fg="red")
+    status_label.config(text="Anwendung wird gestoppt...")
     disable_action_buttons()
 
     def update_status():
-        status_label.config(text="Anwendung gestoppt", fg="red")
+        status_label.config(text="Anwendung gestoppt")
         enable_action_buttons()
         stop_button.config(state=tk.DISABLED)
 
@@ -607,149 +618,128 @@ def create_gui():
     global start_button, stop_button, save_button, reset_button, update_button
     global frontend_port_entry, mysql_root_password_entry, mysql_user_password_entry, initial_controller_password_entry
 
-    # Hauptfenster konfigurieren
+    # Hauptfenster konfigurieren (tk.Tk bleibt bestehen)
     root = tk.Tk()
     root.title(f"Deputatsverwaltung Boot Manager - {CURRENT_VERSION}")
     root.geometry("600x600")
-    root.configure(bg="#f9f9f9")
 
-    # Haupt-Frame für den Inhalt
-    main_frame = tk.Frame(root, bg="#ffffff", bd=1, relief="solid")
+    # Haupt-Frame für den Inhalt (nun ttk.Frame)
+    main_frame = ttk.Frame(root)
     main_frame.pack(padx=20, pady=20, fill="both", expand=True)
 
-    # Überschrift
-    title_label = tk.Label(
+    # Überschrift (ttk.Label)
+    title_label = ttk.Label(
         main_frame,
         text=f"Deputatsverwaltung Boot Manager - {CURRENT_VERSION}",
         font=("Arial", 14, "bold"),
-        bg="#ffffff",
-        fg="#333333",
     )
     title_label.pack(pady=10)
 
-    # Statuslabel
-    status_label = tk.Label(
+    # Statuslabel (ttk.Label)
+    status_label = ttk.Label(
         main_frame,
         text="Anwendung nicht gestartet",
-        fg="red",
-        bg="#ffffff",
         font=("Arial", 10),
     )
     status_label.pack(pady=5)
 
-    # Button zum Öffnen der Anwendung im Browser
-    open_browser_button = tk.Button(
+    # Button zum Öffnen der Anwendung im Browser (ttk.Button)
+    open_browser_button = ttk.Button(
         main_frame,
         text="Deputatsverwaltung im Browser öffnen",
         command=open_frontend,
-        bg="#f0f0f0",
-        relief="groove",
     )
     open_browser_button.pack(pady=5)
 
-    # Button für manuelle Update-Prüfung
-    update_button = tk.Button(
+    # Button für manuelle Update-Prüfung (ttk.Button)
+    update_button = ttk.Button(
         main_frame,
         text="Nach Updates suchen",
         command=check_for_updates,
-        bg="#f0f0f0",
-        relief="groove",
     )
     update_button.pack(pady=5)
 
-    # Ein separater Frame für die Konfigurationsfelder
-    config_frame = tk.Frame(main_frame, bg="#ffffff")
+    # Ein separater Frame für die Konfigurationsfelder (ttk.Frame)
+    config_frame = ttk.Frame(main_frame)
     config_frame.pack(pady=10)
 
-    # Frontend-Port
-    tk.Label(
+    # Frontend-Port (ttk.Label / ttk.Entry)
+    ttk.Label(
         config_frame,
         text="Frontend Port (Web)",
-        bg="#ffffff",
         font=("Arial", 10, "bold"),
     ).grid(row=0, column=0, sticky="w")
-    frontend_port_entry = tk.Entry(config_frame)
+    frontend_port_entry = ttk.Entry(config_frame)
     frontend_port_entry.grid(row=0, column=1, padx=10, pady=5)
 
     # MySQL Root Passwort
-    tk.Label(
+    ttk.Label(
         config_frame,
         text="MySQL Root Password",
-        bg="#ffffff",
         font=("Arial", 10, "bold"),
     ).grid(row=1, column=0, sticky="w")
-    mysql_root_password_entry = tk.Entry(config_frame)
+    mysql_root_password_entry = ttk.Entry(config_frame)
     mysql_root_password_entry.grid(row=1, column=1, padx=10, pady=5)
 
     # MySQL User Passwort
-    tk.Label(
+    ttk.Label(
         config_frame,
         text="MySQL User Password",
-        bg="#ffffff",
         font=("Arial", 10, "bold"),
     ).grid(row=2, column=0, sticky="w")
-    mysql_user_password_entry = tk.Entry(config_frame)
+    mysql_user_password_entry = ttk.Entry(config_frame)
     mysql_user_password_entry.grid(row=2, column=1, padx=10, pady=5)
 
     # Initiales Controller-Passwort
-    tk.Label(
+    ttk.Label(
         config_frame,
         text="Initial Controller Password",
-        bg="#ffffff",
         font=("Arial", 10, "bold"),
     ).grid(row=3, column=0, sticky="w")
-    initial_controller_password_entry = tk.Entry(config_frame)
+    initial_controller_password_entry = ttk.Entry(config_frame)
     initial_controller_password_entry.grid(row=3, column=1, padx=10, pady=5)
 
-    # Frame für Speichern / Reset
-    config_buttons = tk.Frame(main_frame, bg="#ffffff")
+    # Frame für Speichern / Reset (ttk.Frame)
+    config_buttons = ttk.Frame(main_frame)
     config_buttons.pack(pady=5)
 
-    save_button = tk.Button(
+    save_button = ttk.Button(
         config_buttons,
         text="Speichern",
         command=update_config,
-        bg="#f0f0f0",
-        relief="groove",
     )
     save_button.pack(side=tk.LEFT, padx=10)
 
-    reset_button = tk.Button(
+    reset_button = ttk.Button(
         config_buttons,
         text="Standardwerte wiederherstellen",
         command=reset_to_defaults,
-        bg="#f0f0f0",
-        relief="groove",
     )
     reset_button.pack(side=tk.RIGHT, padx=10)
 
-    # Frame für Start / Stop
-    run_buttons = tk.Frame(main_frame, bg="#ffffff")
+    # Frame für Start / Stop (ttk.Frame)
+    run_buttons = ttk.Frame(main_frame)
     run_buttons.pack(pady=5)
 
-    start_button = tk.Button(
+    start_button = ttk.Button(
         run_buttons,
         text="Anwendung starten",
         command=start_application,
-        bg="#d2ffd2",
-        relief="groove",
     )
     start_button.pack(side=tk.LEFT, padx=10)
 
-    stop_button = tk.Button(
+    stop_button = ttk.Button(
         run_buttons,
         text="Anwendung stoppen",
         command=stop_application,
         state=tk.DISABLED,
-        bg="#ffd2d2",
-        relief="groove",
     )
     stop_button.pack(side=tk.RIGHT, padx=10)
 
-    # Konsolenausgabe
-    tk.Label(
-        main_frame, text="Konsolenausgabe:", bg="#ffffff", font=("Arial", 10, "bold")
-    ).pack(pady=5)
+    # Konsolenausgabe (hier weiterhin tk.Text, da ttk kein eigenes Text-Widget hat)
+    ttk.Label(main_frame, text="Konsolenausgabe:", font=("Arial", 10, "bold")).pack(
+        pady=5
+    )
     log_output = tk.Text(main_frame, height=12, width=70, relief="solid", borderwidth=1)
     log_output.pack()
 
@@ -761,6 +751,9 @@ def create_gui():
 
     # Eventhandler für das Schließen des Fensters
     root.protocol("WM_DELETE_WINDOW", on_closing)
+
+    # sun-valley-ttk Theme laden und anwenden
+    sv_ttk.set_theme("light")
 
     # Haupt-Loop starten
     root.mainloop()
