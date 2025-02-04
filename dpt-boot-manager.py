@@ -8,13 +8,15 @@ import time
 import requests
 import os
 import sys
-from tkinter import messagebox
+from tkinter import messagebox, ttk
 
 # Konfiguration für GitHub-Updates
 GITHUB_REPO = "fgrzesiak/dpt-testing"
 GITHUB_API_BASE_URL = "https://api.github.com"
 GITHUB_ACCESS_TOKEN = "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"
 CURRENT_VERSION = "1.0.0"  # Diese wird dynamisch in CI/CD aktualisiert
+EXE_NAME = f"dpt-boot-manager-{CURRENT_VERSION}.exe"
+COMPOSE_NAME = f"docker-compose-{CURRENT_VERSION}.yml"
 
 # Globale Konstanten
 EXE_PATH = os.path.abspath(sys.argv[0])  # Pfad zur laufenden EXE-Datei
@@ -34,7 +36,7 @@ def get_latest_release():
         data = response.json()
         return data["tag_name"], data["assets"]
     except requests.exceptions.RequestException as e:
-        log_output.insert(tk.END, f"Fehler beim Abrufen der neuesten Version: {e}\n")
+        log_output.insert(tk.END, f"Fehler bei der Update-Prüfung: {e}\n")
         log_output.see(tk.END)
         return None, None
 
@@ -46,23 +48,16 @@ def get_asset_download_url(asset_id):
         "Accept": "application/octet-stream",
     }
     url = f"{GITHUB_API_BASE_URL}/repos/{GITHUB_REPO}/releases/assets/{asset_id}"
-
     try:
         response = requests.get(url, headers=headers, stream=True)
         response.raise_for_status()
-        return (
-            response.url
-        )  # Dies ist die endgültige Umleitungs-URL zum Herunterladen des Assets
-    except requests.exceptions.RequestException as e:
-        log_output.insert(tk.END, f"Fehler beim Abrufen der Asset-Download-URL: {e}\n")
-        log_output.see(tk.END)
+        return response.url
+    except requests.exceptions.RequestException:
         return None
 
 
 def download_and_replace_files(latest_assets):
     """Herunterladen und Ersetzen der Anwendungsdateien, wenn ein Update gefunden wurde."""
-    global EXE_PATH, DOCKER_COMPOSE_FILE
-
     exe_asset_id = None
     compose_asset_id = None
 
@@ -73,17 +68,17 @@ def download_and_replace_files(latest_assets):
             compose_asset_id = asset["id"]
 
     if not exe_asset_id or not compose_asset_id:
-        log_output.insert(
-            tk.END, "Erforderliche Update-Dateien wurden nicht gefunden.\n"
-        )
+        log_output.insert(tk.END, "Fehler: Update-Dateien nicht gefunden.\n")
         log_output.see(tk.END)
         return
 
-    log_output.insert(tk.END, "Lade neueste Version herunter...\n")
+    log_output.insert(tk.END, "Lade neue Version herunter...\n")
     log_output.see(tk.END)
 
     # Neue EXE herunterladen
-    new_exe_path = EXE_PATH + ".new"
+    new_exe_path = os.path.join(
+        os.path.dirname(EXE_PATH), f"dpt-boot-manager-{CURRENT_VERSION}.exe"
+    )
     exe_download_url = get_asset_download_url(exe_asset_id)
     if exe_download_url:
         with requests.get(
@@ -96,6 +91,9 @@ def download_and_replace_files(latest_assets):
                     f.write(chunk)
 
     # Neue Docker Compose Datei herunterladen
+    new_compose_path = os.path.join(
+        os.path.dirname(DOCKER_COMPOSE_FILE), f"docker-compose-{CURRENT_VERSION}.yml"
+    )
     compose_download_url = get_asset_download_url(compose_asset_id)
     if compose_download_url:
         with requests.get(
@@ -103,48 +101,50 @@ def download_and_replace_files(latest_assets):
             headers={"Authorization": f"Bearer {GITHUB_ACCESS_TOKEN}"},
             stream=True,
         ) as r:
-            with open(DOCKER_COMPOSE_FILE, "wb") as f:
+            with open(new_compose_path, "wb") as f:
                 for chunk in r.iter_content(chunk_size=8192):
                     f.write(chunk)
 
-    # Alte EXE mit neuer ersetzen
-    # Split the file name and extension
-    base, ext = os.path.splitext(EXE_PATH)
-    os.rename(EXE_PATH, f"{base}.old{ext}")
-    os.rename(new_exe_path, EXE_PATH)
-
-    log_output.insert(tk.END, "Update abgeschlossen. Starte Anwendung neu...\n")
+    log_output.insert(tk.END, "Update abgeschlossen. Anwendung wird neu gestartet...\n")
     log_output.see(tk.END)
-    restart_application()
+    time.sleep(2)
+    restart_application(new_exe_path)
 
 
-def restart_application():
+def restart_application(new_exe_path):
     """Neustart der Anwendung nach einem Update."""
-    log_output.insert(tk.END, "Anwendung wird neu gestartet...\n")
-    log_output.see(tk.END)
-    subprocess.Popen([EXE_PATH])
+    subprocess.Popen([new_exe_path])
     sys.exit()
 
 
-def check_for_updates():
-    """Überprüfung auf Updates und Bestätigungsdialog anzeigen."""
+def check_for_updates_background():
+    """Prüft im Hintergrund nach Updates und aktualisiert die GUI entsprechend."""
     latest_version, latest_assets = get_latest_release()
     if not latest_version:
+        log_output.insert(
+            tk.END, "Update-Prüfung fehlgeschlagen. Anwendung läuft normal.\n"
+        )
+        log_output.see(tk.END)
         return
 
     if latest_version != CURRENT_VERSION:
         log_output.insert(tk.END, f"Neue Version verfügbar: {latest_version}\n")
         log_output.see(tk.END)
-
-        update_prompt = messagebox.askyesno(
-            "Update verfügbar",
-            f"Version {latest_version} ist verfügbar. Jetzt aktualisieren?",
+        update_button.config(
+            fg="red",
+            text=f"Update verfügbar ({latest_version})",
+            command=lambda: download_and_replace_files(latest_assets),
         )
-        if update_prompt:
-            download_and_replace_files(latest_assets)
     else:
         log_output.insert(tk.END, "Ihre Version ist aktuell.\n")
         log_output.see(tk.END)
+
+
+def check_for_updates():
+    """Manuelle Prüfung auf Updates durch den Benutzer."""
+    log_output.insert(tk.END, "Suche nach Updates...\n")
+    log_output.see(tk.END)
+    threading.Thread(target=check_for_updates_background, daemon=True).start()
 
 
 # https://stackoverflow.com/a/53605128
@@ -372,13 +372,13 @@ def update_config():
 
 
 def create_gui():
-    global log_output, status_label, root, start_button, stop_button, save_button, reset_button
+    global log_output, status_label, root, start_button, stop_button, save_button, reset_button, update_button
     global frontend_port_entry, mysql_root_password_entry, mysql_user_password_entry, initial_controller_password_entry
     config = load_config()
 
     root = tk.Tk()
-    root.title("Deputatsverwaltung Boot Manager")
-    root.geometry("600x500")
+    root.title(f"Deputatsverwaltung Boot Manager - v{CURRENT_VERSION}")
+    root.geometry("600x530")
 
     status_label = tk.Label(root, text="Anwendung nicht gestartet", fg="red")
     status_label.pack()
@@ -447,6 +447,7 @@ def create_gui():
     log_output = tk.Text(root, height=10, width=70)
     log_output.pack()
 
+    root.after(100, check_for_updates_background)
     root.mainloop()
 
 
