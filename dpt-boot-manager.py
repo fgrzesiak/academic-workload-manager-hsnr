@@ -10,20 +10,23 @@ import os
 import sys
 from tkinter import messagebox
 
+# Konfiguration für GitHub-Updates
 GITHUB_REPO = "fgrzesiak/dpt-testing"
-CURRENT_VERSION = "1.0.0"  # This will be dynamically updated in CI/CD
-docker_compose_file = os.path.join(
+GITHUB_API_BASE_URL = "https://api.github.com"
+GITHUB_ACCESS_TOKEN = "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"
+CURRENT_VERSION = "1.0.0"  # Diese wird dynamisch in CI/CD aktualisiert
+
+# Globale Konstanten
+EXE_PATH = os.path.abspath(sys.argv[0])  # Pfad zur laufenden EXE-Datei
+DOCKER_COMPOSE_FILE = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "docker-compose.prod.yml"
 )
-exe_path = os.path.abspath(sys.argv[0])  # Path to the running exe file
 
 
 def get_latest_release():
-    """Fetch the latest release version from GitHub"""
-    headers = {
-        "Authorization": "Bearer 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"
-    }
-    url = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
+    """Abrufen der neuesten Release-Version aus der GitHub API."""
+    headers = {"Authorization": f"Bearer {GITHUB_ACCESS_TOKEN}"}
+    url = f"{GITHUB_API_BASE_URL}/repos/{GITHUB_REPO}/releases/latest"
 
     try:
         response = requests.get(url, headers=headers)
@@ -36,73 +39,95 @@ def get_latest_release():
         return None, None
 
 
-def download_and_replace_files(latest_assets):
-    """Download and replace the application files if an update is found"""
-    global exe_path, docker_compose_file
+def get_asset_download_url(asset_id):
+    """Abrufen der direkten Download-URL für ein Release-Asset über seine Asset-ID."""
+    headers = {
+        "Authorization": f"Bearer {GITHUB_ACCESS_TOKEN}",
+        "Accept": "application/octet-stream",
+    }
+    url = f"{GITHUB_API_BASE_URL}/repos/{GITHUB_REPO}/releases/assets/{asset_id}"
 
-    exe_url = None
-    compose_url = None
-    headers = {"Authorization": "Bearer YOUR_GITHUB_ACCESS_TOKEN"}
+    try:
+        response = requests.get(url, headers=headers, stream=True)
+        response.raise_for_status()
+        return (
+            response.url
+        )  # Dies ist die endgültige Umleitungs-URL zum Herunterladen des Assets
+    except requests.exceptions.RequestException as e:
+        log_output.insert(tk.END, f"Fehler beim Abrufen der Asset-Download-URL: {e}\n")
+        log_output.see(tk.END)
+        return None
+
+
+def download_and_replace_files(latest_assets):
+    """Herunterladen und Ersetzen der Anwendungsdateien, wenn ein Update gefunden wurde."""
+    global EXE_PATH, DOCKER_COMPOSE_FILE
+
+    exe_asset_id = None
+    compose_asset_id = None
 
     for asset in latest_assets:
         if asset["name"].endswith(".exe"):
-            exe_url = asset["browser_download_url"]
+            exe_asset_id = asset["id"]
         elif "docker-compose" in asset["name"]:
-            compose_url = asset["browser_download_url"]
+            compose_asset_id = asset["id"]
 
-    if not exe_url or not compose_url:
-        log_output.insert(tk.END, "Update-Dateien konnten nicht gefunden werden.\n")
+    if not exe_asset_id or not compose_asset_id:
+        log_output.insert(
+            tk.END, "Erforderliche Update-Dateien wurden nicht gefunden.\n"
+        )
         log_output.see(tk.END)
         return
 
     log_output.insert(tk.END, "Lade neueste Version herunter...\n")
     log_output.see(tk.END)
 
-    # Download new EXE
-    new_exe_path = exe_path + ".new"
-    with requests.get(exe_url, headers=headers, stream=True) as r:
-        if r.status_code == 404:
-            log_output.insert(
-                tk.END, "Fehler: Exe-Datei nicht gefunden. Prüfe die Berechtigungen.\n"
-            )
-            log_output.see(tk.END)
-            return
-        r.raise_for_status()
-        with open(new_exe_path, "wb") as f:
-            for chunk in r.iter_content(chunk_size=8192):
-                f.write(chunk)
+    # Neue EXE herunterladen
+    new_exe_path = EXE_PATH + ".new"
+    exe_download_url = get_asset_download_url(exe_asset_id)
+    if exe_download_url:
+        with requests.get(
+            exe_download_url,
+            headers={"Authorization": f"Bearer {GITHUB_ACCESS_TOKEN}"},
+            stream=True,
+        ) as r:
+            with open(new_exe_path, "wb") as f:
+                for chunk in r.iter_content(chunk_size=8192):
+                    f.write(chunk)
 
-    # Download new Docker Compose file
-    with requests.get(compose_url, headers=headers, stream=True) as r:
-        if r.status_code == 404:
-            log_output.insert(tk.END, "Fehler: Docker Compose Datei nicht gefunden.\n")
-            log_output.see(tk.END)
-            return
-        r.raise_for_status()
-        with open(docker_compose_file, "wb") as f:
-            for chunk in r.iter_content(chunk_size=8192):
-                f.write(chunk)
+    # Neue Docker Compose Datei herunterladen
+    compose_download_url = get_asset_download_url(compose_asset_id)
+    if compose_download_url:
+        with requests.get(
+            compose_download_url,
+            headers={"Authorization": f"Bearer {GITHUB_ACCESS_TOKEN}"},
+            stream=True,
+        ) as r:
+            with open(DOCKER_COMPOSE_FILE, "wb") as f:
+                for chunk in r.iter_content(chunk_size=8192):
+                    f.write(chunk)
 
-    # Replace old EXE with new one
-    os.rename(exe_path, exe_path + ".old")
-    os.rename(new_exe_path, exe_path)
+    # Alte EXE mit neuer ersetzen
+    # Split the file name and extension
+    base, ext = os.path.splitext(EXE_PATH)
+    os.rename(EXE_PATH, f"{base}.old{ext}")
+    os.rename(new_exe_path, EXE_PATH)
 
     log_output.insert(tk.END, "Update abgeschlossen. Starte Anwendung neu...\n")
     log_output.see(tk.END)
-
     restart_application()
 
 
 def restart_application():
-    """Restart the application after an update"""
-    log_output.insert(tk.END, "Starte Anwendung neu...\n")
+    """Neustart der Anwendung nach einem Update."""
+    log_output.insert(tk.END, "Anwendung wird neu gestartet...\n")
     log_output.see(tk.END)
-    subprocess.Popen([exe_path])
+    subprocess.Popen([EXE_PATH])
     sys.exit()
 
 
 def check_for_updates():
-    """Check for updates and prompt the user"""
+    """Überprüfung auf Updates und Bestätigungsdialog anzeigen."""
     latest_version, latest_assets = get_latest_release()
     if not latest_version:
         return
