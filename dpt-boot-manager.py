@@ -56,67 +56,6 @@ def get_asset_download_url(asset_id):
         return None
 
 
-def download_and_replace_files(latest_assets):
-    """Herunterladen und Ersetzen der Anwendungsdateien, wenn ein Update gefunden wurde."""
-    exe_asset_id = None
-    compose_asset_id = None
-
-    for asset in latest_assets:
-        if asset["name"].endswith(".exe"):
-            exe_asset_id = asset["id"]
-        elif "docker-compose" in asset["name"]:
-            compose_asset_id = asset["id"]
-
-    if not exe_asset_id or not compose_asset_id:
-        log_output.insert(tk.END, "Fehler: Update-Dateien nicht gefunden.\n")
-        log_output.see(tk.END)
-        return
-
-    log_output.insert(tk.END, "Lade neue Version herunter...\n")
-    log_output.see(tk.END)
-
-    # Neue EXE herunterladen
-    new_exe_path = os.path.join(
-        os.path.dirname(EXE_PATH), f"dpt-boot-manager-{CURRENT_VERSION}.exe"
-    )
-    exe_download_url = get_asset_download_url(exe_asset_id)
-    if exe_download_url:
-        with requests.get(
-            exe_download_url,
-            headers={"Authorization": f"Bearer {GITHUB_ACCESS_TOKEN}"},
-            stream=True,
-        ) as r:
-            with open(new_exe_path, "wb") as f:
-                for chunk in r.iter_content(chunk_size=8192):
-                    f.write(chunk)
-
-    # Neue Docker Compose Datei herunterladen
-    new_compose_path = os.path.join(
-        os.path.dirname(DOCKER_COMPOSE_FILE), f"docker-compose-{CURRENT_VERSION}.yml"
-    )
-    compose_download_url = get_asset_download_url(compose_asset_id)
-    if compose_download_url:
-        with requests.get(
-            compose_download_url,
-            headers={"Authorization": f"Bearer {GITHUB_ACCESS_TOKEN}"},
-            stream=True,
-        ) as r:
-            with open(new_compose_path, "wb") as f:
-                for chunk in r.iter_content(chunk_size=8192):
-                    f.write(chunk)
-
-    log_output.insert(tk.END, "Update abgeschlossen. Anwendung wird neu gestartet...\n")
-    log_output.see(tk.END)
-    time.sleep(2)
-    restart_application(new_exe_path)
-
-
-def restart_application(new_exe_path):
-    """Neustart der Anwendung nach einem Update."""
-    subprocess.Popen([new_exe_path])
-    sys.exit()
-
-
 def check_for_updates_background():
     """Prüft im Hintergrund nach Updates und aktualisiert die GUI entsprechend."""
     latest_version, latest_assets = get_latest_release()
@@ -133,11 +72,124 @@ def check_for_updates_background():
         update_button.config(
             fg="red",
             text=f"Update verfügbar ({latest_version})",
-            command=lambda: download_and_replace_files(latest_assets),
+            command=lambda: confirm_update(latest_version, latest_assets),
         )
     else:
         log_output.insert(tk.END, "Ihre Version ist aktuell.\n")
         log_output.see(tk.END)
+
+
+def confirm_update(latest_version, latest_assets):
+    """Zeigt eine Bestätigungsbox für das Update an."""
+    user_response = messagebox.askyesno(
+        "Update bestätigen",
+        f"Möchten Sie wirklich von Version {CURRENT_VERSION} auf {latest_version} aktualisieren?",
+    )
+    if user_response:
+        show_update_progress(latest_version, latest_assets)
+
+
+def show_update_progress(latest_version, latest_assets):
+    """Erstellt ein Update-Fenster mit Statusmeldung und Fortschrittsbalken."""
+    update_window = tk.Toplevel(root)
+    update_window.title("Update läuft")
+    update_window.geometry("400x200")
+
+    status_label = tk.Label(
+        update_window, text=f"Update auf {latest_version} wird durchgeführt..."
+    )
+    status_label.pack(pady=10)
+
+    progress_bar = ttk.Progressbar(
+        update_window, orient="horizontal", length=300, mode="determinate"
+    )
+    progress_bar.pack(pady=10)
+    progress_bar.start()
+
+    update_window.update()
+
+    threading.Thread(
+        target=download_and_replace_files,
+        args=(latest_assets, status_label, progress_bar, update_window),
+        daemon=True,
+    ).start()
+
+
+def download_and_replace_files(
+    latest_assets, status_label, progress_bar, update_window
+):
+    """Herunterladen und Ersetzen der Anwendungsdateien mit Fortschrittsanzeige."""
+    exe_asset_id = None
+    compose_asset_id = None
+
+    for asset in latest_assets:
+        if asset["name"].endswith(".exe"):
+            exe_asset_id = asset["id"]
+        elif asset["name"].endswith(".yml"):
+            compose_asset_id = asset["id"]
+
+    if not exe_asset_id or not compose_asset_id:
+        status_label.config(text="Fehler: Update-Dateien nicht gefunden.")
+        progress_bar.stop()
+        return
+
+    status_label.config(text="Lade neue Version herunter...")
+    update_window.update()
+
+    def download_file(url, save_path):
+        response = requests.get(
+            url, headers={"Authorization": f"Bearer {GITHUB_ACCESS_TOKEN}"}, stream=True
+        )
+        total_size = int(response.headers.get("content-length", 0))
+        block_size = 8192  # 8 KB
+        progress_bar["maximum"] = total_size if total_size else 100
+
+        with open(save_path, "wb") as f:
+            downloaded = 0
+            for chunk in response.iter_content(block_size):
+                if chunk:
+                    f.write(chunk)
+                    downloaded += len(chunk)
+                    progress_bar["value"] = min(downloaded, progress_bar["maximum"])
+                    update_window.update()
+        progress_bar["value"] = progress_bar["maximum"]  # Ensure full progress
+
+    # Neue EXE herunterladen
+    new_exe_path = os.path.join(
+        os.path.dirname(EXE_PATH), f"dpt-boot-manager-{CURRENT_VERSION}.exe"
+    )
+    exe_download_url = get_asset_download_url(exe_asset_id)
+    if exe_download_url:
+        download_file(exe_download_url, new_exe_path)
+
+    # Neue Docker Compose Datei herunterladen
+    new_compose_path = os.path.join(
+        os.path.dirname(DOCKER_COMPOSE_FILE), f"docker-compose-{CURRENT_VERSION}.yml"
+    )
+    compose_download_url = get_asset_download_url(compose_asset_id)
+    if compose_download_url:
+        download_file(compose_download_url, new_compose_path)
+
+    status_label.config(text="Update erfolgreich! Anwendung wird neu gestartet...")
+    progress_bar.stop()
+    update_window.update()
+    time.sleep(2)
+    restart_application(status_label, new_exe_path, update_window)
+
+
+def restart_application(status_label, new_exe_path, update_window):
+    """Neustart der Anwendung nach einem Update."""
+    try:
+        # Terminate the current process
+        status_label.config(text="Beende alte Version...")
+        update_window.update()
+        time.sleep(1)
+
+        subprocess.Popen([new_exe_path])
+        update_window.destroy()  # Close the update window
+        sys.exit()
+    except Exception as e:
+        print(f"Fehler beim Neustart: {e}")
 
 
 def check_for_updates():
@@ -211,30 +263,7 @@ def reload_gui_values():
     )
 
 
-def disable_controls():
-    start_button.config(state=tk.DISABLED)
-    stop_button.config(state=tk.DISABLED)
-    save_button.config(state=tk.DISABLED)
-    reset_button.config(state=tk.DISABLED)
-    frontend_port_entry.config(state=tk.DISABLED)
-    mysql_root_password_entry.config(state=tk.DISABLED)
-    mysql_user_password_entry.config(state=tk.DISABLED)
-    initial_controller_password_entry.config(state=tk.DISABLED)
-
-
-def enable_controls():
-    start_button.config(state=tk.NORMAL)
-    stop_button.config(state=tk.NORMAL)
-    save_button.config(state=tk.NORMAL)
-    reset_button.config(state=tk.NORMAL)
-    frontend_port_entry.config(state=tk.NORMAL)
-    mysql_root_password_entry.config(state=tk.NORMAL)
-    mysql_user_password_entry.config(state=tk.NORMAL)
-    initial_controller_password_entry.config(state=tk.NORMAL)
-
-
 def run_command(command, on_complete=None):
-    disable_controls()
     process = subprocess.Popen(
         command,
         shell=True,
@@ -254,7 +283,6 @@ def run_command(command, on_complete=None):
     threading.Thread(target=read_stream, args=(process.stderr,), daemon=True).start()
 
     process.wait()
-    enable_controls()
     if on_complete:
         root.after(100, on_complete)
 
@@ -302,14 +330,7 @@ def start_docker_if_needed():
 def start_docker_compose():
     def update_status():
         status_label.config(text="Anwendung läuft...", fg="green")
-        start_button.config(state=tk.DISABLED)
         stop_button.config(state=tk.NORMAL)
-        save_button.config(state=tk.DISABLED)
-        reset_button.config(state=tk.DISABLED)
-        frontend_port_entry.config(state=tk.DISABLED)
-        mysql_root_password_entry.config(state=tk.DISABLED)
-        mysql_user_password_entry.config(state=tk.DISABLED)
-        initial_controller_password_entry.config(state=tk.DISABLED)
 
     threading.Thread(
         target=run_command,
@@ -322,27 +343,34 @@ def start_docker_compose():
 
 def start_application():
     status_label.config(text="Anwendung startet...", fg="red")
+    disable_action_buttons()
+    start_docker_if_needed()
+
+
+def disable_action_buttons():
     start_button.config(state=tk.DISABLED)
     stop_button.config(state=tk.DISABLED)
+    save_button.config(state=tk.DISABLED)
+    reset_button.config(state=tk.DISABLED)
+    update_button.config(state=tk.DISABLED)
 
-    start_docker_if_needed()
+
+def enable_action_buttons():
+    start_button.config(state=tk.NORMAL)
+    stop_button.config(state=tk.NORMAL)
+    save_button.config(state=tk.NORMAL)
+    reset_button.config(state=tk.NORMAL)
+    update_button.config(state=tk.NORMAL)
 
 
 def stop_application():
     status_label.config(text="Anwendung wird gestoppt...", fg="red")
-    start_button.config(state=tk.DISABLED)
-    stop_button.config(state=tk.DISABLED)
+    disable_action_buttons()
 
     def update_status():
         status_label.config(text="Anwendung gestoppt", fg="red")
-        start_button.config(state=tk.NORMAL)
+        enable_action_buttons()
         stop_button.config(state=tk.DISABLED)
-        save_button.config(state=tk.NORMAL)
-        reset_button.config(state=tk.NORMAL)
-        frontend_port_entry.config(state=tk.NORMAL)
-        mysql_root_password_entry.config(state=tk.NORMAL)
-        mysql_user_password_entry.config(state=tk.NORMAL)
-        initial_controller_password_entry.config(state=tk.NORMAL)
 
     threading.Thread(
         target=run_command,
@@ -439,7 +467,10 @@ def create_gui():
     start_button.pack(side=tk.LEFT, padx=10)
 
     stop_button = tk.Button(
-        button_frame2, text="Anwendung stoppen", command=stop_application
+        button_frame2,
+        text="Anwendung stoppen",
+        command=stop_application,
+        state=tk.DISABLED,
     )
     stop_button.pack(side=tk.RIGHT, padx=10)
 
