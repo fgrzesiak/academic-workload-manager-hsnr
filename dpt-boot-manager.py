@@ -600,86 +600,157 @@ def on_closing():
 
 def create_gui():
     """
-    Erzeugt das Hauptfenster der Anwendung (Tkinter) und initialisiert
-    alle Bedienelemente.
+    Erzeugt ein schlankes, optisch ansprechendes Hauptfenster
+    für die Anwendung (Tkinter) und initialisiert alle Bedienelemente.
     """
     global root, log_output, status_label
     global start_button, stop_button, save_button, reset_button, update_button
     global frontend_port_entry, mysql_root_password_entry, mysql_user_password_entry, initial_controller_password_entry
 
+    # Hauptfenster konfigurieren
     root = tk.Tk()
     root.title(f"Deputatsverwaltung Boot Manager - {CURRENT_VERSION}")
-    root.geometry("600x530")
+    root.geometry("600x600")
+    root.configure(bg="#f9f9f9")
+
+    # Haupt-Frame für den Inhalt
+    main_frame = tk.Frame(root, bg="#ffffff", bd=1, relief="solid")
+    main_frame.pack(padx=20, pady=20, fill="both", expand=True)
+
+    # Überschrift
+    title_label = tk.Label(
+        main_frame,
+        text=f"Deputatsverwaltung Boot Manager - {CURRENT_VERSION}",
+        font=("Arial", 14, "bold"),
+        bg="#ffffff",
+        fg="#333333",
+    )
+    title_label.pack(pady=10)
 
     # Statuslabel
-    status_label = tk.Label(root, text="Anwendung nicht gestartet", fg="red")
-    status_label.pack()
+    status_label = tk.Label(
+        main_frame,
+        text="Anwendung nicht gestartet",
+        fg="red",
+        bg="#ffffff",
+        font=("Arial", 10),
+    )
+    status_label.pack(pady=5)
 
     # Button zum Öffnen der Anwendung im Browser
     open_browser_button = tk.Button(
-        root, text="Deputatsverwaltung im Browser öffnen", command=open_frontend
+        main_frame,
+        text="Deputatsverwaltung im Browser öffnen",
+        command=open_frontend,
+        bg="#f0f0f0",
+        relief="groove",
     )
     open_browser_button.pack(pady=5)
 
     # Button für manuelle Update-Prüfung
-    # Standardtext: "Nach Updates suchen", wir ändern ihn dynamisch nach dem Background-Check
     update_button = tk.Button(
-        root, text="Nach Updates suchen", command=check_for_updates
+        main_frame,
+        text="Nach Updates suchen",
+        command=check_for_updates,
+        bg="#f0f0f0",
+        relief="groove",
     )
     update_button.pack(pady=5)
 
+    # Ein separater Frame für die Konfigurationsfelder
+    config_frame = tk.Frame(main_frame, bg="#ffffff")
+    config_frame.pack(pady=10)
+
     # Frontend-Port
-    tk.Label(root, text="Frontend Port (Web)").pack()
-    frontend_port_entry = tk.Entry(root)
-    frontend_port_entry.pack()
+    tk.Label(
+        config_frame,
+        text="Frontend Port (Web)",
+        bg="#ffffff",
+        font=("Arial", 10, "bold"),
+    ).grid(row=0, column=0, sticky="w")
+    frontend_port_entry = tk.Entry(config_frame)
+    frontend_port_entry.grid(row=0, column=1, padx=10, pady=5)
 
     # MySQL Root Passwort
-    tk.Label(root, text="MySQL Root Password").pack()
-    mysql_root_password_entry = tk.Entry(root)
-    mysql_root_password_entry.pack()
+    tk.Label(
+        config_frame,
+        text="MySQL Root Password",
+        bg="#ffffff",
+        font=("Arial", 10, "bold"),
+    ).grid(row=1, column=0, sticky="w")
+    mysql_root_password_entry = tk.Entry(config_frame)
+    mysql_root_password_entry.grid(row=1, column=1, padx=10, pady=5)
 
     # MySQL User Passwort
-    tk.Label(root, text="MySQL User Password").pack()
-    mysql_user_password_entry = tk.Entry(root)
-    mysql_user_password_entry.pack()
+    tk.Label(
+        config_frame,
+        text="MySQL User Password",
+        bg="#ffffff",
+        font=("Arial", 10, "bold"),
+    ).grid(row=2, column=0, sticky="w")
+    mysql_user_password_entry = tk.Entry(config_frame)
+    mysql_user_password_entry.grid(row=2, column=1, padx=10, pady=5)
 
     # Initiales Controller-Passwort
-    tk.Label(root, text="Initial Controller Password").pack()
-    initial_controller_password_entry = tk.Entry(root)
-    initial_controller_password_entry.pack()
+    tk.Label(
+        config_frame,
+        text="Initial Controller Password",
+        bg="#ffffff",
+        font=("Arial", 10, "bold"),
+    ).grid(row=3, column=0, sticky="w")
+    initial_controller_password_entry = tk.Entry(config_frame)
+    initial_controller_password_entry.grid(row=3, column=1, padx=10, pady=5)
 
-    # Frame für Speichern und Reset
-    button_frame = tk.Frame(root)
-    button_frame.pack(pady=5)
+    # Frame für Speichern / Reset
+    config_buttons = tk.Frame(main_frame, bg="#ffffff")
+    config_buttons.pack(pady=5)
 
-    save_button = tk.Button(button_frame, text="Speichern", command=update_config)
+    save_button = tk.Button(
+        config_buttons,
+        text="Speichern",
+        command=update_config,
+        bg="#f0f0f0",
+        relief="groove",
+    )
     save_button.pack(side=tk.LEFT, padx=10)
 
     reset_button = tk.Button(
-        button_frame, text="Standardwerte wiederherstellen", command=reset_to_defaults
+        config_buttons,
+        text="Standardwerte wiederherstellen",
+        command=reset_to_defaults,
+        bg="#f0f0f0",
+        relief="groove",
     )
     reset_button.pack(side=tk.RIGHT, padx=10)
 
-    # Frame für Start/Stopp
-    button_frame2 = tk.Frame(root)
-    button_frame2.pack(pady=5)
+    # Frame für Start / Stop
+    run_buttons = tk.Frame(main_frame, bg="#ffffff")
+    run_buttons.pack(pady=5)
 
     start_button = tk.Button(
-        button_frame2, text="Anwendung starten", command=start_application
+        run_buttons,
+        text="Anwendung starten",
+        command=start_application,
+        bg="#d2ffd2",
+        relief="groove",
     )
     start_button.pack(side=tk.LEFT, padx=10)
 
     stop_button = tk.Button(
-        button_frame2,
+        run_buttons,
         text="Anwendung stoppen",
         command=stop_application,
         state=tk.DISABLED,
+        bg="#ffd2d2",
+        relief="groove",
     )
     stop_button.pack(side=tk.RIGHT, padx=10)
 
     # Konsolenausgabe
-    tk.Label(root, text="Konsolenausgabe:").pack()
-    log_output = tk.Text(root, height=10, width=70)
+    tk.Label(
+        main_frame, text="Konsolenausgabe:", bg="#ffffff", font=("Arial", 10, "bold")
+    ).pack(pady=5)
+    log_output = tk.Text(main_frame, height=12, width=70, relief="solid", borderwidth=1)
     log_output.pack()
 
     # Automatisch beim Starten nach Updates suchen (Hintergrundprüfung)
