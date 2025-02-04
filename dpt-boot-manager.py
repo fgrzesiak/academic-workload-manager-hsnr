@@ -8,7 +8,6 @@ import tkinter as tk
 import webbrowser
 import yaml
 import requests
-
 from tkinter import messagebox, ttk
 
 # ============================================================================
@@ -25,7 +24,6 @@ GITHUB_ACCESS_TOKEN = "github_pat_11ASP4ZBY0y6TSZdONoxFa_ZccQCPYpcrgsfFhdf3xknOx
 CURRENT_VERSION = "v1.0.10"
 
 # Namen der Dateien, die im Release erwartet werden
-EXE_NAME = f"DPT-BootManager-{CURRENT_VERSION}.exe"
 COMPOSE_NAME = f"docker-compose-{CURRENT_VERSION}.yml"
 
 
@@ -208,13 +206,19 @@ def show_update_progress(latest_version, latest_assets):
 
     threading.Thread(
         target=download_and_replace_files,
-        args=(latest_assets, status_label_, progress_bar, update_window),
+        args=(
+            latest_version,
+            latest_assets,
+            status_label_,
+            progress_bar,
+            update_window,
+        ),
         daemon=True,
     ).start()
 
 
 def download_and_replace_files(
-    latest_assets, status_label_, progress_bar, update_window
+    latest_version, latest_assets, status_label_, progress_bar, update_window
 ):
     """
     Lädt die Assets (EXE und docker-compose.yml) herunter und ersetzt
@@ -235,45 +239,70 @@ def download_and_replace_files(
         progress_bar.stop()
         return
 
-    status_label_.config(text="Lade neue Version herunter...")
-    update_window.update()
-
     def download_file(url, save_path):
         """
         Hilfsfunktion, um eine Datei (EXE, YML) herunterzuladen und gleichzeitig
         den Fortschrittsbalken zu aktualisieren.
         """
-        response = requests.get(
-            url, headers={"Authorization": f"Bearer {GITHUB_ACCESS_TOKEN}"}, stream=True
-        )
-        total_size = int(response.headers.get("content-length", 0))
-        block_size = 8192  # 8 KB
-        progress_bar["maximum"] = total_size if total_size else 100
+        try:
+            response = requests.get(
+                url,
+                headers={"Authorization": f"Bearer {GITHUB_ACCESS_TOKEN}"},
+                stream=True,
+                timeout=10,  # Timeout hinzugefügt
+            )
+            response.raise_for_status()
 
-        downloaded = 0
-        with open(save_path, "wb") as f:
-            for chunk in response.iter_content(block_size):
-                if chunk:
-                    f.write(chunk)
-                    downloaded += len(chunk)
-                    progress_bar["value"] = min(downloaded, progress_bar["maximum"])
-                    update_window.update()
-        # Fortschrittsbalken am Ende füllen
-        progress_bar["value"] = progress_bar["maximum"]
+            total_size = int(response.headers.get("content-length", 0))
+            block_size = 8192  # 8 KB
+            progress_bar["maximum"] = total_size if total_size else 100
+
+            downloaded = 0
+            with open(save_path, "wb") as f:
+                for chunk in response.iter_content(block_size):
+                    if chunk:
+                        f.write(chunk)
+                        downloaded += len(chunk)
+                        progress_bar["value"] = min(downloaded, progress_bar["maximum"])
+
+            # Fortschrittsbalken am Ende füllen
+            progress_bar["value"] = progress_bar["maximum"]
+            update_window.update_idletasks()
+
+        except Exception as e:
+            status_label_.config(text=f"Fehler beim Download: {e}")
+            progress_bar.stop()
+            sys.exit(1)
 
     # Neue EXE herunterladen (in dasselbe Verzeichnis wie die alte EXE)
-    new_exe_path = os.path.join(os.path.dirname(EXE_PATH), EXE_NAME)
     exe_download_url = get_asset_download_url(exe_asset_id)
     if exe_download_url:
-        download_file(exe_download_url, new_exe_path)
+        status_label_.config(text="Lade neue Anwendung (EXE) herunter...")
+        update_window.update()
+        progress_bar["value"] = 0
+        new_exe_path = os.path.join(
+            os.path.dirname(EXE_PATH),
+            f"BootManagerDPT_{latest_version}.exe",
+        )
+        download_file(
+            exe_download_url,
+            new_exe_path,
+        )
 
     # Neue Docker-Compose Datei herunterladen
-    new_compose_path = os.path.join(os.path.dirname(DOCKER_COMPOSE_FILE), COMPOSE_NAME)
     compose_download_url = get_asset_download_url(compose_asset_id)
     if compose_download_url:
+        status_label_.config(text="Lade neue Docker-Compose-Datei herunter...")
+        update_window.update()
+        progress_bar["value"] = 0
+        new_compose_path = os.path.join(
+            os.path.dirname(DOCKER_COMPOSE_FILE),
+            f"docker-compose-{latest_version}.yml",
+        )
         download_file(compose_download_url, new_compose_path)
 
     status_label_.config(text="Update erfolgreich! Anwendung wird neu gestartet...")
+    progress_bar["value"] = progress_bar["maximum"]
     progress_bar.stop()
     update_window.update()
     time.sleep(2)
@@ -287,7 +316,6 @@ def restart_application(status_label_, new_exe_path, update_window):
     try:
         status_label_.config(text="Beende alte Version...")
         update_window.update()
-        time.sleep(1)
 
         # Starte die neue EXE
         subprocess.Popen([new_exe_path])
@@ -342,7 +370,7 @@ def start_docker_if_needed():
                 ["start", "", "C:\\Program Files\\Docker\\Docker\\Docker Desktop.exe"],
                 shell=True,
             )
-            time.sleep(10)  # Wartezeit für Docker Desktop-Start
+            time.sleep(5)  # Wartezeit für Docker Desktop-Start
 
             # Überprüfen, bis Docker läuft
             while not is_docker_running():

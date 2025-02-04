@@ -50,7 +50,7 @@ jobs:
       # -----------------------------------------------------------
       - name: Build EXE
         run: |
-          pyinstaller --onefile --windowed dpt-boot-manager.py --name "DPT-BootManager-v1.0.${{ github.run_number }}"
+          pyinstaller --onefile --windowed dpt-boot-manager.py --name "BootManagerDPT_v1.0.${{ github.run_number }}"
 
       # -----------------------------------------------------------
       # 3) Docker-Compose-Versionierung
@@ -68,7 +68,7 @@ jobs:
       - name: Upload EXE as artifact (v4)
         uses: actions/upload-artifact@v4
         with:
-          name: DPT-BootManager-v1.0.${{ github.run_number }}
+          name: BootManagerDPT_v1.0.${{ github.run_number }}
           path: dist/*
           compression-level: 0
           retention-days: 30
