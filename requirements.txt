@@ -2,3 +2,4 @@ pyinstaller
 pyyaml
 requests
 sv-ttk
+darkdetect
