@@ -1,0 +1,62 @@
+name: dpt-prod
+networks:
+  dpt-network:
+    driver: bridge
+services:
+  api:
+    depends_on:
+      prisma:
+        condition: service_completed_successfully
+    environment:
+      DATABASE_URL: mysql://system:systempassword@db:3306/core
+      FRONTEND_URL: http://localhost:4000
+      INITIAL_CONTROLLER_PASSWORD: admin
+      INITIAL_CONTROLLER_USERNAME: admin
+      JWT_SECRET: dcfc188353a965b21965fbaf6a3584917bd32bce5f863177398617c70cc7431b
+      MYSQL_SYSTEM_PASSWORD: systempassword
+    image: fabianjg/dpt:api-latest
+    networks:
+    - dpt-network
+    ports:
+    - 4000:4000
+  db:
+    container_name: dpt-db
+    environment:
+      MYSQL_DATABASE: core
+      MYSQL_PASSWORD: systempassword
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_USER: system
+    healthcheck:
+      interval: 5s
+      retries: 30
+      test:
+      - CMD-SHELL
+      - mysqladmin ping -h 127.0.0.1 -p$${MYSQL_ROOT_PASSWORD} || exit 1
+      timeout: 3s
+    image: mysql:9
+    networks:
+    - dpt-network
+    ports:
+    - 3307:3306
+  prisma:
+    command:
+    - npx
+    - prisma
+    - migrate
+    - deploy
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: mysql://root:rootpassword@db:3306/core
+    image: fabianjg/dpt:prisma-db-latest
+    networks:
+    - dpt-network
+  web:
+    depends_on:
+    - api
+    image: fabianjg/dpt:web-latest
+    networks:
+    - dpt-network
+    ports:
+    - 4000:3000

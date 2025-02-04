@@ -18,14 +18,14 @@ from tkinter import messagebox, ttk
 # GitHub-Repository und API
 GITHUB_REPO = "fgrzesiak/dpt-testing"
 GITHUB_API_BASE_URL = "https://api.github.com"
-# ACHTUNG: Der Token sollte niemals öffentlich sichtbar sein (Rechte sind aber nur lesend)
+# ACHTUNG: Der Token sollte niemals öffentlich sichtbar sein (nur Leserechte)
 GITHUB_ACCESS_TOKEN = "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"
 
 # Versionsangabe der Anwendung (wird per CI/CD aktualisiert)
-CURRENT_VERSION = "1.0.0"
+CURRENT_VERSION = "v1.0.10"
 
 # Namen der Dateien, die im Release erwartet werden
-EXE_NAME = f"dpt-boot-manager-{CURRENT_VERSION}.exe"
+EXE_NAME = f"DPT-BootManager-{CURRENT_VERSION}.exe"
 COMPOSE_NAME = f"docker-compose-{CURRENT_VERSION}.yml"
 
 
@@ -131,8 +131,9 @@ def get_asset_download_url(asset_id):
 
 def check_for_updates_background():
     """
-    Prüft im Hintergrund nach einer neuen Version und aktualisiert ggf. die
-    Update-Schaltfläche in der GUI (z.B. roter Text, wenn Update verfügbar).
+    Prüft im Hintergrund nach einer neuen Version und aktualisiert den Update-Button.
+    - Ist eine neuere Version verfügbar, wird der Button rot und führt bei Klick confirm_update aus.
+    - Ist die Version bereits aktuell, wird der Button grün und bei Klick erfolgt erneut ein check_for_updates.
     """
     latest_version, latest_assets = get_latest_release()
     if not latest_version:
@@ -142,6 +143,7 @@ def check_for_updates_background():
         log_output.see(tk.END)
         return
 
+    # Wenn neuere Version verfügbar:
     if latest_version != CURRENT_VERSION:
         log_output.insert(tk.END, f"Neue Version verfügbar: {latest_version}\n")
         log_output.see(tk.END)
@@ -151,8 +153,14 @@ def check_for_updates_background():
             command=lambda: confirm_update(latest_version, latest_assets),
         )
     else:
+        # Aktuelle Version = neuester Stand
         log_output.insert(tk.END, "Ihre Version ist aktuell.\n")
         log_output.see(tk.END)
+        update_button.config(
+            fg="green",
+            text=f"Version {CURRENT_VERSION} – aktuell",
+            command=check_for_updates,  # Falls User nochmals manuell prüfen möchte
+        )
 
 
 def check_for_updates():
@@ -539,7 +547,7 @@ def stop_application():
 
 def open_frontend():
     """
-    Öffnet die in der docker-compose-<VERSION>.yml hinterlegte FRONTEND_URL im Standardbrowser.
+    Öffnet die in docker-compose-{CURRENT_VERSION}.yml hinterlegte FRONTEND_URL im Standardbrowser.
     """
     config = load_config()
     frontend_url = config["services"]["api"]["environment"].get(
@@ -572,7 +580,7 @@ def create_gui():
     global frontend_port_entry, mysql_root_password_entry, mysql_user_password_entry, initial_controller_password_entry
 
     root = tk.Tk()
-    root.title(f"Deputatsverwaltung Boot Manager - v{CURRENT_VERSION}")
+    root.title(f"Deputatsverwaltung Boot Manager - {CURRENT_VERSION}")
     root.geometry("600x530")
 
     # Statuslabel
@@ -586,6 +594,7 @@ def create_gui():
     open_browser_button.pack(pady=5)
 
     # Button für manuelle Update-Prüfung
+    # Standardtext: "Nach Updates suchen", wir ändern ihn dynamisch nach dem Background-Check
     update_button = tk.Button(
         root, text="Nach Updates suchen", command=check_for_updates
     )
@@ -645,7 +654,7 @@ def create_gui():
     log_output = tk.Text(root, height=10, width=70)
     log_output.pack()
 
-    # Automatisch beim Starten nach Updates suchen
+    # Automatisch beim Starten nach Updates suchen (Hintergrundprüfung)
     root.after(100, check_for_updates_background)
 
     # Konfigurationswerte in die GUI-Felder laden
