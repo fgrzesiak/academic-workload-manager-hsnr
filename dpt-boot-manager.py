@@ -1,32 +1,98 @@
-import tkinter as tk
-import subprocess
-import yaml
-import threading
-import webbrowser
 import atexit
-import time
-import requests
 import os
+import subprocess
 import sys
+import threading
+import time
+import tkinter as tk
+import webbrowser
+import yaml
+import requests
+
 from tkinter import messagebox, ttk
 
-# Konfiguration für GitHub-Updates
+# ============================================================================
+#   KONSTANTEN / GLOBALE EINSTELLUNGEN
+# ============================================================================
+
+# GitHub-Repository und API
 GITHUB_REPO = "fgrzesiak/dpt-testing"
 GITHUB_API_BASE_URL = "https://api.github.com"
 GITHUB_ACCESS_TOKEN = "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"
-CURRENT_VERSION = "1.0.0"  # Diese wird dynamisch in CI/CD aktualisiert
+
+# Versionsangabe der Anwendung (wird per CI/CD aktualisiert)
+CURRENT_VERSION = "1.0.0"
+
+# Namen der Dateien, die im Release erwartet werden
 EXE_NAME = f"dpt-boot-manager-{CURRENT_VERSION}.exe"
 COMPOSE_NAME = f"docker-compose-{CURRENT_VERSION}.yml"
 
-# Globale Konstanten
-EXE_PATH = os.path.abspath(sys.argv[0])  # Pfad zur laufenden EXE-Datei
-DOCKER_COMPOSE_FILE = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), "docker-compose.prod.yml"
-)
+
+def get_app_folder():
+    """
+    Gibt den Pfad zum Verzeichnis zurück, in dem die Anwendung liegt.
+    - Bei gefrorener Anwendung (EXE) ist das: os.path.dirname(sys.executable).
+    - Bei ungefrorenem Python-Code ist das: os.path.dirname(__file__).
+    """
+    if getattr(sys, "frozen", False):
+        # Gefrorene Anwendung (PyInstaller)
+        return os.path.dirname(sys.executable)
+    else:
+        # Normaler Python-Start
+        return os.path.dirname(__file__)
+
+
+# Pfade zur aktuell laufenden Anwendung und Docker-Compose-Datei
+EXE_PATH = os.path.abspath(sys.argv[0])  # Absoluter Pfad der laufenden EXE
+APP_FOLDER = get_app_folder()
+DOCKER_COMPOSE_FILE = os.path.join(APP_FOLDER, "docker-compose.prod.yml")
+
+# Globale Variablen für das GUI
+root = None
+log_output = None
+status_label = None
+start_button = None
+stop_button = None
+save_button = None
+reset_button = None
+update_button = None
+
+frontend_port_entry = None
+mysql_root_password_entry = None
+mysql_user_password_entry = None
+initial_controller_password_entry = None
+
+# ============================================================================
+#   HILFSFUNKTIONEN ZUM DATENLADEN AUS DER YAML-FILE
+# ============================================================================
+
+
+def load_config():
+    """
+    Lädt die Konfiguration aus der docker-compose.prod.yml.
+    """
+    with open(DOCKER_COMPOSE_FILE, "r", newline="\n") as file:
+        return yaml.safe_load(file)
+
+
+def save_config(config):
+    """
+    Speichert die geänderte Konfiguration in der docker-compose.prod.yml.
+    """
+    with open(DOCKER_COMPOSE_FILE, "w", newline="\n") as file:
+        yaml.safe_dump(config, file, default_flow_style=False)
+
+
+# ============================================================================
+#   UPDATE-FUNKTIONEN FÜR DIE ANWENDUNG
+# ============================================================================
 
 
 def get_latest_release():
-    """Abrufen der neuesten Release-Version aus der GitHub API."""
+    """
+    Ruft die neueste Release-Version und deren Assets über die GitHub-API ab.
+    Gibt (tag_name, assets) zurück oder (None, None) bei Fehler.
+    """
     headers = {"Authorization": f"Bearer {GITHUB_ACCESS_TOKEN}"}
     url = f"{GITHUB_API_BASE_URL}/repos/{GITHUB_REPO}/releases/latest"
 
@@ -42,7 +108,10 @@ def get_latest_release():
 
 
 def get_asset_download_url(asset_id):
-    """Abrufen der direkten Download-URL für ein Release-Asset über seine Asset-ID."""
+    """
+    Ermittelt die direkte Download-URL für ein Release-Asset anhand seiner Asset-ID.
+    Gibt die Download-URL oder None zurück.
+    """
     headers = {
         "Authorization": f"Bearer {GITHUB_ACCESS_TOKEN}",
         "Accept": "application/octet-stream",
@@ -57,7 +126,10 @@ def get_asset_download_url(asset_id):
 
 
 def check_for_updates_background():
-    """Prüft im Hintergrund nach Updates und aktualisiert die GUI entsprechend."""
+    """
+    Prüft im Hintergrund nach einer neuen Version und aktualisiert ggf. die
+    Update-Schaltfläche in der GUI (z.B. roter Text, wenn Update verfügbar).
+    """
     latest_version, latest_assets = get_latest_release()
     if not latest_version:
         log_output.insert(
@@ -79,8 +151,19 @@ def check_for_updates_background():
         log_output.see(tk.END)
 
 
+def check_for_updates():
+    """
+    Löst eine manuelle Prüfung auf Updates aus und gibt eine Nachricht in das Log-Feld aus.
+    """
+    log_output.insert(tk.END, "Suche nach Updates...\n")
+    log_output.see(tk.END)
+    threading.Thread(target=check_for_updates_background, daemon=True).start()
+
+
 def confirm_update(latest_version, latest_assets):
-    """Zeigt eine Bestätigungsbox für das Update an."""
+    """
+    Fragt den Benutzer per Dialog, ob das gefundene Update wirklich installiert werden soll.
+    """
     user_response = messagebox.askyesno(
         "Update bestätigen",
         f"Möchten Sie wirklich von Version {CURRENT_VERSION} auf {latest_version} aktualisieren?",
@@ -90,15 +173,18 @@ def confirm_update(latest_version, latest_assets):
 
 
 def show_update_progress(latest_version, latest_assets):
-    """Erstellt ein Update-Fenster mit Statusmeldung und Fortschrittsbalken."""
+    """
+    Zeigt ein kleines Fenster mit Fortschrittsbalken an und startet den
+    Download-Thread für die neuen Dateien.
+    """
     update_window = tk.Toplevel(root)
     update_window.title("Update läuft")
     update_window.geometry("400x200")
 
-    status_label = tk.Label(
+    status_label_ = tk.Label(
         update_window, text=f"Update auf {latest_version} wird durchgeführt..."
     )
-    status_label.pack(pady=10)
+    status_label_.pack(pady=10)
 
     progress_bar = ttk.Progressbar(
         update_window, orient="horizontal", length=300, mode="determinate"
@@ -110,18 +196,22 @@ def show_update_progress(latest_version, latest_assets):
 
     threading.Thread(
         target=download_and_replace_files,
-        args=(latest_assets, status_label, progress_bar, update_window),
+        args=(latest_assets, status_label_, progress_bar, update_window),
         daemon=True,
     ).start()
 
 
 def download_and_replace_files(
-    latest_assets, status_label, progress_bar, update_window
+    latest_assets, status_label_, progress_bar, update_window
 ):
-    """Herunterladen und Ersetzen der Anwendungsdateien mit Fortschrittsanzeige."""
+    """
+    Lädt die Assets (EXE und docker-compose.yml) herunter und ersetzt
+    die alten Dateien. Zeigt den Fortschritt im übergebenen Fortschrittsbalken an.
+    """
     exe_asset_id = None
     compose_asset_id = None
 
+    # Asset-IDs aus dem Release ermitteln
     for asset in latest_assets:
         if asset["name"].endswith(".exe"):
             exe_asset_id = asset["id"]
@@ -129,14 +219,18 @@ def download_and_replace_files(
             compose_asset_id = asset["id"]
 
     if not exe_asset_id or not compose_asset_id:
-        status_label.config(text="Fehler: Update-Dateien nicht gefunden.")
+        status_label_.config(text="Fehler: Update-Dateien nicht gefunden.")
         progress_bar.stop()
         return
 
-    status_label.config(text="Lade neue Version herunter...")
+    status_label_.config(text="Lade neue Version herunter...")
     update_window.update()
 
     def download_file(url, save_path):
+        """
+        Hilfsfunktion, um eine Datei (EXE, YML) herunterzuladen und gleichzeitig
+        den Fortschrittsbalken zu aktualisieren.
+        """
         response = requests.get(
             url, headers={"Authorization": f"Bearer {GITHUB_ACCESS_TOKEN}"}, stream=True
         )
@@ -144,17 +238,19 @@ def download_and_replace_files(
         block_size = 8192  # 8 KB
         progress_bar["maximum"] = total_size if total_size else 100
 
+        downloaded = 0
         with open(save_path, "wb") as f:
-            downloaded = 0
             for chunk in response.iter_content(block_size):
                 if chunk:
                     f.write(chunk)
                     downloaded += len(chunk)
                     progress_bar["value"] = min(downloaded, progress_bar["maximum"])
                     update_window.update()
-        progress_bar["value"] = progress_bar["maximum"]  # Ensure full progress
 
-    # Neue EXE herunterladen
+        # Fortschrittsbalken am Ende füllen
+        progress_bar["value"] = progress_bar["maximum"]
+
+    # Neue EXE herunterladen (z.B. in dasselbe Verzeichnis)
     new_exe_path = os.path.join(
         os.path.dirname(EXE_PATH), f"dpt-boot-manager-{CURRENT_VERSION}.exe"
     )
@@ -162,7 +258,7 @@ def download_and_replace_files(
     if exe_download_url:
         download_file(exe_download_url, new_exe_path)
 
-    # Neue Docker Compose Datei herunterladen
+    # Neue Docker-Compose Datei herunterladen
     new_compose_path = os.path.join(
         os.path.dirname(DOCKER_COMPOSE_FILE), f"docker-compose-{CURRENT_VERSION}.yml"
     )
@@ -170,75 +266,133 @@ def download_and_replace_files(
     if compose_download_url:
         download_file(compose_download_url, new_compose_path)
 
-    status_label.config(text="Update erfolgreich! Anwendung wird neu gestartet...")
+    status_label_.config(text="Update erfolgreich! Anwendung wird neu gestartet...")
     progress_bar.stop()
     update_window.update()
     time.sleep(2)
-    restart_application(status_label, new_exe_path, update_window)
+    restart_application(status_label_, new_exe_path, update_window)
 
 
-def restart_application(status_label, new_exe_path, update_window):
-    """Neustart der Anwendung nach einem Update."""
+def restart_application(status_label_, new_exe_path, update_window):
+    """
+    Beendet die aktuelle Anwendung vollständig und startet die neue EXE.
+    """
     try:
-        # Terminate the current process
-        status_label.config(text="Beende alte Version...")
+        status_label_.config(text="Beende alte Version...")
         update_window.update()
         time.sleep(1)
 
+        # Starte die neue EXE
         subprocess.Popen([new_exe_path])
-        update_window.destroy()  # Close the update window
-        sys.exit()
+
+        # Schließe das Update-Fenster
+        update_window.destroy()
+
+        # Beende die laufende Anwendung (alle Threads)
+        os._exit(0)
+
     except Exception as e:
         print(f"Fehler beim Neustart: {e}")
 
 
-def check_for_updates():
-    """Manuelle Prüfung auf Updates durch den Benutzer."""
-    log_output.insert(tk.END, "Suche nach Updates...\n")
-    log_output.see(tk.END)
-    threading.Thread(target=check_for_updates_background, daemon=True).start()
+# ============================================================================
+#   DOCKER-FUNKTIONEN (START, STOP, PRÜFUNG)
+# ============================================================================
 
 
-# https://stackoverflow.com/a/53605128
-def resource_path(relative_path):
-    """Get absolute path to resource, works for dev and for PyInstaller"""
+def is_docker_running():
+    """
+    Prüft, ob Docker auf dem System läuft. Gibt True/False zurück.
+    """
     try:
-        # PyInstaller creates a temp folder and stores path in _MEIPASS
-        base_path = sys._MEIPASS
-    except Exception:
-        base_path = os.path.abspath(".")
-
-    return os.path.join(base_path, relative_path)
-
-
-docker_compose_file = "docker-compose.prod.yml"
-
-
-def load_config():
-    with open(docker_compose_file, "r", newline="\n") as file:
-        return yaml.safe_load(file)
+        result = subprocess.run(
+            ["docker", "info"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+        return result.returncode == 0
+    except FileNotFoundError:
+        return False
 
 
-def save_config(config):
-    with open(docker_compose_file, "w", newline="\n") as file:
-        yaml.safe_dump(config, file, default_flow_style=False)
+def start_docker_if_needed():
+    """
+    Startet Docker Desktop unter Windows, falls es noch nicht läuft.
+    Wartet im Hintergrund, bis Docker läuft und ruft danach 'start_docker_compose' auf.
+    """
+
+    def docker_thread():
+        if not is_docker_running():
+            root.after(
+                0,
+                lambda: log_output.insert(tk.END, "Docker Desktop wird gestartet...\n"),
+            )
+            root.after(0, log_output.see, tk.END)
+
+            # Docker Desktop starten
+            subprocess.run(
+                ["start", "", "C:\\Program Files\\Docker\\Docker\\Docker Desktop.exe"],
+                shell=True,
+            )
+            time.sleep(10)  # Wartezeit für Docker Desktop-Start
+
+            # Überprüfen, bis Docker läuft
+            while not is_docker_running():
+                time.sleep(5)
+                root.after(
+                    0,
+                    lambda: log_output.insert(tk.END, "Warte auf Docker Desktop...\n"),
+                )
+                root.after(0, log_output.see, tk.END)
+
+            root.after(0, lambda: log_output.insert(tk.END, "Docker Desktop läuft.\n"))
+            root.after(0, log_output.see, tk.END)
+
+        # Sobald Docker läuft, docker-compose aufrufen
+        start_docker_compose()
+
+    threading.Thread(target=docker_thread, daemon=True).start()
 
 
-def open_frontend():
-    config = load_config()
-    frontend_url = config["services"]["api"]["environment"].get(
-        "FRONTEND_URL", "http://localhost:3000"
-    )
-    webbrowser.open(frontend_url)
+def start_docker_compose():
+    """
+    Führt 'docker-compose up -d' aus und setzt den Anwendungsstatus auf "läuft".
+    """
+
+    def update_status():
+        status_label.config(text="Anwendung läuft...", fg="green")
+        stop_button.config(state=tk.NORMAL)
+
+    cmd = f"docker-compose -f {DOCKER_COMPOSE_FILE} up -d --pull always"
+    threading.Thread(target=run_command, args=(cmd, update_status), daemon=True).start()
+
+
+def stop_docker_compose():
+    """
+    Führt 'docker-compose stop' für das definierte Compose-File aus.
+    """
+    subprocess.run(["docker-compose", "-f", DOCKER_COMPOSE_FILE, "stop"])
+
+
+# ============================================================================
+#   FUNKTIONEN FÜR KONFIGURATIONSÄNDERUNGEN
+# ============================================================================
 
 
 def reset_to_defaults():
+    """
+    Setzt die Konfiguration in docker-compose.prod.yml auf Standardwerte zurück.
+    """
     config = load_config()
+
+    # Beispielhafte Defaults – bitte anpassen falls benötigt
     config["services"]["api"]["environment"]["FRONTEND_URL"] = "http://localhost:3000"
     config["services"]["api"]["environment"]["INITIAL_CONTROLLER_PASSWORD"] = "admin"
     config["services"]["web"]["ports"] = ["3000:3000"]
     config["services"]["db"]["environment"]["MYSQL_ROOT_PASSWORD"] = "rootpassword"
     config["services"]["db"]["environment"]["MYSQL_PASSWORD"] = "systempassword"
+
     save_config(config)
     log_output.insert(tk.END, "Standardwerte wurden zurückgesetzt.\n")
     log_output.see(tk.END)
@@ -246,24 +400,72 @@ def reset_to_defaults():
 
 
 def reload_gui_values():
+    """
+    Aktualisiert die Werte in den Eingabefeldern des GUIs, basierend auf
+    dem aktuellen Inhalt der docker-compose.prod.yml.
+    """
     config = load_config()
+
+    # Frontend-Port
     frontend_port_entry.delete(0, tk.END)
     frontend_port_entry.insert(0, config["services"]["web"]["ports"][0].split(":")[0])
+
+    # MySQL-Root-Passwort
     mysql_root_password_entry.delete(0, tk.END)
     mysql_root_password_entry.insert(
         0, config["services"]["db"]["environment"]["MYSQL_ROOT_PASSWORD"]
     )
+
+    # MySQL-Benutzerpasswort
     mysql_user_password_entry.delete(0, tk.END)
     mysql_user_password_entry.insert(
         0, config["services"]["db"]["environment"]["MYSQL_PASSWORD"]
     )
+
+    # Initiales Controller-Passwort
     initial_controller_password_entry.delete(0, tk.END)
     initial_controller_password_entry.insert(
         0, config["services"]["api"]["environment"]["INITIAL_CONTROLLER_PASSWORD"]
     )
 
 
+def update_config():
+    """
+    Liest die Werte aus den Eingabefeldern und speichert sie in der
+    docker-compose.prod.yml ab.
+    """
+    config = load_config()
+
+    frontend_port = frontend_port_entry.get()
+    config["services"]["api"]["environment"]["FRONTEND_URL"] = (
+        "http://localhost:" + frontend_port
+    )
+    config["services"]["web"]["ports"] = [frontend_port + ":3000"]
+    config["services"]["db"]["environment"][
+        "MYSQL_ROOT_PASSWORD"
+    ] = mysql_root_password_entry.get()
+    config["services"]["db"]["environment"][
+        "MYSQL_PASSWORD"
+    ] = mysql_user_password_entry.get()
+    config["services"]["api"]["environment"][
+        "INITIAL_CONTROLLER_PASSWORD"
+    ] = initial_controller_password_entry.get()
+
+    save_config(config)
+    log_output.insert(tk.END, "Konfiguration gespeichert.\n")
+    log_output.see(tk.END)
+
+
+# ============================================================================
+#   HILFSFUNKTIONEN FÜR PROZESSE UND GUI
+# ============================================================================
+
+
 def run_command(command, on_complete=None):
+    """
+    Führt ein Shell-Kommando in einem eigenen Thread aus und leitet stdout/stderr
+    live in das Log-Feld des GUIs.
+    """
     process = subprocess.Popen(
         command,
         shell=True,
@@ -287,67 +489,10 @@ def run_command(command, on_complete=None):
         root.after(100, on_complete)
 
 
-def is_docker_running():
-    try:
-        result = subprocess.run(
-            ["docker", "info"],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-        )
-        return result.returncode == 0
-    except FileNotFoundError:
-        return False
-
-
-def start_docker_if_needed():
-    def docker_thread():
-        if not is_docker_running():
-            root.after(
-                0,
-                lambda: log_output.insert(tk.END, "Docker Desktop wird gestartet...\n"),
-            )
-            root.after(0, log_output.see, tk.END)
-            subprocess.run(
-                ["start", "", "C:\\Program Files\\Docker\\Docker\\Docker Desktop.exe"],
-                shell=True,
-            )
-            time.sleep(10)  # Wartezeit für Docker Desktop-Start
-            while not is_docker_running():
-                time.sleep(5)
-                root.after(
-                    0,
-                    lambda: log_output.insert(tk.END, "Warte auf Docker Desktop...\n"),
-                )
-                root.after(0, log_output.see, tk.END)
-            root.after(0, lambda: log_output.insert(tk.END, "Docker Desktop läuft.\n"))
-            root.after(0, log_output.see, tk.END)
-        start_docker_compose()
-
-    threading.Thread(target=docker_thread, daemon=True).start()
-
-
-def start_docker_compose():
-    def update_status():
-        status_label.config(text="Anwendung läuft...", fg="green")
-        stop_button.config(state=tk.NORMAL)
-
-    threading.Thread(
-        target=run_command,
-        args=(
-            "docker-compose -f " + docker_compose_file + " up -d --pull always",
-            update_status,
-        ),
-    ).start()
-
-
-def start_application():
-    status_label.config(text="Anwendung startet...", fg="red")
-    disable_action_buttons()
-    start_docker_if_needed()
-
-
 def disable_action_buttons():
+    """
+    Deaktiviert alle Aktions-Buttons (Start, Stop, Speichern, Reset, Update).
+    """
     start_button.config(state=tk.DISABLED)
     stop_button.config(state=tk.DISABLED)
     save_button.config(state=tk.DISABLED)
@@ -356,6 +501,9 @@ def disable_action_buttons():
 
 
 def enable_action_buttons():
+    """
+    Aktiviert alle Aktions-Buttons (Start, Stop, Speichern, Reset, Update).
+    """
     start_button.config(state=tk.NORMAL)
     stop_button.config(state=tk.NORMAL)
     save_button.config(state=tk.NORMAL)
@@ -363,7 +511,21 @@ def enable_action_buttons():
     update_button.config(state=tk.NORMAL)
 
 
+def start_application():
+    """
+    Wird aufgerufen, wenn der Benutzer 'Anwendung starten' klickt.
+    Docker wird ggf. gestartet, danach wird 'docker-compose up' ausgeführt.
+    """
+    status_label.config(text="Anwendung startet...", fg="red")
+    disable_action_buttons()
+    start_docker_if_needed()
+
+
 def stop_application():
+    """
+    Wird aufgerufen, wenn der Benutzer 'Anwendung stoppen' klickt.
+    Führt 'docker-compose stop' aus und aktualisiert den Anwendungsstatus.
+    """
     status_label.config(text="Anwendung wird gestoppt...", fg="red")
     disable_action_buttons()
 
@@ -372,81 +534,85 @@ def stop_application():
         enable_action_buttons()
         stop_button.config(state=tk.DISABLED)
 
-    threading.Thread(
-        target=run_command,
-        args=("docker-compose -f " + docker_compose_file + " stop", update_status),
-    ).start()
+    cmd = f"docker-compose -f {DOCKER_COMPOSE_FILE} stop"
+    threading.Thread(target=run_command, args=(cmd, update_status), daemon=True).start()
 
 
-def update_config():
+def open_frontend():
+    """
+    Öffnet das im docker-compose.prod.yml hinterlegte FRONTEND_URL im Standardbrowser.
+    """
     config = load_config()
-    frontend_port = frontend_port_entry.get()
-    config["services"]["api"]["environment"]["FRONTEND_URL"] = (
-        "http://localhost:" + frontend_port
+    frontend_url = config["services"]["api"]["environment"].get(
+        "FRONTEND_URL", "http://localhost:3000"
     )
-    config["services"]["web"]["ports"] = [frontend_port + ":3000"]
-    config["services"]["db"]["environment"][
-        "MYSQL_ROOT_PASSWORD"
-    ] = mysql_root_password_entry.get()
-    config["services"]["db"]["environment"][
-        "MYSQL_PASSWORD"
-    ] = mysql_user_password_entry.get()
-    config["services"]["api"]["environment"][
-        "INITIAL_CONTROLLER_PASSWORD"
-    ] = initial_controller_password_entry.get()
-    save_config(config)
-    log_output.insert(tk.END, "Konfiguration gespeichert.\n")
-    log_output.see(tk.END)
+    webbrowser.open(frontend_url)
+
+
+def on_closing():
+    """
+    Callback, der beim Schließen des Hauptfensters aufgerufen wird.
+    Stoppt vorsichtshalber Docker-Container und zerstört das Fenster.
+    """
+    stop_docker_compose()
+    root.destroy()
+
+
+# ============================================================================
+#   GUI-AUFBAU
+# ============================================================================
 
 
 def create_gui():
-    global log_output, status_label, root, start_button, stop_button, save_button, reset_button, update_button
+    """
+    Erzeugt das Hauptfenster der Anwendung (Tkinter) und initialisiert
+    alle Bedienelemente.
+    """
+    global root, log_output, status_label
+    global start_button, stop_button, save_button, reset_button, update_button
     global frontend_port_entry, mysql_root_password_entry, mysql_user_password_entry, initial_controller_password_entry
-    config = load_config()
 
     root = tk.Tk()
     root.title(f"Deputatsverwaltung Boot Manager - v{CURRENT_VERSION}")
     root.geometry("600x530")
 
+    # Statuslabel
     status_label = tk.Label(root, text="Anwendung nicht gestartet", fg="red")
     status_label.pack()
 
+    # Button zum Öffnen der Anwendung im Browser
     open_browser_button = tk.Button(
         root, text="Deputatsverwaltung im Browser öffnen", command=open_frontend
     )
     open_browser_button.pack(pady=5)
 
+    # Button für manuelle Update-Prüfung
     update_button = tk.Button(
         root, text="Nach Updates suchen", command=check_for_updates
     )
     update_button.pack(pady=5)
 
+    # Frontend-Port
     tk.Label(root, text="Frontend Port (Web)").pack()
     frontend_port_entry = tk.Entry(root)
-    frontend_port_entry.insert(0, config["services"]["web"]["ports"][0].split(":")[0])
     frontend_port_entry.pack()
 
+    # MySQL Root Passwort
     tk.Label(root, text="MySQL Root Password").pack()
     mysql_root_password_entry = tk.Entry(root)
-    mysql_root_password_entry.insert(
-        0, config["services"]["db"]["environment"]["MYSQL_ROOT_PASSWORD"]
-    )
     mysql_root_password_entry.pack()
 
+    # MySQL User Passwort
     tk.Label(root, text="MySQL User Password").pack()
     mysql_user_password_entry = tk.Entry(root)
-    mysql_user_password_entry.insert(
-        0, config["services"]["db"]["environment"]["MYSQL_PASSWORD"]
-    )
     mysql_user_password_entry.pack()
 
+    # Initiales Controller-Passwort
     tk.Label(root, text="Initial Controller Password").pack()
     initial_controller_password_entry = tk.Entry(root)
-    initial_controller_password_entry.insert(
-        0, config["services"]["api"]["environment"]["INITIAL_CONTROLLER_PASSWORD"]
-    )
     initial_controller_password_entry.pack()
 
+    # Frame für Speichern und Reset
     button_frame = tk.Frame(root)
     button_frame.pack(pady=5)
 
@@ -458,6 +624,7 @@ def create_gui():
     )
     reset_button.pack(side=tk.RIGHT, padx=10)
 
+    # Frame für Start/Stopp
     button_frame2 = tk.Frame(root)
     button_frame2.pack(pady=5)
 
@@ -474,24 +641,36 @@ def create_gui():
     )
     stop_button.pack(side=tk.RIGHT, padx=10)
 
+    # Konsolenausgabe
     tk.Label(root, text="Konsolenausgabe:").pack()
     log_output = tk.Text(root, height=10, width=70)
     log_output.pack()
 
+    # Automatisch beim Starten nach Updates suchen
     root.after(100, check_for_updates_background)
+
+    # Konfigurationswerte in die GUI-Felder laden
+    reload_gui_values()
+
+    # Eventhandler für das Schließen des Fensters
+    root.protocol("WM_DELETE_WINDOW", on_closing)
+
+    # Haupt-Loop starten
     root.mainloop()
 
 
-def stop_docker_compose():
-    subprocess.run(["docker-compose", "-f", docker_compose_file, "stop"])
+# ============================================================================
+#   PROGRAMMEINSTIEG
+# ============================================================================
 
 
-def on_closing():
+@atexit.register
+def cleanup_on_exit():
+    """
+    Stellt sicher, dass beim Beenden des Programms die Docker-Container gestoppt werden.
+    """
     stop_docker_compose()
-    root.destroy()
 
-
-atexit.register(stop_docker_compose)
 
 if __name__ == "__main__":
     create_gui()
