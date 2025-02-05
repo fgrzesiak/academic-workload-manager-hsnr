@@ -10,7 +10,7 @@ services:
     environment:
       DATABASE_URL: mysql://system:systempassword@db:3306/core
       FIRST_CONTROLLER_FIRSTNAME: Admin
-      FIRST_CONTROLLER_LASTNAME: User
+      FIRST_CONTROLLER_LASTNAME: Admin
       FIRST_CONTROLLER_PASSWORD: admin
       FIRST_CONTROLLER_USERNAME: admin
       FRONTEND_URL: http://localhost:3000

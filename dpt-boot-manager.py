@@ -78,8 +78,91 @@ toggle_button = None
 app_is_running = False  # Merkt sich, ob die Anwendung aktuell läuft
 
 
+# ------------------------------------------------------
+# Konfiguration: Nur Felder, die der Benutzer direkt ändern darf
+# ------------------------------------------------------
+CONFIG_SCHEMA = [
+    {
+        "group_name": "Web-Einstellungen",
+        "fields": [
+            {
+                "label_text": "Frontend Port (Web)",
+                "compose_path": ("services", "web", "ports", 0),
+                "default": "3000",
+                "extract": lambda val: val.split(":")[0] if ":" in val else val,
+                "inject": lambda old_val, new_val: f"{new_val}:3000",
+            },
+        ],
+    },
+    {
+        "group_name": "Datenbank-Einstellungen",
+        "fields": [
+            {
+                "label_text": "MySQL Root Passwort",
+                "compose_path": (
+                    "services",
+                    "db",
+                    "environment",
+                    "MYSQL_ROOT_PASSWORD",
+                ),
+                "default": "rootpassword",
+            },
+            {
+                "label_text": "MySQL System Passwort (API)",
+                "compose_path": ("services", "db", "environment", "MYSQL_PASSWORD"),
+                "default": "systempassword",
+            },
+        ],
+    },
+    {
+        "group_name": "Admin-Controller",
+        "fields": [
+            {
+                "label_text": "Nutzername",
+                "compose_path": (
+                    "services",
+                    "api",
+                    "environment",
+                    "FIRST_CONTROLLER_USERNAME",
+                ),
+                "default": "admin",
+            },
+            {
+                "label_text": "Passwort",
+                "compose_path": (
+                    "services",
+                    "api",
+                    "environment",
+                    "FIRST_CONTROLLER_PASSWORD",
+                ),
+                "default": "admin",
+            },
+            {
+                "label_text": "Vorname",
+                "compose_path": (
+                    "services",
+                    "api",
+                    "environment",
+                    "FIRST_CONTROLLER_FIRSTNAME",
+                ),
+                "default": "Admin",
+            },
+            {
+                "label_text": "Nachname",
+                "compose_path": (
+                    "services",
+                    "api",
+                    "environment",
+                    "FIRST_CONTROLLER_LASTNAME",
+                ),
+                "default": "Admin",
+            },
+        ],
+    },
+]
+
 # ============================================================================
-#   KONFIGURATION LADEN / SPEICHERN
+#   KONFIGURATION LADEN / SPEICHERN, geschaltete Pfade auslesen/setzen
 # ============================================================================
 
 
@@ -97,6 +180,73 @@ def save_config(config):
     """
     with open(DOCKER_COMPOSE_FILE, "w", newline="\n") as file:
         yaml.safe_dump(config, file, default_flow_style=False)
+
+
+def get_nested(dct, path):
+    """
+    Holt rekursiv den Wert aus dem Dictionary 'dct' für den angegebenen Pfad,
+    z.B. path = ("services", "db", "environment", "MYSQL_ROOT_PASSWORD").
+    """
+    current = dct
+    for key in path:
+        current = current[key]
+    return current
+
+
+def set_nested(dct, path, value):
+    """
+    Setzt rekursiv den Wert in 'dct' für den angegebenen Pfad.
+    """
+    *parents, last = path
+    current = dct
+    for key in parents:
+        current = current[key]
+    current[last] = value
+
+
+# ------------------------------------------------------
+# Funktion zum Anpassen abhängiger Werte
+# ------------------------------------------------------
+def fix_dependent_values(config):
+    """
+    Sorgt dafür, dass Abhängigkeiten (Port -> FRONTEND_URL, Root PW -> DATABASE_URL usw.)
+    nach dem Speichern der GUI-Werte automatisch konsistent sind.
+    """
+    # FRONTEND_URL an den Port anpassen
+    # Wir lesen die "services.web.ports[0]" -> extrahieren den Port.
+    try:
+        web_port_full = get_nested(
+            config, ("services", "web", "ports", 0)
+        )  # z.B. "8080:3000"
+        web_port = web_port_full.split(":")[0]
+        # Dann setzen wir in "services.api.environment.FRONTEND_URL" den Port.
+        config["services"]["api"]["environment"][
+            "FRONTEND_URL"
+        ] = f"http://localhost:{web_port}"
+    except KeyError:
+        pass
+
+    # DATABASE_URL basierend auf Root Password
+    # Wir speichern root PW in "services.db.environment.MYSQL_ROOT_PASSWORD"
+    # und wollen die Prisma-DB-Connection "services.prisma.environment.DATABASE_URL" anpassen.
+    try:
+        root_pw = get_nested(
+            config, ("services", "db", "environment", "MYSQL_ROOT_PASSWORD")
+        )
+        new_db_url = f"mysql://root:{root_pw}@db:3306/core"
+        config["services"]["prisma"]["environment"]["DATABASE_URL"] = new_db_url
+    except KeyError:
+        pass
+
+    # API-Datenbank-URL anpassen
+    try:
+        api_db_pw = get_nested(
+            config, ("services", "db", "environment", "MYSQL_PASSWORD")
+        )
+        new_api_db_url = f"mysql://system:{api_db_pw}@db:3306/core"
+        config["services"]["api"]["environment"]["DATABASE_URL"] = new_api_db_url
+    except KeyError:
+        pass
 
 
 # ============================================================================
@@ -429,104 +579,75 @@ def stop_docker_compose():
 # ============================================================================
 
 
-def reset_to_defaults():
-    """
-    Setzt die Konfiguration in der versionierten Compose-Datei auf Standardwerte zurück.
-    """
-    config = load_config()
-    config["services"]["api"]["environment"]["FRONTEND_URL"] = "http://localhost:3000"
-    config["services"]["api"]["environment"]["FIRST_CONTROLLER_USERNAME"] = "admin"
-    config["services"]["api"]["environment"]["FIRST_CONTROLLER_PASSWORD"] = "admin"
-    config["services"]["api"]["environment"]["FIRST_CONTROLLER_FIRSTNAME"] = "Admin"
-    config["services"]["api"]["environment"]["FIRST_CONTROLLER_LASTNAME"] = "User"
-    config["services"]["web"]["ports"] = ["3000:3000"]
-    config["services"]["db"]["environment"]["MYSQL_ROOT_PASSWORD"] = "rootpassword"
-    config["services"]["db"]["environment"]["MYSQL_PASSWORD"] = "systempassword"
-
-    save_config(config)
-    log_output.insert(tk.END, "Standardwerte wurden wiederhergestellt.\n")
-    log_output.see(tk.END)
-    reload_gui_values()
-
-
 def reload_gui_values():
-    """
-    Aktualisiert die Werte in den Eingabefeldern des GUIs, basierend auf
-    dem aktuellen Inhalt der versionierten docker-compose-Datei.
-    """
+    """Lädt die Konfiguration und füllt die Einträge."""
     config = load_config()
 
-    # Frontend-Port
-    frontend_port_entry.delete(0, tk.END)
-    frontend_port_entry.insert(0, config["services"]["web"]["ports"][0].split(":")[0])
+    for field_info in field_widgets:
+        path = field_info["compose_path"]
+        raw_value = get_nested(config, path)
 
-    # MySQL-Root-Passwort
-    mysql_root_password_entry.delete(0, tk.END)
-    mysql_root_password_entry.insert(
-        0, config["services"]["db"]["environment"]["MYSQL_ROOT_PASSWORD"]
-    )
+        # Wenn es eine Extract-Funktion gibt, anwenden
+        if field_info["extract"] is not None:
+            raw_value = field_info["extract"](raw_value)
 
-    # MySQL-Benutzerpasswort
-    mysql_api_password_entry.delete(0, tk.END)
-    mysql_api_password_entry.insert(
-        0, config["services"]["db"]["environment"]["MYSQL_PASSWORD"]
-    )
-
-    # Admin-Controller-Daten
-    first_controller_username_entry.delete(0, tk.END)
-    first_controller_username_entry.insert(
-        0, config["services"]["api"]["environment"]["FIRST_CONTROLLER_USERNAME"]
-    )
-    first_controller_password_entry.delete(0, tk.END)
-    first_controller_password_entry.insert(
-        0, config["services"]["api"]["environment"]["FIRST_CONTROLLER_PASSWORD"]
-    )
-    first_controller_firstname_entry.delete(0, tk.END)
-    first_controller_firstname_entry.insert(
-        0, config["services"]["api"]["environment"]["FIRST_CONTROLLER_FIRSTNAME"]
-    )
-    first_controller_lastname_entry.delete(0, tk.END)
-    first_controller_lastname_entry.insert(
-        0, config["services"]["api"]["environment"]["FIRST_CONTROLLER_LASTNAME"]
-    )
+        field_info["var"].set(str(raw_value))
 
 
 def update_config():
-    """
-    Liest die Werte aus den Eingabefeldern und speichert sie in der
-    versionierten docker-compose-Datei ab.
-    """
+    """Liest die GUI-Werte und speichert sie ins Compose. Anschließend abhängige Felder aktualisieren."""
     config = load_config()
 
-    frontend_port = frontend_port_entry.get()
-    config["services"]["api"]["environment"][
-        "FRONTEND_URL"
-    ] = f"http://localhost:{frontend_port}"
-    config["services"]["web"]["ports"] = [f"{frontend_port}:3000"]
-    config["services"]["db"]["environment"][
-        "MYSQL_ROOT_PASSWORD"
-    ] = mysql_root_password_entry.get()
-    config["services"]["db"]["environment"][
-        "MYSQL_PASSWORD"
-    ] = mysql_api_password_entry.get()
+    # 1) Felder ins config schreiben
+    for field_info in field_widgets:
+        path = field_info["compose_path"]
+        gui_value = field_info["var"].get()
 
-    # Admin-Controller-Daten
-    config["services"]["api"]["environment"][
-        "FIRST_CONTROLLER_USERNAME"
-    ] = first_controller_username_entry.get()
-    config["services"]["api"]["environment"][
-        "FIRST_CONTROLLER_PASSWORD"
-    ] = first_controller_password_entry.get()
-    config["services"]["api"]["environment"][
-        "FIRST_CONTROLLER_FIRSTNAME"
-    ] = first_controller_firstname_entry.get()
-    config["services"]["api"]["environment"][
-        "FIRST_CONTROLLER_LASTNAME"
-    ] = first_controller_lastname_entry.get()
+        if field_info["inject"]:
+            old_value = get_nested(config, path)
+            new_value = field_info["inject"](old_value, gui_value)
+        else:
+            new_value = gui_value
 
+        set_nested(config, path, new_value)
+
+    # 2) Abhängigkeiten korrigieren
+    fix_dependent_values(config)
+
+    # 3) Speichern
     save_config(config)
     log_output.insert(tk.END, "Konfiguration gespeichert.\n")
     log_output.see(tk.END)
+
+    # Bei Bedarf GUI neu laden, um auch die sichtbaren Felder zu aktualisieren (falls abhängig)
+    # reload_gui_values()
+
+
+def reset_to_defaults():
+    """Schreibt in alle Felder den in CONFIG_SCHEMA definierten Default-Wert."""
+    config = load_config()
+
+    for field_info in field_widgets:
+        path = field_info["compose_path"]
+        default = field_info["default"]
+
+        # Falls es eine Inject-Funktion gibt, sollte man u.U. den alten Wert
+        # (z.B. "3000:3000") zusammenbauen. Hier vereinfachtes Beispiel:
+        if field_info["inject"] is not None:
+            old_value = get_nested(config, path)
+            default = field_info["inject"](old_value, default)
+
+        set_nested(config, path, default)
+
+    # Abhängigkeiten aktualisieren
+    fix_dependent_values(config)
+
+    save_config(config)
+    log_output.insert(tk.END, "Standardwerte wiederhergestellt.\n")
+    log_output.see(tk.END)
+
+    # Anschließend GUI neu laden, um auch die sichtbaren Felder zu aktualisieren
+    reload_gui_values()
 
 
 # ============================================================================
@@ -662,15 +783,20 @@ def create_gui():
     Erzeugt ein schlankes, optisch ansprechendes Hauptfenster
     für die Anwendung (Tkinter) und initialisiert alle Bedienelemente.
     """
-    global root, log_output
+    global root, log_output, field_widgets
     global update_button, toggle_button, save_button, reset_button
     global frontend_port_entry, mysql_root_password_entry, mysql_api_password_entry
     global first_controller_username_entry, first_controller_password_entry, first_controller_firstname_entry, first_controller_lastname_entry
 
     root = tk.Tk()
     root.title(f"Deputatsverwaltung Boot Manager - {CURRENT_VERSION}")
-    root.geometry("600x600")
+    root.geometry("600x700")
     root.resizable(False, False)
+
+    # Wir halten eine Mapping: field_dict[(group_idx, field_idx)] = entry_widget
+    # oder einfach in einer Liste in gleicher Reihenfolge,
+    # oder noch besser: wir packen pro Feld ein kleines Objekt (dict).
+    field_widgets = []  # Speichert pro Feld ein Dict: {"schema":..., "entry":...}
 
     # sun-valley-ttk Theme auswählen (dark oder light je nach OS).
     sv_ttk.set_theme(darkdetect.theme())
@@ -683,7 +809,7 @@ def create_gui():
     style.configure("IsLatest.TButton", foreground="sea green")
 
     main_frame = ttk.Frame(root)
-    main_frame.pack(padx=20, pady=20, fill="both", expand=True)
+    main_frame.pack(padx=20, pady=(5, 20), fill="both", expand=True)
 
     title_label = ttk.Label(
         main_frame,
@@ -701,71 +827,54 @@ def create_gui():
     )
     update_button.pack(pady=5)
 
-    # Config-Frame
-    config_frame = ttk.Frame(main_frame)
-    config_frame.pack(pady=10)
+    # Dynamisch Gruppen erzeugen
+    for group_def in CONFIG_SCHEMA:
+        group_frame = ttk.LabelFrame(main_frame, text=group_def["group_name"])
+        group_frame.pack(fill="x", pady=5)
+        group_margin_frame = ttk.Frame(group_frame)
+        group_margin_frame.pack(fill="both", expand=True, padx=5, pady=5)
 
-    ttk.Label(
-        config_frame, text="Frontend Port (Web)", font=("Arial", 10, "bold")
-    ).grid(row=0, column=0, sticky="w")
-    frontend_port_entry = ttk.Entry(config_frame)
-    frontend_port_entry.grid(row=0, column=1, padx=10, pady=5)
+        for field_def in group_def["fields"]:
+            row_frame = ttk.Frame(group_margin_frame)
+            row_frame.pack(fill="x", padx=5, pady=2)
 
-    ttk.Label(
-        config_frame, text="MySQL Root Password", font=("Arial", 10, "bold")
-    ).grid(row=1, column=0, sticky="w")
-    mysql_root_password_entry = ttk.Entry(config_frame)
-    mysql_root_password_entry.grid(row=1, column=1, padx=10, pady=5)
+            label = ttk.Label(row_frame, text=field_def["label_text"], width=30)
+            label.pack(side=tk.LEFT)
 
-    ttk.Label(
-        config_frame, text="MySQL System Password (API)", font=("Arial", 10, "bold")
-    ).grid(row=2, column=0, sticky="w")
-    mysql_api_password_entry = ttk.Entry(config_frame)
-    mysql_api_password_entry.grid(row=2, column=1, padx=10, pady=5)
+            entry_var = tk.StringVar()
+            entry = ttk.Entry(row_frame, textvariable=entry_var, width=30)
+            entry.pack(side=tk.LEFT)
 
-    tk.Label(
-        config_frame, text="Admin Controller Username", font=("Arial", 10, "bold")
-    ).grid(row=3, column=0, sticky="w")
-    first_controller_username_entry = ttk.Entry(config_frame)
-    first_controller_username_entry.grid(row=3, column=1, padx=10, pady=5)
-
-    ttk.Label(
-        config_frame, text="Admin Controller Password", font=("Arial", 10, "bold")
-    ).grid(row=4, column=0, sticky="w")
-    first_controller_password_entry = ttk.Entry(config_frame)
-    first_controller_password_entry.grid(row=4, column=1, padx=10, pady=5)
-
-    ttk.Label(
-        config_frame, text="Admin Controller Firstname", font=("Arial", 10, "bold")
-    ).grid(row=5, column=0, sticky="w")
-    first_controller_firstname_entry = ttk.Entry(config_frame)
-    first_controller_firstname_entry.grid(row=5, column=1, padx=10, pady=5)
-
-    ttk.Label(
-        config_frame, text="Admin Controller Lastname", font=("Arial", 10, "bold")
-    ).grid(row=6, column=0, sticky="w")
-    first_controller_lastname_entry = ttk.Entry(config_frame)
-    first_controller_lastname_entry.grid(row=6, column=1, padx=10, pady=5)
+            # Wir speichern alle Informationen über dieses Feld
+            field_info = {
+                "label_text": field_def["label_text"],
+                "compose_path": field_def["compose_path"],
+                "default": field_def["default"],
+                "extract": field_def.get("extract"),
+                "inject": field_def.get("inject"),
+                "var": entry_var,
+            }
+            field_widgets.append(field_info)
 
     # Parent Frame für die unteren Buttons
     bottom_actions_buttons = ttk.Frame(main_frame)
-    bottom_actions_buttons.pack(pady=5, fill="x")
+    bottom_actions_buttons.pack(pady=(0, 5), fill="x")
 
     # Frame für Save/Reset buttons
     config_buttons = ttk.Frame(bottom_actions_buttons)
-    config_buttons.pack(fill="x", expand=True, padx=10, pady=5)
+    config_buttons.pack(fill="x", expand=True, pady=5)
 
     save_button = ttk.Button(config_buttons, text="Speichern", command=update_config)
-    save_button.pack(side=tk.LEFT, fill="x", expand=True, padx=5)
+    save_button.pack(side=tk.LEFT, fill="x", expand=True, padx=(0, 5))
 
     reset_button = ttk.Button(
         config_buttons, text="Standardwerte wiederherstellen", command=reset_to_defaults
     )
-    reset_button.pack(side=tk.LEFT, fill="x", expand=True, padx=5)
+    reset_button.pack(side=tk.LEFT, fill="x", expand=True)
 
     # Frame für Start/Open Browser buttons
     start_open_frame = ttk.Frame(bottom_actions_buttons)
-    start_open_frame.pack(fill="x", expand=True, padx=10, pady=5)
+    start_open_frame.pack(fill="x", expand=True)
 
     # Toggle Start/Stop Button
     toggle_button = ttk.Button(
@@ -774,20 +883,33 @@ def create_gui():
         command=toggle_start_stop,
         style="UpdateBlue.TButton",
     )
-    toggle_button.pack(side=tk.LEFT, fill="x", expand=True, padx=5)
+    toggle_button.pack(side=tk.LEFT, fill="x", expand=True, padx=(0, 5))
 
     # Open in Browser Button
     open_browser_button = ttk.Button(
         start_open_frame,
-        text="Deputatsverwaltung im Browser öffnen",
+        text="Anwendung im Browser öffnen",
         command=open_frontend,
     )
-    open_browser_button.pack(side=tk.LEFT, fill="x", expand=True, padx=5)
+    open_browser_button.pack(side=tk.LEFT, fill="x", expand=True)
 
-    ttk.Label(main_frame, text="Konsolenausgabe:", font=("Arial", 10, "bold")).pack(
-        pady=5
+    console_frame = ttk.LabelFrame(main_frame, text="Konsolenausgabe")
+    console_frame.pack(fill="x")
+    console_margin_frame = ttk.Frame(console_frame)
+    console_margin_frame.pack(fill="both", expand=True, padx=5, pady=5)
+
+    log_text = tk.Text(
+        console_margin_frame,
+        height=12,
+        width=70,
+        relief="solid",
+        padx=5,
+        pady=5,
+        border=0,
+        highlightthickness=0,
+        wrap="word",
     )
-    log_text = tk.Text(main_frame, height=12, width=70, relief="solid", borderwidth=1)
+    log_text.bind("<Key>", lambda e: "break")  # Disable editing
     log_text.pack()
 
     global log_output
