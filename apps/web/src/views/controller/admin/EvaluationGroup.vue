@@ -173,16 +173,16 @@ onBeforeMount(() => {
             </Column>
 
             <!-- Name Column -->
-            <Column field="name" header="Name" style="min-width: 10rem">
-                <template #body="{ data }">{{ data.name }}</template>
+            <Column field="groupName" header="Name" style="min-width: 3rem">
+                <template #body="{ data }">{{ data.groupName }}</template>
                 <template #editor="{ data, field }">
                     <InputText v-model="data[field]" fluid />
                 </template>
             </Column>
 
             <!-- Description Column -->
-            <Column field="description" header="Beschreibung" style="min-width: 10rem">
-                <template #body="{ data }">{{ data.description }}</template>
+            <Column field="groupDescription" header="Beschreibung" style="min-width: 15rem">
+                <template #body="{ data }">{{ data.groupDescription }}</template>
                 <template #editor="{ data, field }">
                     <InputText v-model="data[field]" fluid />
                 </template>
