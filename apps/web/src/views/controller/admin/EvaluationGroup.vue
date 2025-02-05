@@ -60,6 +60,7 @@ const onCreateTeachingGroupFormSubmit = async ({ valid, states }: FormSubmitEven
     if (valid) {
         newTeachingGroupSubmitted.value = true
         const newTeachingGroup = getFormStatesAsType<ICreateTeachingGroupRequest>(states)
+        newTeachingGroup.groupBalance = 0
         TeachingGroupService.createTeachingGroup(newTeachingGroup).then((res) => {
             const { data, error } = res
             if (error) {
