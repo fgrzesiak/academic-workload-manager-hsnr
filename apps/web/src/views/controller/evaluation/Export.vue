@@ -3,17 +3,20 @@ import { onBeforeMount, ref, computed } from 'vue'
 import TeachingDutyService from '@/service/teachingDuty.service'
 import TeacherService from '@/service/teacher.service'
 import SemesterService from '@/service/semester.service'
+import TeachingGroupService from '@/service/teachingGroup.service'
 import EvaluationSettingsService from '@/service/evaluationSettings.service'
 import {
     ISemesterResponse,
     ITeacherResponse,
     ITeachingDutyResponse,
+    ITeachingGroupResponse,
 } from '@workspace/shared'
 import { useToast } from 'primevue/usetoast'
 
 const teachers = ref<ITeacherResponse[]>([])
 const semesters = ref<ISemesterResponse[]>([])
 const deputats = ref<ITeachingDutyResponse[]>([])
+const groups = ref<ITeachingGroupResponse[]>([])
 const loading = ref(false)
 const toast = useToast()
 
@@ -31,6 +34,18 @@ onBeforeMount(() => {
         } else {
             deputats.value = data.map((deputat: ITeachingDutyResponse) => {
                 return deputat
+            })
+        }
+    })
+
+    //loading teacher groups
+    TeachingGroupService.getTeachingGroups().then((res) => {
+        const { data, error } = res
+        if (error) {
+            console.warn('[Export] Couldn`t load teaching groups')
+        } else {
+            groups.value = data.map((group: ITeachingGroupResponse) => {
+                return group
             })
         }
     })
@@ -97,12 +112,14 @@ onBeforeMount(() => {
 type RowData = {
     [key: number]: number | null // values for each semester
     name: string // teacher's name
+    groupName: string // group name
 }
 
 const tableData = computed(() => {
     return teachers.value.map((teacher) => {
         const rowData: RowData = {
             name: `${teacher.user.lastName}`,
+            groupName: getGroupName(teacher.teachingGroupId) // assuming teacher has a groupId property
         }
 
         // add sumBalance for each semester
@@ -129,10 +146,16 @@ const getSemesterName = (id: number) => {
     return semester ? semester.name : 'Unknown'
 }
 
+const getGroupName = (id: number) => {
+    const group = groups.value.find((s) => s.id === id)
+    return group ? group.groupName : 'Unknown'
+}
+
 const exportCSV = () => {
-    // create header (name + semester names)
+    // create header (name + group name + semester names)
     const headers = [
         'Name',
+        'Gruppe',
         ...semesters.value.map((semester) => getSemesterName(semester.id)),
     ]
 
@@ -140,6 +163,7 @@ const exportCSV = () => {
     const rows = tableData.value.map((row) => {
         return [
             row.name,
+            row.groupName,
             ...semesters.value.map((semester) => row[semester.id] || 0),
         ]
     })
@@ -186,6 +210,11 @@ const exportCSV = () => {
             <Column
                 field="name"
                 header="Lehrperson"
+                :style="{ minWidth: '150px' }"
+            />
+            <Column
+                field="groupName"
+                header="Gruppe"
                 :style="{ minWidth: '150px' }"
             />
 
