@@ -196,7 +196,6 @@ onBeforeMount(() => {
             })
         } else {
             updateUsers(data)
-            console.log(data)
         }
     })
 

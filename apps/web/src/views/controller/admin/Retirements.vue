@@ -48,6 +48,13 @@ const calculateRemainingDays = (retirementDate: string | Date) => {
     return daysDiff
 }
 
+// Utility to convert days to years and months
+const convertDaysToYearsMonths = (days: number) => {
+    const years = Math.floor(days / 365)
+    const months = Math.floor((days % 365) / 30)
+    return `${years} Jahre ${months} Monate`
+}
+
 // Computed property to sort teachers by remaining days until retirement
 const sortedTeachers = computed(() => {
     return teachers.value
@@ -97,8 +104,34 @@ const sortedTeachers = computed(() => {
             </Column>
 
             <!-- Remaining Days Column -->
-            <Column field="remainingDays" header="Verbleibende Tage" style="min-width: 8rem" sortable>
-                <template #body="{ data }">{{ data.remainingDays }}</template>
+            <Column field="remainingDays" header="Verbleibende Tage" style="min-width: 8rem; justify-content: space-between" sortable>
+                <template #body="{ data }">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div style="display: flex; flex-basis: 50%; justify-content: space-between; align-items: center;">
+                            <span>{{ data.remainingDays }}</span>
+                            <span><i>(ca. {{ convertDaysToYearsMonths(data.remainingDays) }})</i></span>
+                        </div>
+                        <div
+                                v-if="
+                                    data.remainingDays < 3660
+                                "
+                                :style="{
+                                    color: 'white',
+                                    fontWeight: 'bold',
+                                    backgroundColor: 'orange',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    padding: '0 8px',
+                                }"
+                            >
+                                <span>Warnung: Bevorstehender Ruhestand</span>
+                                <i
+                                    class="pi pi-exclamation-triangle"
+                                    style="margin-left: 8px"
+                                ></i>
+                            </div>
+                        </div>
+                </template>
             </Column>
 
         </DataTable>
