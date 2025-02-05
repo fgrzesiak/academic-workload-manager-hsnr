@@ -7,7 +7,10 @@ export type ITeacherResponse = ITeacher & {
   user: Pick<IUserResponse, "firstName" | "lastName" | "username">;
 };
 
-export type ICreateTeacherRequest = Pick<ITeacher, "retirementDate">;
+export type ICreateTeacherRequest = Pick<
+  ITeacher,
+  "retirementDate" | "totalTeachingDuty" | "teachingGroupId"
+>;
 
 // class representing a teacher, including methods for initialization and data handling
 export class Teacher implements ITeacher {

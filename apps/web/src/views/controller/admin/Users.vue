@@ -52,6 +52,8 @@ const teacherSchema = z.object({
     firstName: z.string().trim().min(1).max(30),
     lastName: z.string().trim().min(1).max(30),
     'relation.retirementDate': z.date(),
+    'relation.totalTeachingDuty': z.number(),
+    'relation.teachingGroupId': z.number(),
     role: z.literal(UserRole.TEACHER),
 })
 
@@ -94,6 +96,8 @@ const getNewUserValues = (): z.infer<
               'relation.retirementDate': new Date(
                   new Date().setFullYear(new Date().getFullYear() + 10)
               ),
+              'relation.totalTeachingDuty': 0,
+              'relation.teachingGroupId': 0, // TODO: Add teaching group selection
               role: UserRole.TEACHER,
               isPasswordTemporary: true,
           }

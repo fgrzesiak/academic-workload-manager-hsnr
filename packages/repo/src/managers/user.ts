@@ -68,13 +68,18 @@ export class UserManager {
   // create a new user, along with their Teacher or Controller relation based on the role
   async create(user: ICreateUserRequest): Promise<User> {
     const { role, relation, ...rest } = user;
-
     const result = await this.prisma.user.create({
       data: {
         role,
         ...rest,
         ...(role === Role.TEACHER && relation
-          ? { Teacher: { create: { totalTeachingDuty: 0, ...relation } } }
+          ? {
+              Teacher: {
+                create: {
+                  ...relation,
+                },
+              },
+            }
           : { Controller: { create: {} } }),
       },
     });
