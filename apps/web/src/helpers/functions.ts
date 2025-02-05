@@ -32,25 +32,25 @@ export const getObjectAsSelectOptions = (obj: {
 export const getFormStatesAsType = <T>(
     states: Record<string, FormFieldState>
 ): T => {
-    return Object.fromEntries(
-        Object.entries(states).map(([key, state]) => {
-            //if key is string with dot, split and set nested object
-            const keys = key.split('.')
-            if (keys.length > 1) {
-                const [firstKey, ...restKeys] = keys
-                return [
-                    firstKey,
-                    {
-                        ...getFormStatesAsType({
-                            [restKeys.join('.')]: state,
-                        }),
-                    },
-                ]
+    const result: any = {}
+
+    Object.entries(states).forEach(([key, state]) => {
+        const keys = key.split('.')
+        let current = result
+
+        keys.forEach((k, index) => {
+            if (index === keys.length - 1) {
+                current[k] = state.value // Assign final value
+            } else {
+                current[k] = current[k] || {} // Ensure nested object exists
+                current = current[k]
             }
-            return [key, state.value]
         })
-    ) as T
+    })
+
+    return result as T
 }
+
 /**
  * Returns the localized configuration options for PrimeVue components in German.
  *
@@ -240,5 +240,6 @@ export const getCustomValidationErrorMap: ZodErrorMap = (issue, ctx) => {
                 }
         }
     }
+    console.log()
     return { message: ctx.defaultError }
 }

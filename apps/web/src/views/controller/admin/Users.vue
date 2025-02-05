@@ -3,9 +3,9 @@ import { FilterMatchMode } from '@primevue/core/api'
 import { onBeforeMount, reactive, ref } from 'vue'
 import UserService from '@/service/user.service'
 import TeachingGroupService from '@/service/teachingGroup.service'
-import { 
+import {
     IUserResponse,
-    ICreateUserRequest, 
+    ICreateUserRequest,
     ITeachingGroupResponse,
 } from '@workspace/shared'
 import {
@@ -130,7 +130,6 @@ const onCreateUserFormSubmit = async ({ valid, states }: FormSubmitEvent) => {
         if (newUser.relation) {
             newUser.relation.totalTeachingDuty = 0
         }
-        console.log(newUser)
         UserService.createUser(newUser).then((res) => {
             const { data, error } = res
             if (error) {
@@ -207,7 +206,7 @@ onBeforeMount(() => {
             }))
         }
     })
-    
+
     loading.value = false
     initFilters()
 })

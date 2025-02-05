@@ -22,7 +22,7 @@
     "build": "Baut das Projekt",
     "db:start": "Startet den MySQL-Container und wartet, bis er bereit ist",
     "db:generate": "Generiert die Prisma-Client-Dateien",
-    "db:push": "Überschreibt die Datenbank",
+    "db:push": "Überschreibt das Datenbank-Schema",
     "db:migrate": "Führt Migrationen aus (nur für Entwicklung)",
     "db:deploy": "Führt Migrationen aus (auch für Produktion)"
   },
