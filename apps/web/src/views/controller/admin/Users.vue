@@ -2,7 +2,12 @@
 import { FilterMatchMode } from '@primevue/core/api'
 import { onBeforeMount, reactive, ref } from 'vue'
 import UserService from '@/service/user.service'
-import { IUserResponse, ICreateUserRequest } from '@workspace/shared'
+import TeachingGroupService from '@/service/teachingGroup.service'
+import { 
+    IUserResponse,
+    ICreateUserRequest, 
+    ITeachingGroupResponse,
+} from '@workspace/shared'
 import {
     TabPanel,
     DataTableFilterMeta,
@@ -18,8 +23,15 @@ import { z } from 'zod'
 import { zodResolver } from '@primevue/forms/resolvers/zod'
 import { Form, FormSubmitEvent } from '@primevue/forms'
 
+// interface for defining dropdown options
+interface SelectOption {
+    label: string
+    value: number
+}
+
 const users = ref<IUserResponse[]>([])
 const filters = ref<DataTableFilterMeta>({})
+const groupSelect = ref<SelectOption[]>([])
 const editingRows = ref([])
 const loading = ref(false)
 const toast = useToast()
@@ -163,6 +175,8 @@ const onRowEditSave = ({ newData }: DataTableRowEditSaveEvent) => {
 
 onBeforeMount(() => {
     loading.value = true
+
+    //loading users
     UserService.getUsers().then((res) => {
         loading.value = false
         const { data, error } = res
@@ -175,6 +189,19 @@ onBeforeMount(() => {
             })
         } else {
             updateUsers(data)
+        }
+    })
+
+    //loading teacher groups
+    TeachingGroupService.getTeachingGroups().then((res) => {
+        const { data, error } = res
+        if (error) {
+            console.warn('[Course-Overview] Couldn`t load semster')
+        } else {
+            groupSelect.value = data.map((group: ITeachingGroupResponse) => ({
+                label: group.groupName,
+                value: group.id,
+            }))
         }
     })
     initFilters()
