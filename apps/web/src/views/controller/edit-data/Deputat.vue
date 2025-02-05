@@ -31,9 +31,7 @@ const expandedRowGroups = ref<number[]>([])
 
 // updates the list within the tabular display of the deputats with new data
 const updateTeachingDuties = (data: ITeachingDutyResponse[]) => {
-    deputats.value = data.map((d) => {
-        return d
-    })
+    deputats.value = data.sort((a, b) => a.teacherId - b.teacherId)
 }
 
 // deletes a deputat based on its ID
@@ -101,9 +99,7 @@ onBeforeMount(() => {
                 life: 5000,
             })
         } else {
-            deputats.value = data.map(
-                (deputat: ITeachingDutyResponse) => deputat
-            )
+            deputats.value = data.sort((a, b) => a.teacherId - b.teacherId)
         }
     })
 

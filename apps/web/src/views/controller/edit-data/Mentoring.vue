@@ -42,9 +42,7 @@ const userSelect = ref<SelectOption[]>([])
 const expandedRowGroups = ref<number[]>([])
 
 const updateSupervisions = (data: ISupervisionResponse[]) => {
-    supervisions.value = data.map((d) => {
-        return d
-    })
+    supervisions.value = data.sort((a, b) => a.teacherId - b.teacherId)
 }
 
 /**
