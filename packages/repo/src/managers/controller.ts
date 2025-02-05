@@ -65,11 +65,17 @@ export class ControllerManager {
   // updates an existing controller by ID
   async update(
     id: number,
-    data: Partial<Omit<IController, "id" | "userId">>, // accepts partial data excluding id and userId
+    controller: Omit<IController, "id" | "userId">, // accepts partial data excluding id and userId
+    user: Partial<Omit<IUser, "id" | "createdAt" | "updatedAt">>, //partial to make all fields optional for update query,
   ): Promise<void> {
     await this.prisma.controller.update({
-      data, // data to update the controller
-      where: { id }, // identifies the controller by ID
+      data: {
+        ...controller,
+        user: {
+          update: user, // updates the related user with the provided data
+        },
+      },
+      where: { id },
     });
   }
 }

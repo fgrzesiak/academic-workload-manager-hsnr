@@ -67,8 +67,11 @@ update_button = None
 
 frontend_port_entry = None
 mysql_root_password_entry = None
-mysql_user_password_entry = None
-initial_controller_password_entry = None
+mysql_api_password_entry = None
+first_controller_username_entry = None
+first_controller_password_entry = None
+first_controller_firstname_entry = None
+first_controller_lastname_entry = None
 
 # Toggle‐Button statt Start/Stop:
 toggle_button = None
@@ -432,7 +435,10 @@ def reset_to_defaults():
     """
     config = load_config()
     config["services"]["api"]["environment"]["FRONTEND_URL"] = "http://localhost:3000"
-    config["services"]["api"]["environment"]["INITIAL_CONTROLLER_PASSWORD"] = "admin"
+    config["services"]["api"]["environment"]["FIRST_CONTROLLER_USERNAME"] = "admin"
+    config["services"]["api"]["environment"]["FIRST_CONTROLLER_PASSWORD"] = "admin"
+    config["services"]["api"]["environment"]["FIRST_CONTROLLER_FIRSTNAME"] = "Admin"
+    config["services"]["api"]["environment"]["FIRST_CONTROLLER_LASTNAME"] = "User"
     config["services"]["web"]["ports"] = ["3000:3000"]
     config["services"]["db"]["environment"]["MYSQL_ROOT_PASSWORD"] = "rootpassword"
     config["services"]["db"]["environment"]["MYSQL_PASSWORD"] = "systempassword"
@@ -461,15 +467,27 @@ def reload_gui_values():
     )
 
     # MySQL-Benutzerpasswort
-    mysql_user_password_entry.delete(0, tk.END)
-    mysql_user_password_entry.insert(
+    mysql_api_password_entry.delete(0, tk.END)
+    mysql_api_password_entry.insert(
         0, config["services"]["db"]["environment"]["MYSQL_PASSWORD"]
     )
 
-    # Initiales Controller-Passwort
-    initial_controller_password_entry.delete(0, tk.END)
-    initial_controller_password_entry.insert(
-        0, config["services"]["api"]["environment"]["INITIAL_CONTROLLER_PASSWORD"]
+    # Admin-Controller-Daten
+    first_controller_username_entry.delete(0, tk.END)
+    first_controller_username_entry.insert(
+        0, config["services"]["api"]["environment"]["FIRST_CONTROLLER_USERNAME"]
+    )
+    first_controller_password_entry.delete(0, tk.END)
+    first_controller_password_entry.insert(
+        0, config["services"]["api"]["environment"]["FIRST_CONTROLLER_PASSWORD"]
+    )
+    first_controller_firstname_entry.delete(0, tk.END)
+    first_controller_firstname_entry.insert(
+        0, config["services"]["api"]["environment"]["FIRST_CONTROLLER_FIRSTNAME"]
+    )
+    first_controller_lastname_entry.delete(0, tk.END)
+    first_controller_lastname_entry.insert(
+        0, config["services"]["api"]["environment"]["FIRST_CONTROLLER_LASTNAME"]
     )
 
 
@@ -490,10 +508,21 @@ def update_config():
     ] = mysql_root_password_entry.get()
     config["services"]["db"]["environment"][
         "MYSQL_PASSWORD"
-    ] = mysql_user_password_entry.get()
+    ] = mysql_api_password_entry.get()
+
+    # Admin-Controller-Daten
     config["services"]["api"]["environment"][
-        "INITIAL_CONTROLLER_PASSWORD"
-    ] = initial_controller_password_entry.get()
+        "FIRST_CONTROLLER_USERNAME"
+    ] = first_controller_username_entry.get()
+    config["services"]["api"]["environment"][
+        "FIRST_CONTROLLER_PASSWORD"
+    ] = first_controller_password_entry.get()
+    config["services"]["api"]["environment"][
+        "FIRST_CONTROLLER_FIRSTNAME"
+    ] = first_controller_firstname_entry.get()
+    config["services"]["api"]["environment"][
+        "FIRST_CONTROLLER_LASTNAME"
+    ] = first_controller_lastname_entry.get()
 
     save_config(config)
     log_output.insert(tk.END, "Konfiguration gespeichert.\n")
@@ -635,7 +664,8 @@ def create_gui():
     """
     global root, log_output
     global update_button, toggle_button, save_button, reset_button
-    global frontend_port_entry, mysql_root_password_entry, mysql_user_password_entry, initial_controller_password_entry
+    global frontend_port_entry, mysql_root_password_entry, mysql_api_password_entry
+    global first_controller_username_entry, first_controller_password_entry, first_controller_firstname_entry, first_controller_lastname_entry
 
     root = tk.Tk()
     root.title(f"Deputatsverwaltung Boot Manager - {CURRENT_VERSION}")
@@ -688,16 +718,34 @@ def create_gui():
     mysql_root_password_entry.grid(row=1, column=1, padx=10, pady=5)
 
     ttk.Label(
-        config_frame, text="MySQL User Password", font=("Arial", 10, "bold")
+        config_frame, text="MySQL System Password (API)", font=("Arial", 10, "bold")
     ).grid(row=2, column=0, sticky="w")
-    mysql_user_password_entry = ttk.Entry(config_frame)
-    mysql_user_password_entry.grid(row=2, column=1, padx=10, pady=5)
+    mysql_api_password_entry = ttk.Entry(config_frame)
+    mysql_api_password_entry.grid(row=2, column=1, padx=10, pady=5)
+
+    tk.Label(
+        config_frame, text="Admin Controller Username", font=("Arial", 10, "bold")
+    ).grid(row=3, column=0, sticky="w")
+    first_controller_username_entry = ttk.Entry(config_frame)
+    first_controller_username_entry.grid(row=3, column=1, padx=10, pady=5)
 
     ttk.Label(
-        config_frame, text="Initial Controller Password", font=("Arial", 10, "bold")
-    ).grid(row=3, column=0, sticky="w")
-    initial_controller_password_entry = ttk.Entry(config_frame)
-    initial_controller_password_entry.grid(row=3, column=1, padx=10, pady=5)
+        config_frame, text="Admin Controller Password", font=("Arial", 10, "bold")
+    ).grid(row=4, column=0, sticky="w")
+    first_controller_password_entry = ttk.Entry(config_frame)
+    first_controller_password_entry.grid(row=4, column=1, padx=10, pady=5)
+
+    ttk.Label(
+        config_frame, text="Admin Controller Firstname", font=("Arial", 10, "bold")
+    ).grid(row=5, column=0, sticky="w")
+    first_controller_firstname_entry = ttk.Entry(config_frame)
+    first_controller_firstname_entry.grid(row=5, column=1, padx=10, pady=5)
+
+    ttk.Label(
+        config_frame, text="Admin Controller Lastname", font=("Arial", 10, "bold")
+    ).grid(row=6, column=0, sticky="w")
+    first_controller_lastname_entry = ttk.Entry(config_frame)
+    first_controller_lastname_entry.grid(row=6, column=1, padx=10, pady=5)
 
     # Parent Frame für die unteren Buttons
     bottom_actions_buttons = ttk.Frame(main_frame)

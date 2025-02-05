@@ -9,11 +9,12 @@ services:
         condition: service_completed_successfully
     environment:
       DATABASE_URL: mysql://system:systempassword@db:3306/core
+      FIRST_CONTROLLER_FIRSTNAME: Admin
+      FIRST_CONTROLLER_LASTNAME: User
+      FIRST_CONTROLLER_PASSWORD: admin
+      FIRST_CONTROLLER_USERNAME: admin
       FRONTEND_URL: http://localhost:3000
-      INITIAL_CONTROLLER_PASSWORD: admin
-      INITIAL_CONTROLLER_USERNAME: admin
       JWT_SECRET: dcfc188353a965b21965fbaf6a3584917bd32bce5f863177398617c70cc7431b
-      MYSQL_SYSTEM_PASSWORD: systempassword
     image: fabianjg/dpt:api-latest
     networks:
     - dpt-network
