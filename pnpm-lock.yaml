@@ -175,8 +175,8 @@ importers:
         specifier: ^6.0.1
         version: 6.0.1
       primevue:
-        specifier: ^4.0.0
-        version: 4.2.3(vue@3.5.13)
+        specifier: ^4.2.5
+        version: 4.2.5(vue@3.5.13)
       unplugin-vue-components:
         specifier: ^0.27.4
         version: 0.27.4(vue@3.5.13)
@@ -1849,6 +1849,17 @@ packages:
       vue: 3.5.13(typescript@5.7.2)
     dev: false
 
+  /@primevue/core@4.2.5(vue@3.5.13):
+    resolution: {integrity: sha512-+oWBIQs5dLd2Ini4KEVOlvPILk989EHAskiFS3R/dz3jeOllJDMZFcSp8V9ddV0R3yDaPdLVkfHm2Q5t42kU2Q==}
+    engines: {node: '>=12.11.0'}
+    peerDependencies:
+      vue: ^3.3.0
+    dependencies:
+      '@primeuix/styled': 0.3.2
+      '@primeuix/utils': 0.3.2
+      vue: 3.5.13(typescript@5.7.2)
+    dev: false
+
   /@primevue/forms@4.2.3(vue@3.5.13):
     resolution: {integrity: sha512-PX3KmqY5n+VdXsnZpASGmLZmjv77zjRQclihSvQUkwg+5iMnzvcJgbqQsyTtjTaCIel6va6VeUs/Xfk1N4fHHg==}
     engines: {node: '>=12.11.0'}
@@ -1860,12 +1871,12 @@ packages:
       - vue
     dev: false
 
-  /@primevue/icons@4.2.3(vue@3.5.13):
-    resolution: {integrity: sha512-2yitSASyLdKtKPy8Fw8A71wycfZ14/lIlJ70JP0yGRy1nYbEBzEteMDGFOnlkFokbK/wdx9oOdYTDEul37FDdg==}
+  /@primevue/icons@4.2.5(vue@3.5.13):
+    resolution: {integrity: sha512-WFbUMZhQkXf/KmwcytkjGVeJ9aGEDXjP3uweOjQZMmRdEIxFnqYYpd90wE90JE1teZn3+TVnT4ZT7ejGyEXnFQ==}
     engines: {node: '>=12.11.0'}
     dependencies:
       '@primeuix/utils': 0.3.2
-      '@primevue/core': 4.2.3(vue@3.5.13)
+      '@primevue/core': 4.2.5(vue@3.5.13)
     transitivePeerDependencies:
       - vue
     dev: false
@@ -6147,14 +6158,14 @@ packages:
     resolution: {integrity: sha512-KDeO94CbWI4pKsPnYpA1FPjo79EsY9I+M8ywoPBSf9XMXoe/0crjbUK7jcQEDHuc0ZMRIZsxH3TYLv4TUtHmAA==}
     dev: false
 
-  /primevue@4.2.3(vue@3.5.13):
-    resolution: {integrity: sha512-kAkSOHmyBhe0NNzjfmZSAFNlxAWPTuTjWvYSxSv2OLVdy61F+IPQAENygaB7UdB4wY7NNxeBVbphEgjuipwTww==}
+  /primevue@4.2.5(vue@3.5.13):
+    resolution: {integrity: sha512-7UMOIJvdFz4jQyhC76yhNdSlHtXvVpmE2JSo2ndUTBWjWJOkYyT562rQ4ayO+bMdJLtzBGqgY64I9ZfEvNd7vQ==}
     engines: {node: '>=12.11.0'}
     dependencies:
       '@primeuix/styled': 0.3.2
       '@primeuix/utils': 0.3.2
-      '@primevue/core': 4.2.3(vue@3.5.13)
-      '@primevue/icons': 4.2.3(vue@3.5.13)
+      '@primevue/core': 4.2.5(vue@3.5.13)
+      '@primevue/icons': 4.2.5(vue@3.5.13)
     transitivePeerDependencies:
       - vue
     dev: false
