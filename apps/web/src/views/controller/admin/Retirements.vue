@@ -113,7 +113,7 @@ const sortedTeachers = computed(() => {
                         </div>
                         <div
                                 v-if="
-                                    data.remainingDays < 3660
+                                    data.remainingDays < 180
                                 "
                                 :style="{
                                     color: 'white',

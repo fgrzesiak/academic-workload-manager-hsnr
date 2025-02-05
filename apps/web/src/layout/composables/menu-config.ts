@@ -50,7 +50,7 @@ export const CONTROLLER_MENU: MenuItem[] = [
                 to: '/controlling/evaluation/settings',
             },
             {
-                label: 'Übersicht',
+                label: 'Deputatsübersicht',
                 icon: 'pi pi-fw pi-eye',
                 to: '/controlling/evaluation/overview',
             },
