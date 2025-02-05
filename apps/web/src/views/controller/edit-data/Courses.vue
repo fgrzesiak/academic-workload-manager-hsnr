@@ -49,9 +49,7 @@ const expandedRowGroups = ref<number[]>([])
 
 // updates the list within the tabular display of the courses with new data
 const updateTeachingEvents = (data: ITeachingEventResponse[]) => {
-    teachingEvents.value = data.map((d) => {
-        return d
-    })
+    teachingEvents.value = data.sort((a, b) => a.teacherId - b.teacherId)
 }
 
 // variables and schema for creating a new course

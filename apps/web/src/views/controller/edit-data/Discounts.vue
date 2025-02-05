@@ -39,9 +39,7 @@ const userSelect = ref<SelectOption[]>([])
 const expandedRowGroups = ref<number[]>([])
 
 const updateDiscounts = (data: IDiscountResponse[]) => {
-    discounts.value = data.map((d) => { 
-        return d 
-    })
+    discounts.value = data.sort((a, b) => a.teacherId - b.teacherId)
 }
 
 /**

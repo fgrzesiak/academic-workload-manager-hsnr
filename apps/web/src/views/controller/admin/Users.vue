@@ -96,6 +96,11 @@ const hideDialog = () => {
     newUserSubmitted.value = false
 }
 
+const getGroupName = (id: number) => {
+    const group = groupSelect.value.find((s) => s.value === id)
+    return group ? group.label : '-'
+}
+
 const getNewUserValues = (): z.infer<
     typeof teacherSchema | typeof controllerSchema
 > => {
@@ -191,6 +196,7 @@ onBeforeMount(() => {
             })
         } else {
             updateUsers(data)
+            console.log(data)
         }
     })
 
@@ -231,24 +237,17 @@ function initFilters() {
             value: null,
             matchMode: FilterMatchMode.EQUALS,
         },
-        createdAt: {
-            value: null,
-            matchMode: FilterMatchMode.DATE_IS,
-        },
-        updatedAt: {
-            value: null,
-            matchMode: FilterMatchMode.DATE_IS,
-        },
     }
 }
 
 // Utility to format dates
-function formatDate(value: Date) {
-    return value.toLocaleDateString('de-DE', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-    })
+const formatDate = (value: string | null) => {
+    if (!value) return '-';
+    const date = new Date(value);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}.${month}.${year}`;
 }
 </script>
 
@@ -317,7 +316,7 @@ function formatDate(value: Date) {
             <Column
                 field="username"
                 header="Nutzername"
-                style="min-width: 12rem"
+                style="min-width: 10rem"
             >
                 <template #body="{ data }">{{ data.username }}</template>
                 <template #editor="{ data, field }">
@@ -334,7 +333,7 @@ function formatDate(value: Date) {
             </Column>
 
             <!-- First Name Column -->
-            <Column field="firstName" header="Vorname" style="min-width: 12rem">
+            <Column field="firstName" header="Vorname" style="min-width: 10rem">
                 <template #body="{ data }">{{ data.firstName }}</template>
                 <template #editor="{ data, field }">
                     <InputText v-model="data[field]" fluid />
@@ -350,7 +349,7 @@ function formatDate(value: Date) {
             </Column>
 
             <!-- Last Name Column -->
-            <Column field="lastName" header="Nachname" style="min-width: 12rem">
+            <Column field="lastName" header="Nachname" style="min-width: 10rem">
                 <template #body="{ data }">{{ data.lastName }}</template>
                 <template #editor="{ data, field }">
                     <InputText v-model="data[field]" fluid />
@@ -388,47 +387,54 @@ function formatDate(value: Date) {
                 </template>
             </Column>
 
-            <!-- Created At Column -->
+            <!-- Teaching Group Column -->
             <Column
-                field="createdAt"
-                header="Erstellt am"
-                data-type="date"
-                style="min-width: 12rem"
-                sortable
+                field="relation.teachingGroupId"
+                header="Lehrgruppe"
+                style="min-width: 10rem"
             >
                 <template #body="{ data }">{{
-                    formatDate(data.createdAt)
+                    getGroupName(data.Teacher?.teachingGroupId)
                 }}</template>
-                <template #filter="{ filterModel, filterCallback }">
-                    <DatePicker
-                        @date-select="filterCallback()"
-                        v-model="filterModel.value"
-                        date-format="dd.mm.yy"
-                        placeholder="Datum auswählen"
+                <template #editor="{ data, field }">
+                    <Select
+                        v-model="data[field]"
+                        :options="groupSelect"
+                        option-label="label"
+                        option-value="value"
+                        fluid
                     />
                 </template>
             </Column>
 
-            <!-- Updated At Column -->
+            <!-- Retirement Column -->
             <Column
-                field="updatedAt"
-                header="Aktualisiert am"
+                header="Ruhestandsdatum"
+                filter-field="date"
                 data-type="date"
-                style="min-width: 12rem"
-                sortable
+                style="min-width: 10rem"
             >
-                <template #body="{ data }">{{
-                    formatDate(data.updatedAt)
-                }}</template>
-                <template #filter="{ filterModel, filterCallback }">
-                    <DatePicker
-                        @date-select="filterCallback()"
-                        v-model="filterModel.value"
-                        date-format="dd.mm.yy"
-                        placeholder="Datum auswählen"
-                    />
+                <template #body="{ data }">{{ formatDate(data.Teacher?.retirementDate) }}</template>
+                <template #editor="{ data, field }">
+                    <DatePicker v-model="data[field]" date-format="dd.mm.yy" placeholder="Ruhestandsdatum auswählen" fluid />
                 </template>
             </Column>
+
+            <!-- Created At / Updated At Column -->
+            <Column
+                field="createdAt"
+                header="Erstellt am / Aktualisiert am"
+                data-type="date"
+                style="min-width: 12rem"
+            >
+                <template #body="{ data }">{{
+                    formatDate(data.createdAt)
+                }} / {{ 
+                    formatDate(data.updatedAt) 
+                }}
+                </template>
+            </Column>
+
             <Column
                 :rowEditor="true"
                 style="width: 10%; min-width: 8rem"
