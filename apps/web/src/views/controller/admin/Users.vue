@@ -127,6 +127,10 @@ const onCreateUserFormSubmit = async ({ valid, states }: FormSubmitEvent) => {
     if (valid) {
         newUserSubmitted.value = true
         const newUser = getFormStatesAsType<ICreateUserRequest>(states)
+        if (newUser.relation) {
+            newUser.relation.totalTeachingDuty = 0
+        }
+        console.log(newUser)
         UserService.createUser(newUser).then((res) => {
             const { data, error } = res
             if (error) {
@@ -178,7 +182,6 @@ onBeforeMount(() => {
 
     //loading users
     UserService.getUsers().then((res) => {
-        loading.value = false
         const { data, error } = res
         if (error) {
             toast.add({
@@ -196,7 +199,7 @@ onBeforeMount(() => {
     TeachingGroupService.getTeachingGroups().then((res) => {
         const { data, error } = res
         if (error) {
-            console.warn('[Course-Overview] Couldn`t load semster')
+            console.warn('[Users-Overview] Couldn`t load semster')
         } else {
             groupSelect.value = data.map((group: ITeachingGroupResponse) => ({
                 label: group.groupName,
@@ -204,6 +207,8 @@ onBeforeMount(() => {
             }))
         }
     })
+    
+    loading.value = false
     initFilters()
 })
 
@@ -565,6 +570,7 @@ function formatDate(value: Date) {
                                     {{ $form.lastName.error?.message }}
                                 </Message>
                             </div>
+
                             <!-- Retirement Date Field -->
                             <div class="flex flex-col gap-1">
                                 <FloatLabel variant="on">
@@ -593,6 +599,41 @@ function formatDate(value: Date) {
                                     <!-- @vue-expect-error -->
                                     {{
                                         $form['relation.retirementDate'].error
+                                            ?.message
+                                    }}
+                                </Message>
+                            </div>
+
+                            <!-- TeachingGroup Field -->
+                            <div class="flex flex-col gap-1">
+                                <FloatLabel variant="on">
+                                    <Select
+                                        label-id="relation.teachingGroupId"
+                                        name="relation.teachingGroupId"
+                                        :options="groupSelect"
+                                        option-label="label"
+                                        option-value="value"
+                                        fluid
+                                    ></Select>
+                                    <label
+                                        for="relation.teachingGroupId"
+                                        class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
+                                        >Lehrgruppe</label
+                                    >
+                                </FloatLabel>
+                                <!-- @vue-expect-error -->
+                                <Message
+                                    v-if="
+                                        $form['relation.teachingGroupId']?.error
+                                            ?.invalid
+                                    "
+                                    severity="error"
+                                    size="small"
+                                    variant="simple"
+                                >
+                                    <!-- @vue-expect-error -->
+                                    {{
+                                        $form['relation.teachingGroupId'].error
                                             ?.message
                                     }}
                                 </Message>
