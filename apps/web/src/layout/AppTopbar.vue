@@ -34,6 +34,7 @@ const { onMenuToggle, toggleDarkMode, isDarkTheme } = useLayout()
                             { 'pi-moon': isDarkTheme, 'pi-sun': !isDarkTheme },
                         ]"
                     ></i>
+                    <!-- <i v-if="!isDarkTheme" class="pi pi-exclamation-triangle" style="margin-left: 8px; color: orange;"></i> -->
                 </button>
             </div>
 

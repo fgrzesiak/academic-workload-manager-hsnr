@@ -191,9 +191,14 @@ onBeforeMount(() => {
             toast.add({
                 severity: 'error',
                 summary: 'Fehler',
-                detail: error,
+                detail: 'Nutzer konnten nicht geladen werden',
                 life: 5000,
             })
+            console.info(
+                `\n%c⚠️ Warning ⚠️%c \n[Users.vue]\nLoading Users failed \n${error}`,
+                "color:#ceb73f; background: #ceb73f33; font-size:1.5rem; padding:0.15rem; margin: 1rem auto; font-family: Rockwell, Tahoma, 'Trebuchet MS', Helvetica; border: 2px solid #ceb73f; border-radius: 4px; font-weight: bold; text-shadow: 1px 1px 1px #000000bf;",
+                'font-weight: bold; font-size: 1.2rem;color: #ceb73f;',
+            )
         } else {
             updateUsers(data)
         }
@@ -203,7 +208,11 @@ onBeforeMount(() => {
     TeachingGroupService.getTeachingGroups().then((res) => {
         const { data, error } = res
         if (error) {
-            console.warn('[Users-Overview] Couldn`t load semster')
+            console.info(
+                `\n%c⚠️ Warning ⚠️%c \n[Users.vue]\nLoading Teaching-Groups failed \n${error}`,
+                "color:#ceb73f; background: #ceb73f33; font-size:1.5rem; padding:0.15rem; margin: 1rem auto; font-family: Rockwell, Tahoma, 'Trebuchet MS', Helvetica; border: 2px solid #ceb73f; border-radius: 4px; font-weight: bold; text-shadow: 1px 1px 1px #000000bf;",
+                'font-weight: bold; font-size: 1.2rem;color: #ceb73f;',
+            )
         } else {
             groupSelect.value = data.map((group: ITeachingGroupResponse) => ({
                 label: group.groupName,
