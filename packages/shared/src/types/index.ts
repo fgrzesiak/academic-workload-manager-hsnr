@@ -10,3 +10,4 @@ export * from "./discountType.type";
 export * from "./teachingDuty.type";
 export * from "./comment.type";
 export * from "./evaluationSettings.type";
+export * from "./teachingGroup.type";

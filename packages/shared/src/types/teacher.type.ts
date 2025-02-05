@@ -7,7 +7,10 @@ export type ITeacherResponse = ITeacher & {
   user: Pick<IUserResponse, "firstName" | "lastName" | "username">;
 };
 
-export type ICreateTeacherRequest = Pick<ITeacher, "retirementDate">;
+export type ICreateTeacherRequest = Pick<
+  ITeacher,
+  "retirementDate" | "totalTeachingDuty" | "teachingGroupId"
+>;
 
 // class representing a teacher, including methods for initialization and data handling
 export class Teacher implements ITeacher {
@@ -20,6 +23,7 @@ export class Teacher implements ITeacher {
   accessToken!: string; // access token for authentication (excluded in responses)
   refreshToken!: string; // refresh token for authentication (excluded in responses)
   createdAt!: Date; // date when the teacher record was created
+  teachingGroupId!: number; // associated teaching group id
 
   /**
    * constructor for the Teacher class.

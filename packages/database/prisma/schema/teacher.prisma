@@ -3,7 +3,8 @@ model Teacher {
   userId             Int      @unique
   retirementDate     DateTime @db.Date
   totalTeachingDuty  Float
-  teachingGroups     TeachingGroup[]
+  teachingGroupId    Int
+  teachingGroup      TeachingGroup @relation(fields: [teachingGroupId], references: [id])
   teachingDuties     TeachingDutyPerSemester[]
   supervisions       Supervision[]
   discounts          Discount[]

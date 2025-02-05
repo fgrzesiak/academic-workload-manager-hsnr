@@ -10,3 +10,4 @@ export * from "./teachingEvent.js";
 export * from "./teachingDuty.js";
 export * from "./comment.js";
 export * from "./evaluationSettings.js";
+export * from "./teachingGroup.js";
