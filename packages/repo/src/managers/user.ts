@@ -46,12 +46,44 @@ export class UserManager {
 
   // update user details; for Teacher/Controller-specific fields, handle separately in their services if necessary
   async update(user: IUpdateUserRequest): Promise<User> {
-    const { id, ...rest } = user;
-    user.updatedAt = new Date(); // sets the updated date to the current date and time
-    const result = await this.prisma.user.update({
-      data: rest, // updates the user record with the provided data
-      where: { id },
-    });
+    const { id, createdAt, role, Teacher, Controller, ...rest } = user;
+    rest.updatedAt = new Date(); // sets the updated date to the current date and time
+
+    let result;
+    if (Teacher) {
+      const { id, userId, ...teacherData } = Teacher; // we can't update keys, so we exclude `id` and `userId`
+      console.log(rest);
+      result = await this.prisma.user.update({
+        data: {
+          ...rest,
+          Teacher: {
+            update: {
+              data: teacherData,
+            },
+          },
+        },
+        where: { id: userId },
+      });
+    } else if (Controller) {
+      const { id, userId, ...controllerData } = Controller; // we can't update keys, so we exclude `id` and `userId`
+      result = await this.prisma.user.update({
+        data: {
+          ...rest,
+          Controller: {
+            update: {
+              data: controllerData,
+            },
+          },
+        },
+        where: { id: userId },
+      });
+    } else {
+      result = await this.prisma.user.update({
+        data: rest,
+        where: { id },
+      });
+    }
+
     return new User(result); // returns the updated user as an instance of User
   }
 

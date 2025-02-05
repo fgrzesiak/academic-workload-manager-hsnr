@@ -12,6 +12,8 @@ export type ICreateTeacherRequest = Pick<
   "retirementDate" | "totalTeachingDuty" | "teachingGroupId"
 >;
 
+export type IUpdateTeacherRequest = Partial<ICreateTeacherRequest>;
+
 // class representing a teacher, including methods for initialization and data handling
 export class Teacher implements ITeacher {
   id!: number; // unique identifier for the teacher

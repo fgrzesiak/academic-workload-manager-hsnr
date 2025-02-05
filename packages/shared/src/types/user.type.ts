@@ -5,7 +5,11 @@ import {
   Teacher,
 } from "@workspace/database";
 
-import { ICreateTeacherRequest, ITeacherResponse } from "./teacher.type";
+import {
+  ICreateTeacherRequest,
+  ITeacherResponse,
+  IUpdateTeacherRequest,
+} from "./teacher.type";
 
 // utility type that makes all properties optional except for the specified required keys
 type OptionalExceptFor<T, TRequired extends keyof T> = Partial<T> &
@@ -17,6 +21,11 @@ type IUserResponseSpecific = {
 
 export type ICreateUserSpecificRequest = {
   relation: ICreateTeacherRequest | undefined;
+};
+
+export type IUpdateUserSpecificRequest = {
+  Teacher: Teacher | null;
+  Controller: Controller | null;
 };
 
 // defines the response type for a User, including only specific properties
@@ -33,10 +42,7 @@ export type ICreateUserRequest = Omit<IUser, "createdAt" | "updatedAt"> &
 
 // defines the request type for updating an existing User, with optional fields except for the required `id`
 export type IUpdateUserRequest = OptionalExceptFor<
-  Pick<
-    IUser,
-    "id" | "username" | "password" | "isPasswordTemporary" | "updatedAt"
-  >,
+  IUser & IUpdateUserSpecificRequest,
   "id"
 >;
 
