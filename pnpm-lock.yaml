@@ -245,9 +245,15 @@ importers:
         specifier: ^5.18.0
         version: 5.22.0(prisma@5.22.0)
     devDependencies:
+      '@types/node':
+        specifier: ^22.5.4
+        version: 22.10.0
       prisma:
         specifier: ^5.18.0
         version: 5.22.0
+      ts-node:
+        specifier: ^10.9.2
+        version: 10.9.2(@types/node@22.10.0)(typescript@5.7.2)
       typescript:
         specifier: ^5.5.4
         version: 5.7.2
