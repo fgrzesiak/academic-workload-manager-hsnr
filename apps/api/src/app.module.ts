@@ -14,12 +14,13 @@ import { TeacherModule } from "./modules/teacher/teacher.module.js";
 import { TeachingDutyModule } from "./modules/teachingDuty/teachingDuty.module.js";
 import { CommentModule } from "./modules/comment/comment.module.js";
 import { EvaluationSettingsModule } from "./modules/evaluationSettings/evaluationSettings.module.js";
+import { TeachingGroupModule } from "./modules/teachingGroup/teachingGroup.module.js";
 
 /**
  * the root module of the application, where all feature modules and providers are registered.
  */
 @Module({
-  imports: [AuthModule, ConfigModule, UsersModule, SemesterModule, SupervisionTypeModule, SupervisionModule, DiscountTypeModule, DiscountModule, TeachingEventModule, TeacherModule, TeachingDutyModule, CommentModule, EvaluationSettingsModule],
+  imports: [AuthModule, ConfigModule, UsersModule, SemesterModule, SupervisionTypeModule, SupervisionModule, DiscountTypeModule, DiscountModule, TeachingEventModule, TeacherModule, TeachingGroupModule, TeachingDutyModule, CommentModule, EvaluationSettingsModule],
   providers: [InitControllerService], // initializes core application processes
 })
 export class AppModule {}
