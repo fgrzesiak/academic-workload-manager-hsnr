@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, defineProps, defineEmits } from 'vue'
+import { ref, reactive } from 'vue'
 import { FilterMatchMode } from '@primevue/core/api'
 import UserService from '@/service/user.service'
 import { useToast, DataTableFilterMeta } from 'primevue'
@@ -85,6 +85,11 @@ const getGroupName = (id: number) => {
  */
 const onRowEditSave = async (event: { newData: IUserResponse }) => {
     const { newData } = event
+    if (newData.Teacher) {
+        newData.Teacher.retirementDate.setHours(23)
+        newData.Teacher.retirementDate.setMinutes(59)
+        newData.Teacher.retirementDate.setSeconds(59)
+    }
     const res = await UserService.updateUser(newData)
     if (res.error) {
         toast.add({
@@ -215,7 +220,7 @@ const onRowEditSave = async (event: { newData: IUserResponse }) => {
 
         <!-- Spalte: Lehrgruppe -->
         <Column
-            field="relation.teachingGroupId"
+            field="teachingGroupId"
             header="Lehrgruppe"
             style="min-width: 10rem"
         >
@@ -223,17 +228,21 @@ const onRowEditSave = async (event: { newData: IUserResponse }) => {
                 {{ getGroupName(data.Teacher?.teachingGroupId) }}
             </template>
             <template #editor="{ data, field }">
-                <Select
-                    v-model="data[field]"
-                    :options="groupSelect"
-                    option-label="label"
-                    option-value="value"
-                />
+                <template v-if="data.Teacher">
+                    <Select
+                        v-model="data.Teacher[field]"
+                        :options="groupSelect"
+                        option-label="label"
+                        option-value="value"
+                    />
+                </template>
+                <template v-else> - </template>
             </template>
         </Column>
 
         <!-- Spalte: Ruhestandsdatum -->
         <Column
+            field="retirementDate"
             header="Ruhestandsdatum"
             filter-field="date"
             data-type="date"
@@ -243,11 +252,14 @@ const onRowEditSave = async (event: { newData: IUserResponse }) => {
                 {{ formatDate(data.Teacher?.retirementDate) }}
             </template>
             <template #editor="{ data, field }">
-                <DatePicker
-                    v-model="data[field]"
-                    date-format="dd.mm.yy"
-                    placeholder="Ruhestandsdatum auswählen"
-                />
+                <template v-if="data.Teacher">
+                    <DatePicker
+                        v-model="data.Teacher[field]"
+                        date-format="dd.mm.yy"
+                        placeholder="Ruhestandsdatum auswählen"
+                    />
+                </template>
+                <template v-else> - </template>
             </template>
         </Column>
 

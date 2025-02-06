@@ -1,32 +1,3 @@
-<template>
-    <div class="card">
-        <!-- Kopfbereich mit Titel und Button zum Erstellen eines neuen Nutzers -->
-        <div class="mb-4 flex justify-between">
-            <h1 class="mb-4 text-xl font-semibold">Nutzerverwaltung</h1>
-            <Button
-                label="Neuer Nutzer"
-                icon="pi pi-plus"
-                class="mr-2"
-                @click="openCreateDialog"
-            />
-        </div>
-
-        <!-- Tabelle mit der Nutzerliste -->
-        <UserTable
-            :users="users"
-            :groupSelect="groupSelect"
-            @user-updated="handleUserUpdated"
-        />
-
-        <!-- Dialog zur Neuerstellung eines Nutzers -->
-        <UserCreateDialog
-            v-model:visible="showCreateDialog"
-            :groupSelect="groupSelect"
-            @user-created="handleUserCreated"
-        />
-    </div>
-</template>
-
 <script setup lang="ts">
 import { ref, onBeforeMount } from 'vue'
 import { useToast } from 'primevue'
@@ -56,10 +27,14 @@ const toast = useToast()
 
 /**
  * Aktualisiert die interne Nutzerliste und konvertiert Datumsstrings in Date-Objekte.
+ * Wichtig für die korrekte Anzeige in der Tabelle und für den DatePicker.
  * @param data Liste der Nutzer
  */
 const updateUsers = (data: IUserResponse[]) => {
     users.value = data.map((d) => {
+        if (d.Teacher) {
+            d.Teacher.retirementDate = new Date(d.Teacher.retirementDate)
+        }
         d.createdAt = new Date(d.createdAt)
         d.updatedAt = new Date(d.updatedAt)
         return d
@@ -132,3 +107,32 @@ const handleUserUpdated = (updatedUser: IUserResponse) => {
     })
 }
 </script>
+
+<template>
+    <div class="card">
+        <!-- Kopfbereich mit Titel und Button zum Erstellen eines neuen Nutzers -->
+        <div class="mb-4 flex justify-between">
+            <h1 class="mb-4 text-xl font-semibold">Nutzerverwaltung</h1>
+            <Button
+                label="Neuer Nutzer"
+                icon="pi pi-plus"
+                class="mr-2"
+                @click="openCreateDialog"
+            />
+        </div>
+
+        <!-- Tabelle mit der Nutzerliste -->
+        <UserTable
+            :users="users"
+            :groupSelect="groupSelect"
+            @user-updated="handleUserUpdated"
+        />
+
+        <!-- Dialog zur Neuerstellung eines Nutzers -->
+        <UserCreateDialog
+            v-model:visible="showCreateDialog"
+            :groupSelect="groupSelect"
+            @user-created="handleUserCreated"
+        />
+    </div>
+</template>
