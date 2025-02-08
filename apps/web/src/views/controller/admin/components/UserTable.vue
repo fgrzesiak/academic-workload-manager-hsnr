@@ -50,6 +50,17 @@ const initFilters = () => {
         firstName: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
         lastName: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
         role: { value: null, matchMode: FilterMatchMode.EQUALS },
+        // Zusätzlich: Filter für Lehrgruppe und Ruhestandsdatum bei Lehrenden
+        'Teacher.teachingGroupId': {
+            value: null,
+            matchMode: FilterMatchMode.EQUALS,
+        },
+        'Teacher.retirementDate': {
+            value: null,
+            matchMode: FilterMatchMode.DATE_IS,
+        },
+        createdAt: { value: null, matchMode: FilterMatchMode.DATE_IS },
+        updatedAt: { value: null, matchMode: FilterMatchMode.DATE_IS },
     }
 }
 initFilters() // Direkt beim Laden der Komponente
@@ -61,11 +72,11 @@ initFilters() // Direkt beim Laden der Komponente
  */
 const formatDate = (value: string | Date | null) => {
     if (!value) return '-'
-    const date = new Date(value)
-    const day = String(date.getDate()).padStart(2, '0')
-    const month = String(date.getMonth() + 1).padStart(2, '0')
-    const year = date.getFullYear()
-    return `${day}.${month}.${year}`
+    return new Date(value).toLocaleDateString('de-DE', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+    })
 }
 
 /**
@@ -86,9 +97,8 @@ const getGroupName = (id: number) => {
 const onRowEditSave = async (event: { newData: IUserResponse }) => {
     const { newData } = event
     if (newData.Teacher) {
-        newData.Teacher.retirementDate.setHours(23)
-        newData.Teacher.retirementDate.setMinutes(59)
-        newData.Teacher.retirementDate.setSeconds(59)
+        // Setze Uhrzeit für das Ruhestandsdatum auf 23:59:59 Uhr
+        newData.Teacher.retirementDate.setHours(23, 59, 59, 999)
     }
     const res = await UserService.updateUser(newData)
     if (res.error) {
@@ -141,7 +151,7 @@ const onRowEditSave = async (event: { newData: IUserResponse }) => {
         </template>
 
         <!-- Anzeige, wenn keine Nutzer vorhanden sind -->
-        <template #empty> Keine Nutzer gefunden. </template>
+        <template #empty>Keine Nutzer gefunden.</template>
 
         <!-- Spalte: ID -->
         <Column field="id" header="ID" style="min-width: 6rem" sortable>
@@ -221,8 +231,10 @@ const onRowEditSave = async (event: { newData: IUserResponse }) => {
         <!-- Spalte: Lehrgruppe -->
         <Column
             field="teachingGroupId"
+            filter-field="Teacher.teachingGroupId"
             header="Lehrgruppe"
             style="min-width: 10rem"
+            :show-filter-menu="false"
         >
             <template #body="{ data }">
                 {{ getGroupName(data.Teacher?.teachingGroupId) }}
@@ -238,13 +250,24 @@ const onRowEditSave = async (event: { newData: IUserResponse }) => {
                 </template>
                 <template v-else> - </template>
             </template>
+            <template #filter="{ filterModel, filterCallback }">
+                <Select
+                    @change="filterCallback()"
+                    v-model="filterModel.value"
+                    :options="groupSelect"
+                    option-label="label"
+                    option-value="value"
+                    placeholder="Lehrgruppe auswählen"
+                    show-clear
+                />
+            </template>
         </Column>
 
         <!-- Spalte: Ruhestandsdatum -->
         <Column
             field="retirementDate"
+            filter-field="Teacher.retirementDate"
             header="Ruhestandsdatum"
-            filter-field="date"
             data-type="date"
             style="min-width: 10rem"
         >
@@ -255,24 +278,60 @@ const onRowEditSave = async (event: { newData: IUserResponse }) => {
                 <template v-if="data.Teacher">
                     <DatePicker
                         v-model="data.Teacher[field]"
+                        time
                         date-format="dd.mm.yy"
                         placeholder="Ruhestandsdatum auswählen"
                     />
                 </template>
                 <template v-else> - </template>
             </template>
+            <template #filter="{ filterModel, filterCallback }">
+                <DatePicker
+                    v-model="filterModel.value"
+                    date-format="dd.mm.yy"
+                    placeholder="Datum filtern"
+                    @value-change="filterCallback()"
+                />
+            </template>
         </Column>
 
-        <!-- Spalte: Erstellungs- und Aktualisierungsdatum -->
+        <!-- Spalte: Erstellungsdatum -->
         <Column
             field="createdAt"
-            header="Erstellt am / Aktualisiert am"
+            header="Erstellt am"
             data-type="date"
             style="min-width: 12rem"
         >
             <template #body="{ data }">
-                {{ formatDate(data.createdAt) }} /
+                {{ formatDate(data.createdAt) }}
+            </template>
+            <template #filter="{ filterModel, filterCallback }">
+                <DatePicker
+                    v-model="filterModel.value"
+                    date-format="dd.mm.yy"
+                    placeholder="Datum filtern"
+                    @value-change="filterCallback()"
+                />
+            </template>
+        </Column>
+
+        <!-- Spalte: Aktualisierungsdatum -->
+        <Column
+            field="updatedAt"
+            header="Aktualisiert am"
+            data-type="date"
+            style="min-width: 12rem"
+        >
+            <template #body="{ data }">
                 {{ formatDate(data.updatedAt) }}
+            </template>
+            <template #filter="{ filterModel, filterCallback }">
+                <DatePicker
+                    v-model="filterModel.value"
+                    date-format="dd.mm.yy"
+                    placeholder="Datum filtern"
+                    @value-change="filterCallback()"
+                />
             </template>
         </Column>
 

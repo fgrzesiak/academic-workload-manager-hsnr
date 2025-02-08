@@ -16,7 +16,8 @@ type OptionalExceptFor<T, TRequired extends keyof T> = Partial<T> &
   Pick<T, TRequired>;
 
 type IUserResponseSpecific = {
-  Teacher?: ITeacherResponse;
+  Teacher?: Teacher;
+  Controller?: Controller;
 };
 
 export type ICreateUserSpecificRequest = {
@@ -24,8 +25,8 @@ export type ICreateUserSpecificRequest = {
 };
 
 export type IUpdateUserSpecificRequest = {
-  Teacher: Teacher | null;
-  Controller: Controller | null;
+  Teacher?: Teacher;
+  Controller?: Controller;
 };
 
 // defines the response type for a User, including only specific properties

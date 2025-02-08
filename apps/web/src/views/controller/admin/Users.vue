@@ -33,7 +33,10 @@ const toast = useToast()
 const updateUsers = (data: IUserResponse[]) => {
     users.value = data.map((d) => {
         if (d.Teacher) {
-            d.Teacher.retirementDate = new Date(d.Teacher.retirementDate)
+            // Setze Zeit auf 00:00 Uhr für die korrekte Filterung (DatePicker)
+            d.Teacher.retirementDate = new Date(
+                new Date(d.Teacher.retirementDate).setHours(0, 0, 0, 0)
+            )
         }
         d.createdAt = new Date(d.createdAt)
         d.updatedAt = new Date(d.updatedAt)
@@ -120,7 +123,6 @@ const handleUserUpdated = (updatedUser: IUserResponse) => {
                 @click="openCreateDialog"
             />
         </div>
-
         <!-- Tabelle mit der Nutzerliste -->
         <UserTable
             :users="users"
