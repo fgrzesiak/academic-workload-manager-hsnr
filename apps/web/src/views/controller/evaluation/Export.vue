@@ -119,7 +119,7 @@ const tableData = computed(() => {
     return teachers.value.map((teacher) => {
         const rowData: RowData = {
             name: `${teacher.user.lastName}`,
-            groupName: getGroupName(teacher.teachingGroupId) // assuming teacher has a groupId property
+            groupName: getGroupName(teacher.teachingGroupId), // assuming teacher has a groupId property
         }
 
         // add sumBalance for each semester

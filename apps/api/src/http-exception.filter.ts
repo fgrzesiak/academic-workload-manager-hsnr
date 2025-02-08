@@ -11,7 +11,6 @@ import { Request, Response } from "express";
  */
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {
-  
   /**
    * catches the exception and customizes the response format
    * @param exception - the caught http exception

@@ -1,6 +1,8 @@
 import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
 
-import { AuthRequest } from "../interfaces/express"; // imports the AuthRequest interface for type-checking the request
+import { AuthRequest } from "../interfaces/express";
+
+// imports the AuthRequest interface for type-checking the request
 
 @Injectable()
 export class FirstLoginGuard implements CanActivate {

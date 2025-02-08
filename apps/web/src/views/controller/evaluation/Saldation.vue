@@ -628,7 +628,8 @@ const calculateSaldo = (data: RowData | null) => {
                                   ? 'bold'
                                   : 'normal',
                             backgroundColor:
-                                data.sumSupervisions > data.maxSupervisions && !data.isFirstRow
+                                data.sumSupervisions > data.maxSupervisions &&
+                                !data.isFirstRow
                                     ? 'red'
                                     : 'transparent',
                             display: 'flex',
@@ -640,7 +641,8 @@ const calculateSaldo = (data: RowData | null) => {
                         <span>{{ data.sumSupervisions }}</span>
                         <div
                             v-if="
-                                data.sumSupervisions > data.maxSupervisions && !data.isFirstRow
+                                data.sumSupervisions > data.maxSupervisions &&
+                                !data.isFirstRow
                             "
                             class="flex-row items-center"
                         >

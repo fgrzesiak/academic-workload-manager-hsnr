@@ -1,5 +1,8 @@
 import { SemesterPeriod as ISemesterPeriod } from "@workspace/database";
-import { ICreateSemesterRequest, IUpdateSemesterRequest } from "@workspace/shared";
+import {
+  ICreateSemesterRequest,
+  IUpdateSemesterRequest,
+} from "@workspace/shared";
 import { singleton } from "tsyringe";
 
 import { PrismaService } from "../services/index.js";

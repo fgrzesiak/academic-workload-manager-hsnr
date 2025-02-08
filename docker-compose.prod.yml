@@ -17,9 +17,9 @@ services:
       JWT_SECRET: dcfc188353a965b21965fbaf6a3584917bd32bce5f863177398617c70cc7431b
     image: fabianjg/dpt:api-latest
     networks:
-    - dpt-network
+      - dpt-network
     ports:
-    - 4000:4000
+      - 4000:4000
   db:
     container_name: dpt-db
     environment:
@@ -31,20 +31,20 @@ services:
       interval: 5s
       retries: 30
       test:
-      - CMD-SHELL
-      - mysqladmin ping -h 127.0.0.1 -p$${MYSQL_ROOT_PASSWORD} || exit 1
+        - CMD-SHELL
+        - mysqladmin ping -h 127.0.0.1 -p$${MYSQL_ROOT_PASSWORD} || exit 1
       timeout: 3s
     image: mysql:9
     networks:
-    - dpt-network
+      - dpt-network
     ports:
-    - 3307:3306
+      - 3307:3306
   prisma:
     command:
-    - npx
-    - prisma
-    - migrate
-    - deploy
+      - npx
+      - prisma
+      - migrate
+      - deploy
     depends_on:
       db:
         condition: service_healthy
@@ -52,12 +52,12 @@ services:
       DATABASE_URL: mysql://root:rootpassword@db:3306/core
     image: fabianjg/dpt:prisma-db-latest
     networks:
-    - dpt-network
+      - dpt-network
   web:
     depends_on:
-    - api
+      - api
     image: fabianjg/dpt:web-latest
     networks:
-    - dpt-network
+      - dpt-network
     ports:
-    - 3000:3000
+      - 3000:3000

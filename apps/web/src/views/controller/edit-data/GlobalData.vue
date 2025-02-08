@@ -4,9 +4,15 @@ import { onBeforeMount, ref } from 'vue'
 import SemesterService from '@/service/semester.service'
 import { ISemesterResponse, ICreateSemesterRequest } from '@workspace/shared'
 import SupervisionTypeService from '@/service/supervisionType.service'
-import { ISupervisionTypeResponse, ICreateSupervisionTypeRequest } from '@workspace/shared'
+import {
+    ISupervisionTypeResponse,
+    ICreateSupervisionTypeRequest,
+} from '@workspace/shared'
 import DiscountTypeService from '@/service/discountType.service'
-import {  IDiscountTypeResponse, ICreateDiscountTypeRequest } from '@workspace/shared'
+import {
+    IDiscountTypeResponse,
+    ICreateDiscountTypeRequest,
+} from '@workspace/shared'
 import {
     DataTableFilterMeta,
     DataTableRowEditSaveEvent,
@@ -58,7 +64,10 @@ const getNewSemesterValues = (): z.infer<typeof newSemesterSchema> => {
     } satisfies ICreateSemesterRequest
 }
 
-const onCreateSemesterFormSubmit = async ({ valid, states }: FormSubmitEvent) => {
+const onCreateSemesterFormSubmit = async ({
+    valid,
+    states,
+}: FormSubmitEvent) => {
     if (valid) {
         newSemesterSubmitted.value = true
         const newSemester = getFormStatesAsType<ICreateSemesterRequest>(states)
@@ -98,7 +107,9 @@ const onRowEditSaveSemester = ({ newData }: DataTableRowEditSaveEvent) => {
                 life: 5000,
             })
         } else {
-            updateSemester(semesters.value.map((u) => (u.id === data.id ? data : u)))
+            updateSemester(
+                semesters.value.map((u) => (u.id === data.id ? data : u))
+            )
             toast.add({
                 severity: 'success',
                 summary: 'Erfolgreich',
@@ -123,15 +134,15 @@ function initSemesterFilters() {
 const booleanOptions = ref([
     { label: 'Ja', value: true },
     { label: 'Nein', value: false },
-]);
+])
 
 /**
  * New Mentoring/Supervision Configuration
  */
 
 interface SelectOption {
-    label: string;
-    value: number;
+    label: string
+    value: number
 }
 
 const loadingSupervision = ref(false)
@@ -144,7 +155,7 @@ const newMentoringDialog = ref(false)
 const newMentoringSchema = z.object({
     typeOfSupervision: z.string().trim().min(10).max(30),
     calculationFactor: z.number(),
-    validFrom: z.number()
+    validFrom: z.number(),
 })
 const resolverMentoring = ref(zodResolver(newMentoringSchema))
 
@@ -172,29 +183,35 @@ const getNewMentoringValues = (): z.infer<typeof newMentoringSchema> => {
     } satisfies ICreateSupervisionTypeRequest
 }
 
-const onCreateMentoringFormSubmit = async ({ valid, states }: FormSubmitEvent) => {
+const onCreateMentoringFormSubmit = async ({
+    valid,
+    states,
+}: FormSubmitEvent) => {
     if (valid) {
         newMentoringSubmitted.value = true
-        const newMentoring = getFormStatesAsType<ICreateSupervisionTypeRequest>(states)
-        SupervisionTypeService.createSupervisionType(newMentoring).then((res) => {
-            const { data, error } = res
-            if (error) {
-                toast.add({
-                    severity: 'error',
-                    summary: 'Fehler',
-                    detail: error,
-                    life: 5000,
-                })
-            } else {
-                updateSupervisionType([...mentorings.value, data])
-                toast.add({
-                    severity: 'success',
-                    summary: 'Erfolgreich',
-                    detail: 'Betreuungsart erstellt',
-                    life: 3000,
-                })
+        const newMentoring =
+            getFormStatesAsType<ICreateSupervisionTypeRequest>(states)
+        SupervisionTypeService.createSupervisionType(newMentoring).then(
+            (res) => {
+                const { data, error } = res
+                if (error) {
+                    toast.add({
+                        severity: 'error',
+                        summary: 'Fehler',
+                        detail: error,
+                        life: 5000,
+                    })
+                } else {
+                    updateSupervisionType([...mentorings.value, data])
+                    toast.add({
+                        severity: 'success',
+                        summary: 'Erfolgreich',
+                        detail: 'Betreuungsart erstellt',
+                        life: 3000,
+                    })
+                }
             }
-        })
+        )
 
         newMentoringDialog.value = false
     }
@@ -211,7 +228,13 @@ const onRowEditSaveMentoring = ({ newData }: DataTableRowEditSaveEvent) => {
                 life: 5000,
             })
         } else {
-            updateSupervisionType(mentorings.value.map((u) => (u.typeOfSupervisionId === data.typeOfSupervisionId ? data : u)))
+            updateSupervisionType(
+                mentorings.value.map((u) =>
+                    u.typeOfSupervisionId === data.typeOfSupervisionId
+                        ? data
+                        : u
+                )
+            )
             toast.add({
                 severity: 'success',
                 summary: 'Erfolgreich',
@@ -236,7 +259,6 @@ function initMentoringFilters() {
         },
     }
 }
-
 
 /**
  * New Reduction/Discount Configuration
@@ -274,10 +296,14 @@ const getNewReductionValues = (): z.infer<typeof newReductionSchema> => {
     } satisfies ICreateDiscountTypeRequest
 }
 
-const onCreateReductionFormSubmit = async ({ valid, states }: FormSubmitEvent) => {
+const onCreateReductionFormSubmit = async ({
+    valid,
+    states,
+}: FormSubmitEvent) => {
     if (valid) {
         newReductionSubmitted.value = true
-        const newReduction = getFormStatesAsType<ICreateDiscountTypeRequest>(states)
+        const newReduction =
+            getFormStatesAsType<ICreateDiscountTypeRequest>(states)
         DiscountTypeService.createDiscountType(newReduction).then((res) => {
             const { data, error } = res
             if (error) {
@@ -313,7 +339,11 @@ const onRowEditSaveReduction = ({ newData }: DataTableRowEditSaveEvent) => {
                 life: 5000,
             })
         } else {
-            updateDiscountType(reductions.value.map((u) => (u.discountTypeId === data.discountTypeId ? data : u)))
+            updateDiscountType(
+                reductions.value.map((u) =>
+                    u.discountTypeId === data.discountTypeId ? data : u
+                )
+            )
             toast.add({
                 severity: 'success',
                 summary: 'Erfolgreich',
@@ -337,9 +367,9 @@ function initReductionFilters() {
 
 //convert semester ID into Name
 const getSemesterName = (id: number) => {
-    const semester = semesterSelect.value.find((s) => s.value === id);
-    return semester ? semester.label : 'Unbekannt';
-};
+    const semester = semesterSelect.value.find((s) => s.value === id)
+    return semester ? semester.label : 'Unbekannt'
+}
 
 /**
  * Global Configuration
@@ -358,10 +388,12 @@ onBeforeMount(() => {
             })
         } else {
             updateSemester(data)
-            semesterSelect.value = res.data.map((semester: ISemesterResponse) => ({
-                label: semester.name,
-                value: semester.id,
-            }));
+            semesterSelect.value = res.data.map(
+                (semester: ISemesterResponse) => ({
+                    label: semester.name,
+                    value: semester.id,
+                })
+            )
             loadingSemester.value = false
         }
     })
@@ -403,14 +435,14 @@ onBeforeMount(() => {
 })
 
 const formatNumber = (value: number) => {
-    if (value == null) return ''; // Leere Anzeige, falls der Wert null oder undefined ist
+    if (value == null) return '' // Leere Anzeige, falls der Wert null oder undefined ist
     return value.toLocaleString('de-DE', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
-    });
-};
+    })
+}
 
-const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein');
+const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein')
 </script>
 
 <template>
@@ -418,8 +450,10 @@ const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein');
         <h1 class="text-xl font-semibold">Stammdatenverwaltung</h1>
     </div>
     <div class="card">
-        <div class="flex justify-between mb-4">
-            <h2 class="mb-4 text-xl font-semibold">Betreuungsart + Multiplikationsfaktor</h2>
+        <div class="mb-4 flex justify-between">
+            <h2 class="mb-4 text-xl font-semibold">
+                Betreuungsart + Multiplikationsfaktor
+            </h2>
             <Button
                 label="Neue Betreuungsart anlegen"
                 icon="pi pi-plus"
@@ -427,7 +461,7 @@ const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein');
                 @click="openNewMentoring"
             />
         </div>
-        
+
         <DataTable
             :value="mentorings"
             :paginator="true"
@@ -443,7 +477,7 @@ const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein');
             v-model:editing-rows="editingRowsMentoring"
             editMode="row"
             sortMode="multiple"
-            removableSort 
+            removableSort
             @row-edit-save="onRowEditSaveMentoring"
             :pt="{
                 table: { style: 'min-width: 50rem' },
@@ -460,8 +494,15 @@ const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein');
             <template #empty>Keine Betreuungsarten gefunden.</template>
 
             <!-- ID Column -->
-            <Column field="typeOfSupervisionId" header="ID" style="min-width: 6rem" sortable>
-                <template #body="{ data }">{{ data.typeOfSupervisionId }}</template>
+            <Column
+                field="typeOfSupervisionId"
+                header="ID"
+                style="min-width: 6rem"
+                sortable
+            >
+                <template #body="{ data }">{{
+                    data.typeOfSupervisionId
+                }}</template>
             </Column>
 
             <!-- Mentoring-Name Column -->
@@ -471,7 +512,9 @@ const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein');
                 style="min-width: 12rem"
                 sortable
             >
-                <template #body="{ data }">{{ data.typeOfSupervision }}</template>
+                <template #body="{ data }">{{
+                    data.typeOfSupervision
+                }}</template>
                 <template #editor="{ data, field }">
                     <InputText v-model="data[field]" fluid />
                 </template>
@@ -492,9 +535,16 @@ const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein');
                 style="min-width: 10rem"
                 sortable
             >
-                <template #body="{ data }">{{ formatNumber(data.calculationFactor) }}</template>
+                <template #body="{ data }">{{
+                    formatNumber(data.calculationFactor)
+                }}</template>
                 <template #editor="{ data, field }">
-                    <InputNumber v-model="data[field]" :step="0.05" :min="0.1" fluid />
+                    <InputNumber
+                        v-model="data[field]"
+                        :step="0.05"
+                        :min="0.1"
+                        fluid
+                    />
                 </template>
             </Column>
 
@@ -505,9 +555,17 @@ const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein');
                 style="min-width: 10rem"
                 sortable
             >
-                <template #body="{ data }">{{ getSemesterName(data.validFrom) }}</template>
+                <template #body="{ data }">{{
+                    getSemesterName(data.validFrom)
+                }}</template>
                 <template #editor="{ data, field }">
-                    <Select v-model="data[field]" :options="semesterSelect" option-label="label" option-value="value" fluid />
+                    <Select
+                        v-model="data[field]"
+                        :options="semesterSelect"
+                        option-label="label"
+                        option-value="value"
+                        fluid
+                    />
                 </template>
             </Column>
             <Column
@@ -534,7 +592,11 @@ const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein');
                 <!-- Mentoring-Name Field -->
                 <div class="mt-2 flex flex-col gap-1">
                     <FloatLabel variant="on">
-                        <InputText id="typeOfSupervision" name="typeOfSupervision" fluid />
+                        <InputText
+                            id="typeOfSupervision"
+                            name="typeOfSupervision"
+                            fluid
+                        />
                         <label
                             for="typeOfSupervision"
                             class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
@@ -556,7 +618,14 @@ const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein');
                 <!-- CalculationFactor Field -->
                 <div class="mt-2 flex flex-col gap-1">
                     <FloatLabel variant="on">
-                        <InputNumber id="calculationFactor" name="calculationFactor" type="number" :step="0.1" :min="0.1" fluid />
+                        <InputNumber
+                            id="calculationFactor"
+                            name="calculationFactor"
+                            type="number"
+                            :step="0.1"
+                            :min="0.1"
+                            fluid
+                        />
                         <label
                             for="calculationFactor"
                             class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
@@ -620,12 +689,12 @@ const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein');
                     />
                 </div>
             </Form>
-        </Dialog> 
+        </Dialog>
     </div>
 
-    <div class="grid grid-cols-6 gap-4 ">
-        <div class="card mb-0 col-span-3">
-            <div class="flex justify-between mb-4">
+    <div class="grid grid-cols-6 gap-4">
+        <div class="card col-span-3 mb-0">
+            <div class="mb-4 flex justify-between">
                 <h2 class="mb-4 text-xl font-semibold">Semester</h2>
                 <Button
                     label="Neues Semester anlegen"
@@ -649,7 +718,7 @@ const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein');
                 v-model:editing-rows="editingRowsSemester"
                 editMode="row"
                 sortMode="multiple"
-                removableSort 
+                removableSort
                 @row-edit-save="onRowEditSaveSemester"
                 :pt="{
                     table: { style: 'min-width: 50rem' },
@@ -698,9 +767,17 @@ const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein');
                     style="min-width: 8rem"
                     sortable
                 >
-                    <template #body="{ data }">{{ formatBoolean(data.active) }}</template>
+                    <template #body="{ data }">{{
+                        formatBoolean(data.active)
+                    }}</template>
                     <template #editor="{ data, field }">
-                        <Select v-model="data[field]" :options="booleanOptions" option-label="label" option-value="value" fluid />
+                        <Select
+                            v-model="data[field]"
+                            :options="booleanOptions"
+                            option-label="label"
+                            option-value="value"
+                            fluid
+                        />
                     </template>
                 </Column>
 
@@ -797,7 +874,7 @@ const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein');
         </div>
 
         <div class="card col-span-3">
-            <div class="flex justify-between mb-4">
+            <div class="mb-4 flex justify-between">
                 <h2 class="mb-4 text-xl font-semibold">Ermäßigungsarten</h2>
                 <Button
                     label="Neue Ermäßigung anlegen"
@@ -808,123 +885,136 @@ const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein');
             </div>
 
             <DataTable
-            :value="reductions"
-            :paginator="true"
-            :rows="3"
-            size="small"
-            showGridlines
-            data-key="discountTypeId"
-            :row-hover="true"
-            filter-display="row"
-            :loading="loadingReduction"
-            v-model:filters="filtersReduction"
-            :global-filter-fields="['discountType']"
-            v-model:editing-rows="editingRowsReduction"
-            editMode="row"
-            sortMode="multiple"
-            removableSort 
-            @row-edit-save="onRowEditSaveReduction"
-            :pt="{
-                table: { style: 'min-width: 50rem' },
-                column: {
-                    bodycell: ({ state }: any) => ({
-                        style:
-                            state['d_editing'] &&
-                            'padding-top: 0.75rem; padding-bottom: 0.75rem',
-                    }),
-                },
-            }"
-        >
-            <!-- Empty Table State -->
-            <template #empty>Keine Ermäßigungen gefunden.</template>
-
-            <!-- ID Column -->
-            <Column field="discountTypeId" header="ID" style="min-width: 6rem" sortable>
-                <template #body="{ data }">{{ data.discountTypeId }}</template>
-            </Column>
-
-            <!-- Reduction-Name Column -->
-            <Column
-                field="discountType"
-                header="Name der Ermäßigung"
-                style="min-width: 12rem"
-                sortable
+                :value="reductions"
+                :paginator="true"
+                :rows="3"
+                size="small"
+                showGridlines
+                data-key="discountTypeId"
+                :row-hover="true"
+                filter-display="row"
+                :loading="loadingReduction"
+                v-model:filters="filtersReduction"
+                :global-filter-fields="['discountType']"
+                v-model:editing-rows="editingRowsReduction"
+                editMode="row"
+                sortMode="multiple"
+                removableSort
+                @row-edit-save="onRowEditSaveReduction"
+                :pt="{
+                    table: { style: 'min-width: 50rem' },
+                    column: {
+                        bodycell: ({ state }: any) => ({
+                            style:
+                                state['d_editing'] &&
+                                'padding-top: 0.75rem; padding-bottom: 0.75rem',
+                        }),
+                    },
+                }"
             >
-                <template #body="{ data }">{{ data.discountType }}</template>
-                <template #editor="{ data, field }">
-                    <InputText v-model="data[field]" fluid />
-                </template>
-                <template #filter="{ filterModel, filterCallback }">
-                    <InputText
-                        @input="filterCallback()"
-                        v-model="filterModel.value"
-                        type="text"
-                        placeholder="Ermäßigung suchen"
-                    />
-                </template>
-            </Column>
+                <!-- Empty Table State -->
+                <template #empty>Keine Ermäßigungen gefunden.</template>
 
-            <Column
-                :rowEditor="true"
-                style="width: 10%; min-width: 8rem"
-                bodyStyle="text-align:center"
-            ></Column>
-        </DataTable>
+                <!-- ID Column -->
+                <Column
+                    field="discountTypeId"
+                    header="ID"
+                    style="min-width: 6rem"
+                    sortable
+                >
+                    <template #body="{ data }">{{
+                        data.discountTypeId
+                    }}</template>
+                </Column>
 
-        <Dialog
-            v-model:visible="newReductionDialog"
-            :style="{ width: '450px' }"
-            header="Neue Ermäßigung anlegen"
-            :modal="true"
-        >
-            <!-- Form inside the dialog -->
-            <Form
-                v-slot="$form"
-                :resolverReduction
-                :initial-values="getNewReductionValues()"
-                class="flex w-full flex-col gap-4"
-                @submit="onCreateReductionFormSubmit"
+                <!-- Reduction-Name Column -->
+                <Column
+                    field="discountType"
+                    header="Name der Ermäßigung"
+                    style="min-width: 12rem"
+                    sortable
+                >
+                    <template #body="{ data }">{{
+                        data.discountType
+                    }}</template>
+                    <template #editor="{ data, field }">
+                        <InputText v-model="data[field]" fluid />
+                    </template>
+                    <template #filter="{ filterModel, filterCallback }">
+                        <InputText
+                            @input="filterCallback()"
+                            v-model="filterModel.value"
+                            type="text"
+                            placeholder="Ermäßigung suchen"
+                        />
+                    </template>
+                </Column>
+
+                <Column
+                    :rowEditor="true"
+                    style="width: 10%; min-width: 8rem"
+                    bodyStyle="text-align:center"
+                ></Column>
+            </DataTable>
+
+            <Dialog
+                v-model:visible="newReductionDialog"
+                :style="{ width: '450px' }"
+                header="Neue Ermäßigung anlegen"
+                :modal="true"
             >
-                <!-- Semester-Name Field -->
-                <div class="mt-2 flex flex-col gap-1">
-                    <FloatLabel variant="on">
-                        <InputText id="discountType" name="discountType" fluid />
-                        <label
-                            for="discountType"
-                            class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
-                            >Name der Ermäßigung</label
-                        >
-                    </FloatLabel>
-                    <!-- @vue-expect-error -->
-                    <Message
-                        v-if="$form.discountType?.invalid"
-                        severity="error"
-                        size="small"
-                        variant="simple"
-                    >
+                <!-- Form inside the dialog -->
+                <Form
+                    v-slot="$form"
+                    :resolverReduction
+                    :initial-values="getNewReductionValues()"
+                    class="flex w-full flex-col gap-4"
+                    @submit="onCreateReductionFormSubmit"
+                >
+                    <!-- Semester-Name Field -->
+                    <div class="mt-2 flex flex-col gap-1">
+                        <FloatLabel variant="on">
+                            <InputText
+                                id="discountType"
+                                name="discountType"
+                                fluid
+                            />
+                            <label
+                                for="discountType"
+                                class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
+                                >Name der Ermäßigung</label
+                            >
+                        </FloatLabel>
                         <!-- @vue-expect-error -->
-                        {{ $form.discountType.error?.message }}
-                    </Message>
-                </div>
+                        <Message
+                            v-if="$form.discountType?.invalid"
+                            severity="error"
+                            size="small"
+                            variant="simple"
+                        >
+                            <!-- @vue-expect-error -->
+                            {{ $form.discountType.error?.message }}
+                        </Message>
+                    </div>
 
-                <!-- Footer -->
-                <div class="flex flex-row">
-                    <Button
-                        label="Abbrechen"
-                        icon="pi pi-times"
-                        text
-                        @click="hideReductionDialog"
-                        fluid
-                    />
-                    <Button
-                        type="submit"
-                        icon="pi pi-check"
-                        label="Erstellen"
-                        fluid
-                    />
-                </div>
-            </Form>
-        </Dialog>
+                    <!-- Footer -->
+                    <div class="flex flex-row">
+                        <Button
+                            label="Abbrechen"
+                            icon="pi pi-times"
+                            text
+                            @click="hideReductionDialog"
+                            fluid
+                        />
+                        <Button
+                            type="submit"
+                            icon="pi pi-check"
+                            label="Erstellen"
+                            fluid
+                        />
+                    </div>
+                </Form>
+            </Dialog>
         </div>
     </div>
 </template>

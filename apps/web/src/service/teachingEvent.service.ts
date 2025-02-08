@@ -10,7 +10,8 @@ import {
 const getProfile = () => apiClient.get('/auth/profile')
 
 // API call: fetches a list of teaching events from the server
-const getTeachingEvents = () => apiClient.get<ITeachingEventResponse[]>('/teachingEvent')
+const getTeachingEvents = () =>
+    apiClient.get<ITeachingEventResponse[]>('/teachingEvent')
 
 // API call: creates a new teaching event
 // expects data in the format of ICreateTeachingEventRequest and returns the created teaching event

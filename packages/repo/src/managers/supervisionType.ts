@@ -1,5 +1,8 @@
 import { SupervisionType as ISupervisionType } from "@workspace/database";
-import { ICreateSupervisionTypeRequest, IUpdateSupervisionTypeRequest } from "@workspace/shared";
+import {
+  ICreateSupervisionTypeRequest,
+  IUpdateSupervisionTypeRequest,
+} from "@workspace/shared";
 import { singleton } from "tsyringe";
 
 import { PrismaService } from "../services/index.js";
@@ -26,7 +29,9 @@ export class SupervisionTypeManager {
   }
 
   // updates supervisionType details
-  async update(supervisionType: IUpdateSupervisionTypeRequest): Promise<SupervisionType> {
+  async update(
+    supervisionType: IUpdateSupervisionTypeRequest,
+  ): Promise<SupervisionType> {
     const { typeOfSupervisionId } = supervisionType;
     // updates the supervision type in the database using the provided data
     const result = await this.prisma.supervisionType.update({
@@ -42,8 +47,12 @@ export class SupervisionTypeManager {
   }
 
   // creates a new supervision type
-  async create(supervisionType: ICreateSupervisionTypeRequest): Promise<SupervisionType> {
-    const result = await this.prisma.supervisionType.create({ data: supervisionType });
+  async create(
+    supervisionType: ICreateSupervisionTypeRequest,
+  ): Promise<SupervisionType> {
+    const result = await this.prisma.supervisionType.create({
+      data: supervisionType,
+    });
     return new SupervisionType(result); // returns the newly created supervision type as an instance of SupervisionType
   }
 }

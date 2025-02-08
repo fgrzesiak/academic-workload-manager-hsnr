@@ -1,5 +1,8 @@
 import { TeachingGroup as ITeachingGroup } from "@workspace/database";
-import { ICreateTeachingGroupRequest, IUpdateTeachingGroupRequest } from "@workspace/shared";
+import {
+  ICreateTeachingGroupRequest,
+  IUpdateTeachingGroupRequest,
+} from "@workspace/shared";
 import { singleton } from "tsyringe";
 
 import { PrismaService } from "../services/index.js";
@@ -26,7 +29,9 @@ export class TeachingGroupManager {
   }
 
   // updates teaching group details
-  async update(teachingGroup: IUpdateTeachingGroupRequest): Promise<TeachingGroup> {
+  async update(
+    teachingGroup: IUpdateTeachingGroupRequest,
+  ): Promise<TeachingGroup> {
     const { id } = teachingGroup;
     // updates the teaching group in the database using the provided data
     const result = await this.prisma.teachingGroup.update({
@@ -42,8 +47,12 @@ export class TeachingGroupManager {
   }
 
   // creates a new teaching group
-  async create(teachingGroup: ICreateTeachingGroupRequest): Promise<TeachingGroup> {
-    const result = await this.prisma.teachingGroup.create({ data: teachingGroup });
+  async create(
+    teachingGroup: ICreateTeachingGroupRequest,
+  ): Promise<TeachingGroup> {
+    const result = await this.prisma.teachingGroup.create({
+      data: teachingGroup,
+    });
     return new TeachingGroup(result); // returns the newly created teaching group as an instance of the TeachingGroup class
   }
 }

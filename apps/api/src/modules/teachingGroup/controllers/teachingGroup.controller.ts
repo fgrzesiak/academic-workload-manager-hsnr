@@ -1,14 +1,8 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Post,
-  Put,
-} from "@nestjs/common";
+import { Body, Controller, Get, Post, Put } from "@nestjs/common";
 import {
   ICreateTeachingGroupRequest,
-  IUpdateTeachingGroupRequest,
   ITeachingGroupResponse,
+  IUpdateTeachingGroupRequest,
 } from "@workspace/shared";
 
 import { Auth } from "../../../common/decorators/auth.decorator";
@@ -42,7 +36,9 @@ export class TeachingGroupController {
    */
   @Post("/")
   @Auth(Role.CONTROLLER)
-  async createTeachingGroup(@Body() teachingGroup: ICreateTeachingGroupRequest): Promise<ITeachingGroupResponse> {
+  async createTeachingGroup(
+    @Body() teachingGroup: ICreateTeachingGroupRequest,
+  ): Promise<ITeachingGroupResponse> {
     return await this.teachingGroupService.create(teachingGroup);
   }
 
@@ -55,7 +51,9 @@ export class TeachingGroupController {
    */
   @Put("/")
   @Auth(Role.CONTROLLER)
-  async updateTeachingGroup(@Body() teachingGroup: IUpdateTeachingGroupRequest): Promise<ITeachingGroupResponse> {
+  async updateTeachingGroup(
+    @Body() teachingGroup: IUpdateTeachingGroupRequest,
+  ): Promise<ITeachingGroupResponse> {
     return await this.teachingGroupService.update(teachingGroup);
   }
 }

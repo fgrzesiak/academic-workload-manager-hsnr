@@ -31,9 +31,7 @@ export class AuthController {
    * returns: LoginResponse - contains the JWT token for the authenticated user
    */
   @Post("login")
-  async login(
-    @Body() loginDto: LoginRequest,
-  ): Promise<LoginResponse> {
+  async login(@Body() loginDto: LoginRequest): Promise<LoginResponse> {
     return await this.authService.login(loginDto);
   }
 

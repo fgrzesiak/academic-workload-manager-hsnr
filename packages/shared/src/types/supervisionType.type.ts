@@ -1,12 +1,16 @@
 import { SupervisionType as ISupervisionType } from "@workspace/database";
 
 // utility type that makes all properties optional except for the specified required keys
-type OptionalExceptFor<T, TRequired extends keyof T> = Partial<T> & Pick<T, TRequired>;
+type OptionalExceptFor<T, TRequired extends keyof T> = Partial<T> &
+  Pick<T, TRequired>;
 
 // defines the response type for a supervision type, including only specific properties
 export type ISupervisionTypeResponse = Pick<
   ISupervisionType,
-  "typeOfSupervisionId" | "typeOfSupervision" | "calculationFactor" | "validFrom"
+  | "typeOfSupervisionId"
+  | "typeOfSupervision"
+  | "calculationFactor"
+  | "validFrom"
 >;
 
 // defines the request type for creating a new supervision type
@@ -19,7 +23,10 @@ export type ICreateSupervisionTypeRequest = Pick<
 export type IUpdateSupervisionTypeRequest = OptionalExceptFor<
   Pick<
     ISupervisionType,
-    "typeOfSupervisionId" | "typeOfSupervision" | "calculationFactor" | "validFrom"
+    | "typeOfSupervisionId"
+    | "typeOfSupervision"
+    | "calculationFactor"
+    | "validFrom"
   >,
   "typeOfSupervisionId"
 >;

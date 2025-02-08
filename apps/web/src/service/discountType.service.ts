@@ -10,7 +10,8 @@ import {
 const getProfile = () => apiClient.get('/auth/profile')
 
 // API call: fetches a list of discount types from the server
-const getDiscountTypes = () => apiClient.get<IDiscountTypeResponse[]>('/discountType')
+const getDiscountTypes = () =>
+    apiClient.get<IDiscountTypeResponse[]>('/discountType')
 
 // API call: creates a new discount type
 // expects data in the format of ICreateDiscountTypeRequest and returns the created discount type

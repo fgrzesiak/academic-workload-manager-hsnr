@@ -3,8 +3,8 @@ import { JwtService } from "@nestjs/jwt";
 import { teachingDuties } from "@workspace/repo";
 import {
   ICreateTeachingDutyRequest,
-  IUpdateTeachingDutyRequest,
   ITeachingDutyResponse,
+  IUpdateTeachingDutyRequest,
 } from "@workspace/shared";
 
 // marks the service as injectable so it can be used by other parts of the application
@@ -30,7 +30,9 @@ export class TeachingDutyService {
    * @param teachingDuty - the details of the teaching duty to create (ICreateTeachingDutyRequest).
    * @returns a Promise that resolves to the created teaching duty (ITeachingDutyResponse).
    */
-  async create(teachingDuty: ICreateTeachingDutyRequest): Promise<ITeachingDutyResponse> {
+  async create(
+    teachingDuty: ICreateTeachingDutyRequest,
+  ): Promise<ITeachingDutyResponse> {
     const { ...rest } = await teachingDuties.create(teachingDuty);
     return rest;
   }
@@ -40,7 +42,9 @@ export class TeachingDutyService {
    * @param teachingDuty - the updated details of the teaching duty (IUpdateTeachingDutyRequest).
    * @returns a Promise that resolves to the updated teaching duty (ITeachingDutyResponse).
    */
-  async update(teachingDuty: IUpdateTeachingDutyRequest): Promise<ITeachingDutyResponse> {
+  async update(
+    teachingDuty: IUpdateTeachingDutyRequest,
+  ): Promise<ITeachingDutyResponse> {
     const { ...rest } = await teachingDuties.update(teachingDuty);
     return rest;
   }

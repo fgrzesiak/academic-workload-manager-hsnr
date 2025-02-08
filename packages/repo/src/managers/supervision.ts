@@ -1,5 +1,8 @@
 import { Supervision as ISupervision } from "@workspace/database";
-import { ICreateSupervisionRequest, IUpdateSupervisionRequest } from "@workspace/shared";
+import {
+  ICreateSupervisionRequest,
+  IUpdateSupervisionRequest,
+} from "@workspace/shared";
 import { singleton } from "tsyringe";
 
 import { PrismaService } from "../services/index.js";

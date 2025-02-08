@@ -10,7 +10,8 @@ import {
 const getProfile = () => apiClient.get('/auth/profile')
 
 // API call: fetches a list of evaluation settingss from the server
-const getEvaluationSettings = () => apiClient.get<IEvaluationSettingsResponse[]>('/evaluationSettings')
+const getEvaluationSettings = () =>
+    apiClient.get<IEvaluationSettingsResponse[]>('/evaluationSettings')
 
 // API call: creates a new evaluation settings
 // expects data in the format of ICreateEvaluationSettingsRequest and returns the created evaluation settings

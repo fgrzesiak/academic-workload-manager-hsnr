@@ -5,17 +5,37 @@ type OptionalExceptFor<T, TRequired extends keyof T> = Partial<T> &
   Pick<T, TRequired>;
 
 // defines the response type for a Teaching Duty, including only specific properties
-export type ITeachingDutyResponse = Pick<ITeachingDuty, "id" | "individualDuty" | "sumBalance" | "sumOrderedBalance" | "semesterPeriodId" | "teacherId">;
+export type ITeachingDutyResponse = Pick<
+  ITeachingDuty,
+  | "id"
+  | "individualDuty"
+  | "sumBalance"
+  | "sumOrderedBalance"
+  | "semesterPeriodId"
+  | "teacherId"
+>;
 
 // defines the request type for creating a new Teaching Duty
 export type ICreateTeachingDutyRequest = Pick<
   ITeachingDuty,
-  "individualDuty" | "sumBalance" | "sumOrderedBalance" | "semesterPeriodId" | "teacherId"
+  | "individualDuty"
+  | "sumBalance"
+  | "sumOrderedBalance"
+  | "semesterPeriodId"
+  | "teacherId"
 >;
 
 // defines the request type for updating an existing Teaching Duty, with optional fields except for the required `id`
 export type IUpdateTeachingDutyRequest = OptionalExceptFor<
-  Pick<ITeachingDuty, "id" | "individualDuty" | "sumBalance" | "sumOrderedBalance" | "semesterPeriodId" | "teacherId">,
+  Pick<
+    ITeachingDuty,
+    | "id"
+    | "individualDuty"
+    | "sumBalance"
+    | "sumOrderedBalance"
+    | "semesterPeriodId"
+    | "teacherId"
+  >,
   "id"
 >;
 

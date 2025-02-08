@@ -1,5 +1,8 @@
 import { Comment as IComment } from "@workspace/database";
-import { ICreateCommentRequest, IUpdateCommentRequest } from "@workspace/shared";
+import {
+  ICreateCommentRequest,
+  IUpdateCommentRequest,
+} from "@workspace/shared";
 import { singleton } from "tsyringe";
 
 import { PrismaService } from "../services/index.js";

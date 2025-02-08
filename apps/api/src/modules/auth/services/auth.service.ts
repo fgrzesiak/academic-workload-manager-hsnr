@@ -19,12 +19,12 @@ export class AuthService {
   async validateUser(username: string, password: string): Promise<User | null> {
     // retrieves the user by their username
     const user = await users.findByUsername(username);
-    
+
     // checks if the password matches the stored password using bcrypt
     if (user && (await bcrypt.compare(password, user.password))) {
       return user; // return the user object if credentials are correct
     }
-    
+
     return null; // return null if credentials are invalid
   }
 
@@ -37,7 +37,7 @@ export class AuthService {
   async login(user: LoginRequest): Promise<LoginResponse> {
     // validate the user's credentials
     const validUser = await this.validateUser(user.username, user.password);
-    
+
     // if credentials are invalid, throw an Unauthorized exception
     if (!validUser) {
       throw new HttpException(
@@ -45,13 +45,13 @@ export class AuthService {
         HttpStatus.UNAUTHORIZED, // HTTP status code for unauthorized
       );
     }
-    
+
     // create the payload for the JWT token
     const payload = {
       username: validUser.username,
       sub: validUser.id, // user id is used as the subject in the token
     };
-    
+
     // return the login response containing the JWT token and user role
     return {
       token: this.jwtService.sign(payload), // generates a JWT token

@@ -10,7 +10,8 @@ import {
 const getProfile = () => apiClient.get('/auth/profile')
 
 // API call: fetches a list of teaching groups from the server
-const getTeachingGroups = () => apiClient.get<ITeachingGroupResponse[]>('/teachingGroup')
+const getTeachingGroups = () =>
+    apiClient.get<ITeachingGroupResponse[]>('/teachingGroup')
 
 // API call: creates a new teaching group
 // expects data in the format of ICreateTeachingGroupRequest and returns the created teaching group

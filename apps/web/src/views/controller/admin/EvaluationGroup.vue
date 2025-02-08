@@ -6,10 +6,7 @@ import {
     ITeachingGroupResponse,
     ICreateTeachingGroupRequest,
 } from '@workspace/shared'
-import {
-    DataTableRowEditSaveEvent,
-    useToast,
-} from 'primevue'
+import { DataTableRowEditSaveEvent, useToast } from 'primevue'
 import { getFormStatesAsType } from '@/helpers/functions'
 import { z } from 'zod'
 import { zodResolver } from '@primevue/forms/resolvers/zod'
@@ -47,7 +44,9 @@ const updateTeachingGroups = (data: ITeachingGroupResponse[]) => {
     })
 }
 
-const getNewTeachingGroupValues = (): z.infer<typeof newTeachingGroupSchema> => {
+const getNewTeachingGroupValues = (): z.infer<
+    typeof newTeachingGroupSchema
+> => {
     return {
         groupName: 'Gruppe_',
         groupDescription: '',
@@ -56,30 +55,36 @@ const getNewTeachingGroupValues = (): z.infer<typeof newTeachingGroupSchema> => 
 }
 
 //create new teaching group from dialog
-const onCreateTeachingGroupFormSubmit = async ({ valid, states }: FormSubmitEvent) => {
+const onCreateTeachingGroupFormSubmit = async ({
+    valid,
+    states,
+}: FormSubmitEvent) => {
     if (valid) {
         newTeachingGroupSubmitted.value = true
-        const newTeachingGroup = getFormStatesAsType<ICreateTeachingGroupRequest>(states)
+        const newTeachingGroup =
+            getFormStatesAsType<ICreateTeachingGroupRequest>(states)
         newTeachingGroup.groupBalance = 0
-        TeachingGroupService.createTeachingGroup(newTeachingGroup).then((res) => {
-            const { data, error } = res
-            if (error) {
-                toast.add({
-                    severity: 'error',
-                    summary: 'Fehler',
-                    detail: error,
-                    life: 5000,
-                })
-            } else {
-                updateTeachingGroups([...teachingGroup.value, data])
-                toast.add({
-                    severity: 'success',
-                    summary: 'Erfolgreich',
-                    detail: 'Ermäßigung erstellt',
-                    life: 3000,
-                })
+        TeachingGroupService.createTeachingGroup(newTeachingGroup).then(
+            (res) => {
+                const { data, error } = res
+                if (error) {
+                    toast.add({
+                        severity: 'error',
+                        summary: 'Fehler',
+                        detail: error,
+                        life: 5000,
+                    })
+                } else {
+                    updateTeachingGroups([...teachingGroup.value, data])
+                    toast.add({
+                        severity: 'success',
+                        summary: 'Erfolgreich',
+                        detail: 'Ermäßigung erstellt',
+                        life: 3000,
+                    })
+                }
             }
-        })
+        )
 
         newTeachingGroupDialog.value = false
     }
@@ -133,12 +138,11 @@ onBeforeMount(() => {
 
     loading.value = false
 })
-
 </script>
 
 <template>
     <div class="card">
-        <div class="flex justify-between mb-4">
+        <div class="mb-4 flex justify-between">
             <h1 class="mb-4 text-xl font-semibold">
                 Übersicht der Lehrenden-Gruppen für den Export
             </h1>
@@ -164,7 +168,6 @@ onBeforeMount(() => {
             editMode="row"
             @row-edit-save="onRowEditSave"
         >
-
             <!-- Empty Table State -->
             <template #empty>Keine Lehrgruppen gefunden.</template>
 
@@ -182,8 +185,14 @@ onBeforeMount(() => {
             </Column>
 
             <!-- Description Column -->
-            <Column field="groupDescription" header="Beschreibung" style="min-width: 15rem">
-                <template #body="{ data }">{{ data.groupDescription }}</template>
+            <Column
+                field="groupDescription"
+                header="Beschreibung"
+                style="min-width: 15rem"
+            >
+                <template #body="{ data }">{{
+                    data.groupDescription
+                }}</template>
                 <template #editor="{ data, field }">
                     <InputText v-model="data[field]" fluid />
                 </template>
@@ -195,7 +204,6 @@ onBeforeMount(() => {
                 style="width: 10%; min-width: 8rem"
                 bodyStyle="text-align:center"
             ></Column>
-
         </DataTable>
 
         <Dialog
@@ -212,10 +220,9 @@ onBeforeMount(() => {
                 class="flex w-full flex-col gap-4"
                 @submit="onCreateTeachingGroupFormSubmit"
             >
-
                 <!-- Name Field -->
                 <!-- Description Field -->
-                <div class="flex flex-col gap-1 mt-4">
+                <div class="mt-4 flex flex-col gap-1">
                     <FloatLabel variant="on">
                         <InputText id="groupName" name="groupName" fluid />
                         <label
@@ -235,11 +242,15 @@ onBeforeMount(() => {
                         {{ $form.groupName.error?.message }}
                     </Message>
                 </div>
-                
+
                 <!-- Description Field -->
                 <div class="flex flex-col gap-1">
                     <FloatLabel variant="on">
-                        <InputText id="groupDescription" name="groupDescription" fluid />
+                        <InputText
+                            id="groupDescription"
+                            name="groupDescription"
+                            fluid
+                        />
                         <label
                             for="groupDescription"
                             class="block text-lg font-medium text-surface-900 dark:text-surface-0"

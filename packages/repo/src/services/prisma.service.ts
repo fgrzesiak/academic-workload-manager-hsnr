@@ -8,7 +8,7 @@ import { singleton } from "tsyringe";
 @singleton()
 export class PrismaService extends PrismaClient {
   constructor() {
-    super();  // Initialize the PrismaClient
-    void this.$connect();  // Establish the database connection asynchronously
+    super(); // Initialize the PrismaClient
+    void this.$connect(); // Establish the database connection asynchronously
   }
 }

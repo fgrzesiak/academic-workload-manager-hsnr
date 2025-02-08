@@ -10,7 +10,8 @@ import {
 const getProfile = () => apiClient.get('/auth/profile')
 
 // API call: fetches a list of supervision types from the server
-const getSupervisionTypes = () => apiClient.get<ISupervisionTypeResponse[]>('/supervisionType')
+const getSupervisionTypes = () =>
+    apiClient.get<ISupervisionTypeResponse[]>('/supervisionType')
 
 // API call: creates a new supervision type
 // expects data in the format of ICreateSupervisionTypeRequest and returns the created supervision type

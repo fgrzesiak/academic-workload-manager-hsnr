@@ -9,10 +9,7 @@ import {
     ISemesterResponse,
     ITeacherResponse,
 } from '@workspace/shared'
-import {
-    DataTableRowEditSaveEvent,
-    useToast,
-} from 'primevue'
+import { DataTableRowEditSaveEvent, useToast } from 'primevue'
 
 // interface for defining dropdown options
 interface SelectOption {
@@ -180,7 +177,6 @@ const formatNumber = (value: number) => {
             editMode="row"
             @row-edit-save="onRowEditSave"
         >
-
             <!-- Empty Table State -->
             <template #empty>Keine Deputate gefunden.</template>
 

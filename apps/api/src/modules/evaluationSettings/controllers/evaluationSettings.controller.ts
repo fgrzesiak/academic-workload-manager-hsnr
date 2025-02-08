@@ -1,14 +1,8 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Post,
-  Put,
-} from "@nestjs/common";
+import { Body, Controller, Get, Post, Put } from "@nestjs/common";
 import {
   ICreateEvaluationSettingsRequest,
-  IUpdateEvaluationSettingsRequest,
   IEvaluationSettingsResponse,
+  IUpdateEvaluationSettingsRequest,
 } from "@workspace/shared";
 
 import { Auth } from "../../../common/decorators/auth.decorator";
@@ -19,7 +13,9 @@ import { EvaluationSettingsService } from "../services/evaluationSettings.servic
 @Controller("evaluationSettings")
 export class EvaluationSettingsController {
   // injects the EvaluationSettingsService to handle business logic
-  constructor(private readonly evaluationSettingsService: EvaluationSettingsService) {}
+  constructor(
+    private readonly evaluationSettingsService: EvaluationSettingsService,
+  ) {}
 
   /**
    * endpoint: GET /
@@ -42,7 +38,9 @@ export class EvaluationSettingsController {
    */
   @Post("/")
   @Auth(Role.CONTROLLER)
-  async createEvaluationSettings(@Body() evaluationSettings: ICreateEvaluationSettingsRequest): Promise<IEvaluationSettingsResponse> {
+  async createEvaluationSettings(
+    @Body() evaluationSettings: ICreateEvaluationSettingsRequest,
+  ): Promise<IEvaluationSettingsResponse> {
     return await this.evaluationSettingsService.create(evaluationSettings);
   }
 
@@ -55,7 +53,9 @@ export class EvaluationSettingsController {
    */
   @Put("/")
   @Auth(Role.CONTROLLER)
-  async updateEvaluationSettings(@Body() evaluationSettings: IUpdateEvaluationSettingsRequest): Promise<IEvaluationSettingsResponse> {
+  async updateEvaluationSettings(
+    @Body() evaluationSettings: IUpdateEvaluationSettingsRequest,
+  ): Promise<IEvaluationSettingsResponse> {
     return await this.evaluationSettingsService.update(evaluationSettings);
   }
 }

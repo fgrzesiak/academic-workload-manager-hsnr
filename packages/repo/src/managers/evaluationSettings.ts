@@ -1,5 +1,8 @@
 import { EvaluationSettings as IEvaluationSettings } from "@workspace/database";
-import { ICreateEvaluationSettingsRequest, IUpdateEvaluationSettingsRequest } from "@workspace/shared";
+import {
+  ICreateEvaluationSettingsRequest,
+  IUpdateEvaluationSettingsRequest,
+} from "@workspace/shared";
 import { singleton } from "tsyringe";
 
 import { PrismaService } from "../services/index.js";
@@ -26,7 +29,9 @@ export class EvaluationSettingsManager {
   }
 
   // updates evaluationSettings details
-  async update(evaluationSettings: IUpdateEvaluationSettingsRequest): Promise<EvaluationSettings> {
+  async update(
+    evaluationSettings: IUpdateEvaluationSettingsRequest,
+  ): Promise<EvaluationSettings> {
     const { id } = evaluationSettings;
     // updates the evaluation setting in the database using the provided data
     const result = await this.prisma.evaluationSettings.update({
@@ -42,8 +47,12 @@ export class EvaluationSettingsManager {
   }
 
   // creates a new evaluation setting
-  async create(evaluationSettings: ICreateEvaluationSettingsRequest): Promise<EvaluationSettings> {
-    const result = await this.prisma.evaluationSettings.create({ data: evaluationSettings });
+  async create(
+    evaluationSettings: ICreateEvaluationSettingsRequest,
+  ): Promise<EvaluationSettings> {
+    const result = await this.prisma.evaluationSettings.create({
+      data: evaluationSettings,
+    });
     return new EvaluationSettings(result); // returns the newly created evaluation setting as an instance of EvaluationSettings
   }
 }

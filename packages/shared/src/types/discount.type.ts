@@ -1,25 +1,52 @@
 import { Discount as IDiscount } from "@workspace/database";
 
 // utility type that makes all properties optional except for the specified required keys
-type OptionalExceptFor<T, TRequired extends keyof T> = Partial<T> & Pick<T, TRequired>;
+type OptionalExceptFor<T, TRequired extends keyof T> = Partial<T> &
+  Pick<T, TRequired>;
 
 // defines the response type for a discount, including only specific properties
 export type IDiscountResponse = Pick<
   IDiscount,
-  "id" | "discountTypeId" | "semesterPeriodId" | "ordered" | "approvalDate" | "supervisor" | "commentId" | "description" | "scope" | "teacherId"
+  | "id"
+  | "discountTypeId"
+  | "semesterPeriodId"
+  | "ordered"
+  | "approvalDate"
+  | "supervisor"
+  | "commentId"
+  | "description"
+  | "scope"
+  | "teacherId"
 >;
 
 // defines the request type for creating a new discount
 export type ICreateDiscountRequest = Pick<
   IDiscount,
-  "discountTypeId" | "semesterPeriodId" | "ordered" | "approvalDate" | "supervisor" | "commentId" | "description" | "scope" | "teacherId"
+  | "discountTypeId"
+  | "semesterPeriodId"
+  | "ordered"
+  | "approvalDate"
+  | "supervisor"
+  | "commentId"
+  | "description"
+  | "scope"
+  | "teacherId"
 >;
 
 // defines the request type for updating an existing discount, with optional fields except for required ones
 export type IUpdateDiscountRequest = OptionalExceptFor<
   Pick<
     IDiscount,
-    "id" | "discountTypeId" | "semesterPeriodId" | "ordered" | "approvalDate" | "supervisor" | "commentId" | "description" | "scope" | "teacherId"
+    | "id"
+    | "discountTypeId"
+    | "semesterPeriodId"
+    | "ordered"
+    | "approvalDate"
+    | "supervisor"
+    | "commentId"
+    | "description"
+    | "scope"
+    | "teacherId"
   >,
   "id" | "commentId"
 >;

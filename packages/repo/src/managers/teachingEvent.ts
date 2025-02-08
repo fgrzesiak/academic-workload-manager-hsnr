@@ -1,5 +1,8 @@
 import { TeachingEvent as ITeachingEvent } from "@workspace/database";
-import { ICreateTeachingEventRequest, IUpdateTeachingEventRequest } from "@workspace/shared";
+import {
+  ICreateTeachingEventRequest,
+  IUpdateTeachingEventRequest,
+} from "@workspace/shared";
 import { singleton } from "tsyringe";
 
 import { PrismaService } from "../services/index.js";
@@ -24,7 +27,9 @@ export class TeachingEventManager {
   }
 
   //update teachingEvent
-  async update(teachingEvent: IUpdateTeachingEventRequest): Promise<TeachingEvent> {
+  async update(
+    teachingEvent: IUpdateTeachingEventRequest,
+  ): Promise<TeachingEvent> {
     const { id } = teachingEvent;
     const result = await this.prisma.teachingEvent.update({
       data: teachingEvent, // update the teaching event with the provided data
@@ -35,12 +40,14 @@ export class TeachingEventManager {
 
   // get all teachingEvents
   async findAll(): Promise<ITeachingEvent[]> {
-    return await this.prisma.teachingEvent.findMany();  // retrieve all teaching events
+    return await this.prisma.teachingEvent.findMany(); // retrieve all teaching events
   }
 
   // Create a new teachingEvent
-  async create(teachingEvent: ICreateTeachingEventRequest): Promise<TeachingEvent> {
-    const result = await this.prisma.teachingEvent.create({ 
+  async create(
+    teachingEvent: ICreateTeachingEventRequest,
+  ): Promise<TeachingEvent> {
+    const result = await this.prisma.teachingEvent.create({
       data: teachingEvent, // insert the new teaching event into the database
     });
     return new TeachingEvent(result); // wrap the created event in a `TeachingEvent` structure
@@ -49,7 +56,7 @@ export class TeachingEventManager {
   // delete teachingEvent by ID
   async delete(id: number) {
     await this.prisma.teachingEvent.delete({
-      where: { 
+      where: {
         id: id, // delete the teaching event based on its ID
       },
     });

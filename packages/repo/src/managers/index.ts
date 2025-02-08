@@ -1,18 +1,18 @@
 import { container } from "tsyringe";
 
-import { ControllerManager } from "./controller.js";
-import { TeacherManager } from "./teacher.js";
-import { UserManager } from "./user.js";
-import { SemesterPeriodManager } from "./semester.js";
-import { SupervisionTypeManager } from "./supervisionType.js";
-import { SupervisionManager } from "./supervision.js";
-import { DiscountTypeManager } from "./discountType.js";
-import { DiscountManager } from "./discount.js";
-import { TeachingEventManager } from "./teachingEvent.js";
-import { TeachingDutyManager } from "./teachingDuty.js";
 import { CommentManager } from "./comment.js";
+import { ControllerManager } from "./controller.js";
+import { DiscountManager } from "./discount.js";
+import { DiscountTypeManager } from "./discountType.js";
 import { EvaluationSettingsManager } from "./evaluationSettings.js";
+import { SemesterPeriodManager } from "./semester.js";
+import { SupervisionManager } from "./supervision.js";
+import { SupervisionTypeManager } from "./supervisionType.js";
+import { TeacherManager } from "./teacher.js";
+import { TeachingDutyManager } from "./teachingDuty.js";
+import { TeachingEventManager } from "./teachingEvent.js";
 import { TeachingGroupManager } from "./teachingGroup.js";
+import { UserManager } from "./user.js";
 
 export const users = container.resolve(UserManager);
 export const controllers = container.resolve(ControllerManager);

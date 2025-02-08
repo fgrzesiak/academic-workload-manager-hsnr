@@ -1,7 +1,8 @@
 import { EvaluationSettings as IEvaluationSettings } from "@workspace/database";
 
 // utility type that makes all properties optional except for the specified required keys
-type OptionalExceptFor<T, TRequired extends keyof T> = Partial<T> & Pick<T, TRequired>;
+type OptionalExceptFor<T, TRequired extends keyof T> = Partial<T> &
+  Pick<T, TRequired>;
 
 // defines the response type for a evaluation setting, including only specific properties
 export type IEvaluationSettingsResponse = Pick<
@@ -17,10 +18,7 @@ export type ICreateEvaluationSettingsRequest = Pick<
 
 // defines the request type for updating an existing evaluation setting, with optional fields except for the required `id`
 export type IUpdateEvaluationSettingsRequest = OptionalExceptFor<
-  Pick<
-    IEvaluationSettings,
-    "id" | "key" | "value" | "dataType"
-  >,
+  Pick<IEvaluationSettings, "id" | "key" | "value" | "dataType">,
   "id"
 >;
 
