@@ -240,6 +240,6 @@ export const getCustomValidationErrorMap: ZodErrorMap = (issue, ctx) => {
                 }
         }
     }
-    console.log()
+
     return { message: ctx.defaultError }
 }
