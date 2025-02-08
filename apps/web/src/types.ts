@@ -3,3 +3,9 @@ export interface UserStore {
     role: 'CONTROLLER' | 'TEACHER'
     isPasswordTemporary: boolean
 }
+
+// Typdefinition für Select-Optionen (z. B. Semester)
+export interface SelectOption {
+    label: string
+    value: number
+}

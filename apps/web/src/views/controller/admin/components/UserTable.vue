@@ -13,12 +13,6 @@ import InputText from 'primevue/inputtext'
 import Select from 'primevue/select'
 import DatePicker from 'primevue/datepicker'
 
-// Prop-Typdefinitionen
-interface SelectOption {
-    label: string
-    value: number
-}
-
 const props = defineProps<{
     users: IUserResponse[]
     groupSelect: SelectOption[]
@@ -38,6 +32,7 @@ const loading = ref(false)
 // Ermittlung der Rollenoptionen (z. B. Teacher/Controller)
 import { UserRole } from '@workspace/shared'
 import { getObjectAsSelectOptions } from '@/helpers/functions'
+import { SelectOption } from '@/types'
 const roles = reactive(getObjectAsSelectOptions(UserRole))
 
 /**
