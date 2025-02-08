@@ -1,151 +1,115 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import {
-    useToast,
-    DataTableFilterMeta,
-    DataTableRowEditSaveEvent,
-} from 'primevue'
-import { z } from 'zod'
-import { zodResolver } from '@primevue/forms/resolvers/zod'
-import { Form, FormSubmitEvent } from '@primevue/forms'
-import SemesterService from '@/service/semester.service'
-import type {
-    ISemesterResponse,
-    ICreateSemesterRequest,
-} from '@workspace/shared'
+/**
+ * @file SemesterTable.vue
+ * @description Komponente zur Anzeige und Bearbeitung der Semester in einer DataTable.
+ *              Enthält Inline-Bearbeitung sowie einen Button zum Anlegen eines neuen Semesters.
+ */
 
-// Import PrimeVue-Komponenten
+import { ref, computed } from 'vue'
+import { useToast } from 'primevue/usetoast'
+import { FilterMatchMode } from '@primevue/core'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
 import Select from 'primevue/select'
-import Dialog from 'primevue/dialog'
-import FloatLabel from 'primevue/floatlabel'
-import Message from 'primevue/message'
-import { getFormStatesAsType } from '@/helpers'
-import { FilterMatchMode } from '@primevue/core'
 
-// Props: Die Elternkomponente übergibt die Semester-Daten, den Ladezustand und booleanOptions
+// Services und Typen
+import SemesterService from '@/service/semester.service'
+import type { ISemesterResponse } from '@workspace/shared'
+import type { DataTableFilterMeta, DataTableRowEditSaveEvent } from 'primevue'
+import SemesterCreateDialog from './SemesterCreateDialog.vue'
+
+// ----------------------------
+// Props & Events
+// ----------------------------
+
+/**
+ * @typedef Props
+ * @property {ISemesterResponse[]} semesters - Liste der Semester
+ * @property {boolean} loading - Ladezustand der Daten
+ * @property {{ label: string; value: boolean }[]} booleanOptions - Optionen für boolesche Werte (z.B. Aktiv/Nein)
+ */
 const props = defineProps<{
     semesters: ISemesterResponse[]
     loading: boolean
     booleanOptions: { label: string; value: boolean }[]
 }>()
 
-// Definiere die Events: Wir senden 'semester-created' und 'semester-updated' an den Parent.
+/**
+ * Events, die an die Elternkomponente weitergereicht werden:
+ * - `semester-created`: Wird ausgelöst, wenn ein neues Semester erstellt wurde.
+ * - `semester-updated`: Wird ausgelöst, wenn ein Semester erfolgreich aktualisiert wurde.
+ */
 const emits = defineEmits<{
     (e: 'semester-created', newSemester: ISemesterResponse): void
     (e: 'semester-updated', updatedSemester: ISemesterResponse): void
 }>()
 
+// ----------------------------
+// Lokale Zustände & Initialisierungen
+// ----------------------------
+
 const toast = useToast()
 
-// Lokale Zustände
+// Filter für die DataTable
 const filters = ref<DataTableFilterMeta>({})
-const editingRows = ref<any[]>([])
-const newSemesterDialog = ref(false)
-const newSemesterSubmitted = ref(false)
-
-// Zod-Schema für die Neuerstellung eines Semesters
-const newSemesterSchema = z.object({
-    name: z.string().trim().min(4).max(30),
-    active: z.boolean(),
-})
-const resolver = ref(zodResolver(newSemesterSchema))
-
-// Initialisiere Filter
-const initFilters = () => {
+const initFilters = (): void => {
     filters.value = {
         global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-        name: { value: null, matchMode: FilterMatchMode.EQUALS }, // Da wir über ein Dropdown filtern, ist "equals" passend
+        name: { value: null, matchMode: FilterMatchMode.EQUALS }, // Filter per Dropdown
         active: { value: null, matchMode: FilterMatchMode.EQUALS },
     }
 }
 initFilters()
 
+// Enthält die Zeilen, die gerade im Bearbeitungsmodus sind.
+const editingRows = ref<Record<string, unknown>[]>([])
+
+// Steuert die Sichtbarkeit des "Neues Semester anlegen"-Dialogs.
+const newSemesterDialogVisible = ref(false)
+
 /**
- * Computed Property: Erzeugt eine Optionsliste basierend auf den vorhandenen Semestern.
- * Jedes Semester wird in ein Objekt mit "label" (Name) und "value" (ID) umgewandelt.
+ * Computed Property: Erzeugt eine Optionsliste aus den vorhandenen Semestern.
+ * Diese wird als Filteroption im Namensfeld verwendet.
  */
 const semesterOptions = computed(() =>
-    props.semesters.map((s) => ({
-        label: s.name,
-        value: s.name, // In der Spalte steht der Name, daher filtern wir auch nach dem Namen und nicht der ID
+    props.semesters.map((semester) => ({
+        label: semester.name,
+        value: semester.name, // Filterung erfolgt über den Namen
     }))
 )
 
 /**
- * Formatiert einen Boolean-Wert in "Ja" oder "Nein".
- * @param value Boolean
- * @returns "Ja" oder "Nein"
+ * Formatiert einen booleschen Wert in "Ja" oder "Nein".
+ * @param value Der boolesche Wert
+ * @returns {string} "Ja" falls true, ansonsten "Nein"
  */
-const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein')
+const formatBoolean = (value: boolean): string => (value ? 'Ja' : 'Nein')
 
 /**
  * Öffnet den Dialog zur Neuerstellung eines Semesters.
  */
-const openNewSemester = () => {
-    newSemesterSubmitted.value = false
-    newSemesterDialog.value = true
+const openNewSemester = (): void => {
+    newSemesterDialogVisible.value = true
 }
 
 /**
- * Schließt den Dialog und setzt den Formularstatus zurück.
+ * Event-Handler, der ausgelöst wird, sobald in der Dialog-Komponente ein Semester erstellt wurde.
+ * Leitet das Event an die Elternkomponente weiter und schließt den Dialog.
+ * @param newSemester Das neu erstellte Semester
  */
-const hideNewSemesterDialog = () => {
-    newSemesterDialog.value = false
-    newSemesterSubmitted.value = false
+const handleSemesterCreated = (newSemester: ISemesterResponse): void => {
+    emits('semester-created', newSemester)
+    newSemesterDialogVisible.value = false
 }
 
 /**
- * Gibt die initialen Werte für ein neues Semester zurück.
+ * Handler für das Speichern der Inline-Bearbeitung einer Zeile.
+ * Führt ein Update über den SemesterService durch und informiert den Benutzer per Toast.
+ * @param event Event-Objekt, das die neuen Daten der Zeile enthält.
  */
-const getNewSemesterValues = (): z.infer<typeof newSemesterSchema> => {
-    return {
-        name: '',
-        active: false,
-    } satisfies ICreateSemesterRequest
-}
-
-/**
- * Handler für die Formularübermittlung zur Neuerstellung eines Semesters.
- */
-const onCreateSemesterFormSubmit = async ({
-    valid,
-    states,
-}: FormSubmitEvent) => {
-    if (valid) {
-        newSemesterSubmitted.value = true
-        const newSemester = getFormStatesAsType<ICreateSemesterRequest>(states)
-        SemesterService.createSemester(newSemester).then((res) => {
-            const { data, error } = res
-            if (error) {
-                toast.add({
-                    severity: 'error',
-                    summary: 'Fehler',
-                    detail: error,
-                    life: 5000,
-                })
-            } else {
-                toast.add({
-                    severity: 'success',
-                    summary: 'Erfolgreich',
-                    detail: 'Semester erstellt',
-                    life: 3000,
-                })
-                // Neues Semester an den Parent übermitteln:
-                emits('semester-created', data)
-            }
-        })
-        hideNewSemesterDialog()
-    }
-}
-
-/**
- * Handler zum Speichern der Inline-Bearbeitung einer Semesterzeile.
- */
-const onRowEditSave = ({ newData }: DataTableRowEditSaveEvent) => {
+const onRowEditSave = ({ newData }: DataTableRowEditSaveEvent): void => {
     SemesterService.updateSemester(newData).then((res) => {
         const { data, error } = res
         if (error) {
@@ -162,7 +126,6 @@ const onRowEditSave = ({ newData }: DataTableRowEditSaveEvent) => {
                 detail: 'Semester aktualisiert',
                 life: 3000,
             })
-            // Aktualisiertes Semester an den Parent übermitteln:
             emits('semester-updated', data)
         }
     })
@@ -171,7 +134,7 @@ const onRowEditSave = ({ newData }: DataTableRowEditSaveEvent) => {
 
 <template>
     <div>
-        <!-- Kopfzeile mit Titel und Button zur Neuerstellung -->
+        <!-- Kopfzeile mit Titel und Button zum Anlegen eines neuen Semesters -->
         <div class="mb-4 flex justify-between">
             <h2 class="mb-4 text-xl font-semibold">Semester</h2>
             <Button
@@ -182,7 +145,7 @@ const onRowEditSave = ({ newData }: DataTableRowEditSaveEvent) => {
             />
         </div>
 
-        <!-- DataTable zur Anzeige und Inline-Bearbeitung der Semester -->
+        <!-- DataTable zur Anzeige und Bearbeitung der Semester -->
         <DataTable
             :value="props.semesters"
             :paginator="true"
@@ -211,15 +174,17 @@ const onRowEditSave = ({ newData }: DataTableRowEditSaveEvent) => {
                 },
             }"
         >
-            <!-- Empty Table State -->
-            <template #empty>Keine Semester gefunden.</template>
+            <!-- Fallback, falls keine Semester vorhanden sind -->
+            <template #empty> Keine Semester gefunden. </template>
 
             <!-- Spalte: ID -->
             <Column field="id" header="ID" style="min-width: 6rem" sortable>
-                <template #body="{ data }">{{ data.id }}</template>
+                <template #body="{ data }">
+                    {{ data.id }}
+                </template>
             </Column>
 
-            <!-- Spalte: Semester-Name -->
+            <!-- Spalte: Name des Semesters -->
             <Column
                 field="name"
                 header="Name des Semesters"
@@ -227,11 +192,13 @@ const onRowEditSave = ({ newData }: DataTableRowEditSaveEvent) => {
                 sortable
                 :show-filter-menu="false"
             >
-                <template #body="{ data }">{{ data.name }}</template>
+                <template #body="{ data }">
+                    {{ data.name }}
+                </template>
                 <template #editor="{ data, field }">
                     <InputText v-model="data[field]" fluid />
                 </template>
-                <!-- Hier wird die Filterung per Dropdown umgesetzt -->
+                <!-- Filterung per Dropdown -->
                 <template #filter="{ filterModel, filterCallback }">
                     <Select
                         @change="filterCallback()"
@@ -253,9 +220,9 @@ const onRowEditSave = ({ newData }: DataTableRowEditSaveEvent) => {
                 sortable
                 :show-filter-menu="false"
             >
-                <template #body="{ data }">{{
-                    formatBoolean(data.active)
-                }}</template>
+                <template #body="{ data }">
+                    {{ formatBoolean(data.active) }}
+                </template>
                 <template #editor="{ data, field }">
                     <Select
                         v-model="data[field]"
@@ -283,90 +250,14 @@ const onRowEditSave = ({ newData }: DataTableRowEditSaveEvent) => {
                 :rowEditor="true"
                 style="width: 10%; min-width: 8rem"
                 bodyStyle="text-align:center"
-            ></Column>
+            />
         </DataTable>
 
-        <!-- Dialog zur Neuerstellung eines Semesters -->
-        <Dialog
-            v-model:visible="newSemesterDialog"
-            :style="{ width: '450px' }"
-            header="Neues Semester anlegen"
-            :modal="true"
-        >
-            <Form
-                v-slot="$form"
-                :resolver="resolver"
-                :initial-values="getNewSemesterValues()"
-                class="flex w-full flex-col gap-4"
-                @submit="onCreateSemesterFormSubmit"
-            >
-                <div class="mt-2 flex flex-col gap-1">
-                    <FloatLabel variant="on">
-                        <InputText id="name" name="name" fluid />
-                        <label
-                            for="name"
-                            class="mb-2 block text-lg font-medium"
-                        >
-                            Name des Semesters
-                        </label>
-                    </FloatLabel>
-                    <!-- @vue-expect-error -->
-                    <Message
-                        v-if="$form.name?.invalid"
-                        severity="error"
-                        size="small"
-                        variant="simple"
-                    >
-                        <!-- @vue-expect-error -->
-                        {{ $form.name.error?.message }}
-                    </Message>
-                </div>
-
-                <div class="flex flex-col gap-1">
-                    <FloatLabel variant="on">
-                        <Select
-                            label-id="active"
-                            name="active"
-                            :options="props.booleanOptions"
-                            option-label="label"
-                            option-value="value"
-                            fluid
-                        ></Select>
-                        <label
-                            for="active"
-                            class="mb-2 block text-lg font-medium"
-                        >
-                            Aktiv?
-                        </label>
-                    </FloatLabel>
-                    <!-- @vue-expect-error -->
-                    <Message
-                        v-if="$form.active?.invalid"
-                        severity="error"
-                        size="small"
-                        variant="simple"
-                    >
-                        <!-- @vue-expect-error -->
-                        {{ $form.active.error?.message }}
-                    </Message>
-                </div>
-
-                <div class="flex flex-row">
-                    <Button
-                        label="Abbrechen"
-                        icon="pi pi-times"
-                        text
-                        @click="hideNewSemesterDialog"
-                        fluid
-                    />
-                    <Button
-                        type="submit"
-                        icon="pi pi-check"
-                        label="Erstellen"
-                        fluid
-                    />
-                </div>
-            </Form>
-        </Dialog>
+        <!-- Dialog-Komponente zur Neuerstellung eines Semesters -->
+        <SemesterCreateDialog
+            v-model:visible="newSemesterDialogVisible"
+            :boolean-options="props.booleanOptions"
+            @semester-created="handleSemesterCreated"
+        />
     </div>
 </template>
