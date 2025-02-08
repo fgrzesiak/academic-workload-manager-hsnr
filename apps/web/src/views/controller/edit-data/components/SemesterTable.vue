@@ -6,7 +6,6 @@
  */
 
 import { ref, computed } from 'vue'
-import { useToast } from 'primevue/usetoast'
 import { FilterMatchMode } from '@primevue/core'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
@@ -16,9 +15,13 @@ import Select from 'primevue/select'
 
 // Services und Typen
 import SemesterService from '@/service/semester.service'
-import type { ISemesterResponse } from '@workspace/shared'
+import type {
+    ISemesterResponse,
+    IUpdateSemesterRequest,
+} from '@workspace/shared'
 import type { DataTableFilterMeta, DataTableRowEditSaveEvent } from 'primevue'
 import SemesterCreateDialog from './SemesterCreateDialog.vue'
+import { handleServiceCall } from '@/composables/useServiceHandler'
 
 // ----------------------------
 // Props & Events
@@ -49,8 +52,6 @@ const emits = defineEmits<{
 // ----------------------------
 // Lokale Zustände & Initialisierungen
 // ----------------------------
-
-const toast = useToast()
 
 // Filter für die DataTable
 const filters = ref<DataTableFilterMeta>({})
@@ -109,26 +110,17 @@ const handleSemesterCreated = (newSemester: ISemesterResponse): void => {
  * Führt ein Update über den SemesterService durch und informiert den Benutzer per Toast.
  * @param event Event-Objekt, das die neuen Daten der Zeile enthält.
  */
-const onRowEditSave = ({ newData }: DataTableRowEditSaveEvent): void => {
-    SemesterService.updateSemester(newData).then((res) => {
-        const { data, error } = res
-        if (error) {
-            toast.add({
-                severity: 'error',
-                summary: 'Fehler',
-                detail: error,
-                life: 5000,
-            })
-        } else {
-            toast.add({
-                severity: 'success',
-                summary: 'Erfolgreich',
-                detail: 'Semester aktualisiert',
-                life: 3000,
-            })
-            emits('semester-updated', data)
-        }
-    })
+const onRowEditSave = async ({
+    newData,
+}: DataTableRowEditSaveEvent): Promise<void> => {
+    const data = await handleServiceCall(
+        SemesterService.updateSemester(newData as IUpdateSemesterRequest),
+        'Semester aktualisiert',
+        'Fehler beim Aktualisieren des Semesters'
+    )
+    if (data) {
+        emits('semester-updated', data)
+    }
 }
 </script>
 
