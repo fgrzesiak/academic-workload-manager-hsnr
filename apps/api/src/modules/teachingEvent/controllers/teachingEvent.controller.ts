@@ -1,15 +1,8 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Post,
-  Put,
-  Delete,
-} from "@nestjs/common";
+import { Body, Controller, Delete, Get, Post, Put } from "@nestjs/common";
 import {
   ICreateTeachingEventRequest,
-  IUpdateTeachingEventRequest,
   ITeachingEventResponse,
+  IUpdateTeachingEventRequest,
 } from "@workspace/shared";
 
 import { Auth } from "../../../common/decorators/auth.decorator";
@@ -43,7 +36,9 @@ export class TeachingEventController {
    */
   @Post("/")
   @Auth(Role.CONTROLLER)
-  async createTeachingEvent(@Body() teachingEvent: ICreateTeachingEventRequest): Promise<ITeachingEventResponse> {
+  async createTeachingEvent(
+    @Body() teachingEvent: ICreateTeachingEventRequest,
+  ): Promise<ITeachingEventResponse> {
     return await this.teachingEventService.create(teachingEvent);
   }
 
@@ -56,7 +51,9 @@ export class TeachingEventController {
    */
   @Put("/")
   @Auth(Role.CONTROLLER)
-  async updateTeachingEvent(@Body() teachingEvent: IUpdateTeachingEventRequest): Promise<ITeachingEventResponse> {
+  async updateTeachingEvent(
+    @Body() teachingEvent: IUpdateTeachingEventRequest,
+  ): Promise<ITeachingEventResponse> {
     return await this.teachingEventService.update(teachingEvent);
   }
 

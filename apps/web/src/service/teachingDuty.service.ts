@@ -10,7 +10,8 @@ import {
 const getProfile = () => apiClient.get('/auth/profile')
 
 // API call: fetches a list of teaching duties from the server
-const getTeachingDuties = () => apiClient.get<ITeachingDutyResponse[]>('/teachingDuty')
+const getTeachingDuties = () =>
+    apiClient.get<ITeachingDutyResponse[]>('/teachingDuty')
 
 // API call: creates a new teaching duty
 // expects data in the format of ICreateTeachingDutyRequest and returns the created teaching duty

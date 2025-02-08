@@ -1,5 +1,8 @@
 import { Discount as IDiscount } from "@workspace/database";
-import { ICreateDiscountRequest, IUpdateDiscountRequest } from "@workspace/shared";
+import {
+  ICreateDiscountRequest,
+  IUpdateDiscountRequest,
+} from "@workspace/shared";
 import { singleton } from "tsyringe";
 
 import { PrismaService } from "../services/index.js";

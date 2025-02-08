@@ -400,8 +400,14 @@ const formatNumber = (value: number) => {
             </Column>
 
             <!-- SupervisionShare Column -->
-            <Column field="supervisionShare" header="Anteil" style="min-width: 4rem">
-                <template #body="{ data }">{{ formatNumber(data.supervisionShare)}} %</template>
+            <Column
+                field="supervisionShare"
+                header="Anteil"
+                style="min-width: 4rem"
+            >
+                <template #body="{ data }"
+                    >{{ formatNumber(data.supervisionShare) }} %</template
+                >
                 <template #editor="{ data, field }">
                     <InputNumber
                         v-model="data[field]"

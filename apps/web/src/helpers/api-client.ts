@@ -22,11 +22,13 @@ const networkFetchClient = createFetch({
         },
         // handle fetch errors
         onFetchError(ctx) {
-            if (ctx.response?.status === 401) { // if the status is 401 (Unauthorized), log the user out
+            if (ctx.response?.status === 401) {
+                // if the status is 401 (Unauthorized), log the user out
                 const { logout } = useAuthStore()
                 logout() // call logout to clear the user's session
             }
-            if (ctx.data && ctx.data.message) { // if there is an error message in the response, set it as the error
+            if (ctx.data && ctx.data.message) {
+                // if there is an error message in the response, set it as the error
                 ctx.error = ctx.data.message
             }
             return ctx
@@ -62,9 +64,11 @@ class ApiClient {
             .json<T>() // parse the response as JSON
             .then((res) => {
                 const { data, error } = res
-                if (error.value) { // if there's an error, return it
+                if (error.value) {
+                    // if there's an error, return it
                     return { data: null, error: new String(error.value) }
-                } else if (!data.value) { // if no data is returned, return a generic error message
+                } else if (!data.value) {
+                    // if no data is returned, return a generic error message
                     return {
                         data: null,
                         error: 'An unknown error occurred.',
@@ -84,9 +88,11 @@ class ApiClient {
             .json<T>() // parse the response as JSON
             .then((res) => {
                 const { data, error } = res
-                if (error.value) { // if there's an error, return it
+                if (error.value) {
+                    // if there's an error, return it
                     return { data: null, error: new String(error.value) }
-                } else if (!data.value) { // if no data is returned, return a generic error message
+                } else if (!data.value) {
+                    // if no data is returned, return a generic error message
                     return {
                         data: null,
                         error: 'An unknown error occurred.',
@@ -106,9 +112,11 @@ class ApiClient {
             .json<T>() // parse the response as JSON
             .then((res) => {
                 const { data, error } = res
-                if (error.value) { // if there's an error, return it
+                if (error.value) {
+                    // if there's an error, return it
                     return { data: null, error: new String(error.value) }
-                } else if (!data.value) { // if no data is returned, return a generic error message
+                } else if (!data.value) {
+                    // if no data is returned, return a generic error message
                     return {
                         data: null,
                         error: 'An unknown error occurred.',
@@ -128,9 +136,11 @@ class ApiClient {
             .json<T>() // parse the response as JSON
             .then((res) => {
                 const { data, error } = res
-                if (error.value) { // if there's an error, return it
+                if (error.value) {
+                    // if there's an error, return it
                     return { data: null, error: new String(error.value) }
-                } else if (!data.value) { // if no data is returned, return a generic error message
+                } else if (!data.value) {
+                    // if no data is returned, return a generic error message
                     return {
                         data: null,
                         error: 'An unknown error occurred.',

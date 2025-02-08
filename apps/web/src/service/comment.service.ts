@@ -1,9 +1,9 @@
 // import the API client and required types for comment operations
 import { apiClient } from '@/helpers/api-client'
 import {
-    ICreateCommentRequest,  // type for the data needed to create a comment
-    IUpdateCommentRequest,  // type for the data needed to update a comment
-    ICommentResponse,       // type for the response returned when fetching a comment
+    ICreateCommentRequest, // type for the data needed to create a comment
+    IUpdateCommentRequest, // type for the data needed to update a comment
+    ICommentResponse, // type for the response returned when fetching a comment
 } from '@workspace/shared'
 
 // API call: fetches the profile of the currently authenticated user

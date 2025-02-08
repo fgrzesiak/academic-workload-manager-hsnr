@@ -5,17 +5,43 @@ type OptionalExceptFor<T, TRequired extends keyof T> = Partial<T> &
   Pick<T, TRequired>;
 
 // defines the response type for a TeachingEvent, including only specific properties
-export type ITeachingEventResponse = Pick<ITeachingEvent, "id" | "name" | "semesterPeriodId" | "ordered" | "hours" | "programId" | "teacherId" | "commentId">;
+export type ITeachingEventResponse = Pick<
+  ITeachingEvent,
+  | "id"
+  | "name"
+  | "semesterPeriodId"
+  | "ordered"
+  | "hours"
+  | "programId"
+  | "teacherId"
+  | "commentId"
+>;
 
 // defines the request type for creating a new TeachingEvent
 export type ICreateTeachingEventRequest = Pick<
   ITeachingEvent,
-  "name" | "semesterPeriodId" | "ordered" | "hours" | "programId" | "teacherId" | "commentId"
+  | "name"
+  | "semesterPeriodId"
+  | "ordered"
+  | "hours"
+  | "programId"
+  | "teacherId"
+  | "commentId"
 >;
 
 // defines the request type for updating a TeachingEvent, with optional properties except for specific required ones
 export type IUpdateTeachingEventRequest = OptionalExceptFor<
-  Pick<ITeachingEvent, "id" | "name" | "semesterPeriodId" | "ordered" | "hours" | "programId" | "teacherId" | "commentId">,
+  Pick<
+    ITeachingEvent,
+    | "id"
+    | "name"
+    | "semesterPeriodId"
+    | "ordered"
+    | "hours"
+    | "programId"
+    | "teacherId"
+    | "commentId"
+  >,
   "id" | "programId" | "commentId"
 >;
 
@@ -52,6 +78,6 @@ export class TeachingEvent implements ITeachingEvent {
    * @returns a new `TeachingEvent` instance initialized with the provided data.
    */
   static fromJSON(data: ITeachingEventResponse) {
-    return new TeachingEvent({...data});
+    return new TeachingEvent({ ...data });
   }
 }

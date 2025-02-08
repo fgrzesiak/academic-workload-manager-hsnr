@@ -1,5 +1,8 @@
 import { TeachingDutyPerSemester as ITeachingDuty } from "@workspace/database";
-import { ICreateTeachingDutyRequest, IUpdateTeachingDutyRequest } from "@workspace/shared";
+import {
+  ICreateTeachingDutyRequest,
+  IUpdateTeachingDutyRequest,
+} from "@workspace/shared";
 import { singleton } from "tsyringe";
 
 import { PrismaService } from "../services/index.js";
@@ -14,9 +17,10 @@ export class TeachingDutyManager {
   async findOne(id: number): Promise<TeachingDuty | null> {
     try {
       // tries to find a unique teaching duty record by id
-      const result = await this.prisma.teachingDutyPerSemester.findUniqueOrThrow({
-        where: { id },
-      });
+      const result =
+        await this.prisma.teachingDutyPerSemester.findUniqueOrThrow({
+          where: { id },
+        });
 
       return new TeachingDuty(result); // returns the found teaching duty as an instance of TeachingDuty
     } catch (_err) {
@@ -25,7 +29,9 @@ export class TeachingDutyManager {
   }
 
   // update teaching duty details
-  async update(teachingDuty: IUpdateTeachingDutyRequest): Promise<TeachingDuty> {
+  async update(
+    teachingDuty: IUpdateTeachingDutyRequest,
+  ): Promise<TeachingDuty> {
     const { id } = teachingDuty;
     // updates the teaching duty record with new data
     const result = await this.prisma.teachingDutyPerSemester.update({
@@ -41,8 +47,12 @@ export class TeachingDutyManager {
   }
 
   // create a new teaching duty record
-  async create(teachingDuty: ICreateTeachingDutyRequest): Promise<TeachingDuty> {
-    const result = await this.prisma.teachingDutyPerSemester.create({ data: teachingDuty });
+  async create(
+    teachingDuty: ICreateTeachingDutyRequest,
+  ): Promise<TeachingDuty> {
+    const result = await this.prisma.teachingDutyPerSemester.create({
+      data: teachingDuty,
+    });
     return new TeachingDuty(result); // returns the created teaching duty as an instance of TeachingDuty
   }
 

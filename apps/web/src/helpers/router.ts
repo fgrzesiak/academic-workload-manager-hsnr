@@ -17,7 +17,8 @@ const router = createRouter({
                 {
                     path: '',
                     name: 'c.data-import',
-                    component: () => import('@/views/controller/DataImport.vue'),
+                    component: () =>
+                        import('@/views/controller/DataImport.vue'),
                 },
                 {
                     path: 'edit-data',
@@ -154,7 +155,9 @@ const router = createRouter({
                             path: 'evaluationGroups',
                             name: 'c.evaluationGroups',
                             component: () =>
-                                import('@/views/controller/admin/EvaluationGroup.vue'),
+                                import(
+                                    '@/views/controller/admin/EvaluationGroup.vue'
+                                ),
                             meta: {
                                 label: 'Saldation-Groups',
                                 icon: 'pi pi-fw pi-window-maximize',
@@ -164,7 +167,9 @@ const router = createRouter({
                             path: 'retirements',
                             name: 'c.retirements',
                             component: () =>
-                                import('@/views/controller/admin/Retirements.vue'),
+                                import(
+                                    '@/views/controller/admin/Retirements.vue'
+                                ),
                             meta: {
                                 label: 'Retirements',
                                 icon: 'pi pi-fw pi-calendar-times',

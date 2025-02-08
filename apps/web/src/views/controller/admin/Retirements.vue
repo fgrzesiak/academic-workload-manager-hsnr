@@ -2,9 +2,7 @@
 // import of required modules, libraries and services
 import { onBeforeMount, ref, computed } from 'vue'
 import TeacherService from '@/service/teacher.service'
-import {
-    ITeacherResponse,
-} from '@workspace/shared'
+import { ITeacherResponse } from '@workspace/shared'
 
 // reactive variables for saving teachers, filter criteria and UI states
 const teachers = ref<ITeacherResponse[]>([])
@@ -14,15 +12,13 @@ const loading = ref(false)
 onBeforeMount(() => {
     loading.value = true
 
-        // loads teachers
-        TeacherService.getTeachers().then((res) => {
+    // loads teachers
+    TeacherService.getTeachers().then((res) => {
         const { data, error } = res
         if (error) {
             console.warn('[Retirement-Overview] Couldn`t load teachers')
         } else {
-            teachers.value = data.map(
-                (teacher: ITeacherResponse) => teacher
-            )
+            teachers.value = data.map((teacher: ITeacherResponse) => teacher)
         }
     })
 
@@ -64,7 +60,6 @@ const sortedTeachers = computed(() => {
         }))
         .sort((a, b) => a.remainingDays - b.remainingDays)
 })
-
 </script>
 
 <template>
@@ -84,7 +79,6 @@ const sortedTeachers = computed(() => {
             scrollable
             scrollHeight="70vh"
         >
-
             <!-- Empty Table State -->
             <template #empty>Keine Lehrenden gefunden.</template>
 
@@ -95,45 +89,78 @@ const sortedTeachers = computed(() => {
 
             <!-- Name Column -->
             <Column field="name" header="Name" style="min-width: 12rem">
-                <template #body="{ data }">{{ data.user.firstName }} {{ data.user.lastName }}</template>
+                <template #body="{ data }"
+                    >{{ data.user.firstName }}
+                    {{ data.user.lastName }}</template
+                >
             </Column>
 
             <!-- Retirement Date Column -->
-            <Column field="retirementDate" header="Ruhestandsdatum" style="min-width: 8rem">
-                <template #body="{ data }">{{ formatDate(data.retirementDate) }}</template>
+            <Column
+                field="retirementDate"
+                header="Ruhestandsdatum"
+                style="min-width: 8rem"
+            >
+                <template #body="{ data }">{{
+                    formatDate(data.retirementDate)
+                }}</template>
             </Column>
 
             <!-- Remaining Days Column -->
-            <Column field="remainingDays" header="Verbleibende Tage" style="min-width: 8rem; justify-content: space-between" sortable>
+            <Column
+                field="remainingDays"
+                header="Verbleibende Tage"
+                style="min-width: 8rem; justify-content: space-between"
+                sortable
+            >
                 <template #body="{ data }">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <div style="display: flex; flex-basis: 50%; justify-content: space-between; align-items: center;">
+                    <div
+                        style="
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center;
+                        "
+                    >
+                        <div
+                            style="
+                                display: flex;
+                                flex-basis: 50%;
+                                justify-content: space-between;
+                                align-items: center;
+                            "
+                        >
                             <span>{{ data.remainingDays }}</span>
-                            <span><i>(ca. {{ convertDaysToYearsMonths(data.remainingDays) }})</i></span>
+                            <span
+                                ><i
+                                    >(ca.
+                                    {{
+                                        convertDaysToYearsMonths(
+                                            data.remainingDays
+                                        )
+                                    }})</i
+                                ></span
+                            >
                         </div>
                         <div
-                                v-if="
-                                    data.remainingDays < 180
-                                "
-                                :style="{
-                                    color: 'white',
-                                    fontWeight: 'bold',
-                                    backgroundColor: 'orange',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    padding: '0 8px',
-                                }"
-                            >
-                                <span>Warnung: Bevorstehender Ruhestand</span>
-                                <i
-                                    class="pi pi-exclamation-triangle"
-                                    style="margin-left: 8px"
-                                ></i>
-                            </div>
+                            v-if="data.remainingDays < 180"
+                            :style="{
+                                color: 'white',
+                                fontWeight: 'bold',
+                                backgroundColor: 'orange',
+                                display: 'flex',
+                                alignItems: 'center',
+                                padding: '0 8px',
+                            }"
+                        >
+                            <span>Warnung: Bevorstehender Ruhestand</span>
+                            <i
+                                class="pi pi-exclamation-triangle"
+                                style="margin-left: 8px"
+                            ></i>
                         </div>
+                    </div>
                 </template>
             </Column>
-
         </DataTable>
     </div>
 </template>

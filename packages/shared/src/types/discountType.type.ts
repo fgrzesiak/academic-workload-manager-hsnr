@@ -1,10 +1,14 @@
 import { DiscountType as IDiscountType } from "@workspace/database";
 
 // utility type that makes all properties optional except for the specified required keys
-type OptionalExceptFor<T, TRequired extends keyof T> = Partial<T> & Pick<T, TRequired>;
+type OptionalExceptFor<T, TRequired extends keyof T> = Partial<T> &
+  Pick<T, TRequired>;
 
 // defines the response type for a discount type, including only specific properties
-export type IDiscountTypeResponse = Pick<IDiscountType, "discountTypeId" | "discountType">;
+export type IDiscountTypeResponse = Pick<
+  IDiscountType,
+  "discountTypeId" | "discountType"
+>;
 
 // defines the request type for creating a new discount type
 export type ICreateDiscountTypeRequest = Pick<IDiscountType, "discountType">;

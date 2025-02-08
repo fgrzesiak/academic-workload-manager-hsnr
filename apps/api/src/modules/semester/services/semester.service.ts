@@ -3,8 +3,8 @@ import { JwtService } from "@nestjs/jwt";
 import { semesters } from "@workspace/repo";
 import {
   ICreateSemesterRequest,
-  IUpdateSemesterRequest,
   ISemesterResponse,
+  IUpdateSemesterRequest,
 } from "@workspace/shared";
 
 // marks the service as injectable so it can be used by other parts of the application

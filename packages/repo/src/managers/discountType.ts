@@ -1,5 +1,8 @@
 import { DiscountType as IDiscountType } from "@workspace/database";
-import { ICreateDiscountTypeRequest, IUpdateDiscountTypeRequest } from "@workspace/shared";
+import {
+  ICreateDiscountTypeRequest,
+  IUpdateDiscountTypeRequest,
+} from "@workspace/shared";
 import { singleton } from "tsyringe";
 
 import { PrismaService } from "../services/index.js";
@@ -26,7 +29,9 @@ export class DiscountTypeManager {
   }
 
   // updates discountType details
-  async update(discountType: IUpdateDiscountTypeRequest): Promise<DiscountType> {
+  async update(
+    discountType: IUpdateDiscountTypeRequest,
+  ): Promise<DiscountType> {
     const { discountTypeId } = discountType;
     // updates the discount type in the database using the provided data
     const result = await this.prisma.discountType.update({
@@ -42,8 +47,12 @@ export class DiscountTypeManager {
   }
 
   // creates a new discount type
-  async create(discountType: ICreateDiscountTypeRequest): Promise<DiscountType> {
-    const result = await this.prisma.discountType.create({ data: discountType });
+  async create(
+    discountType: ICreateDiscountTypeRequest,
+  ): Promise<DiscountType> {
+    const result = await this.prisma.discountType.create({
+      data: discountType,
+    });
     return new DiscountType(result); // returns the newly created discount type as an instance of the DiscountType class
   }
 }

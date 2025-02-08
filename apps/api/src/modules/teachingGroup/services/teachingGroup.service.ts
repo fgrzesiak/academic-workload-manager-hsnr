@@ -3,8 +3,8 @@ import { JwtService } from "@nestjs/jwt";
 import { teachingGroups } from "@workspace/repo";
 import {
   ICreateTeachingGroupRequest,
-  IUpdateTeachingGroupRequest,
   ITeachingGroupResponse,
+  IUpdateTeachingGroupRequest,
 } from "@workspace/shared";
 
 // marks the service as injectable so it can be used by other parts of the application
@@ -30,7 +30,9 @@ export class TeachingGroupService {
    * @param teachingGroup - the details of the teaching group to create (ICreateTeachingGroupRequest).
    * @returns a Promise that resolves to the created teaching group (ITeachingGroupResponse).
    */
-  async create(teachingGroup: ICreateTeachingGroupRequest): Promise<ITeachingGroupResponse> {
+  async create(
+    teachingGroup: ICreateTeachingGroupRequest,
+  ): Promise<ITeachingGroupResponse> {
     const { ...rest } = await teachingGroups.create(teachingGroup);
     return rest;
   }
@@ -40,7 +42,9 @@ export class TeachingGroupService {
    * @param teachingGroup - the updated details of the teaching group (IUpdateTeachingGroupRequest).
    * @returns a Promise that resolves to the updated teaching group (ITeachingGroupResponse).
    */
-  async update(teachingGroup: IUpdateTeachingGroupRequest): Promise<ITeachingGroupResponse> {
+  async update(
+    teachingGroup: IUpdateTeachingGroupRequest,
+  ): Promise<ITeachingGroupResponse> {
     const { ...rest } = await teachingGroups.update(teachingGroup);
     return rest;
   }

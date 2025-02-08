@@ -559,7 +559,8 @@ export default {
                     console.warn('Couldn`t load evaluation settings')
                 } else {
                     const maxSupervisionsSetting = data.find(
-                        (s: { key: string }) => s.key === 'max_hours_supervisions'
+                        (s: { key: string }) =>
+                            s.key === 'max_hours_supervisions'
                     )
                     this.maxSupervisions = maxSupervisionsSetting
                         ? parseFloat(maxSupervisionsSetting.value)
@@ -586,10 +587,12 @@ export default {
         <Form v-slot="" class="flex w-full flex-col" @submit="submitForm">
             <div class="card">
                 <div
-                    class="flex flex-wrap items-start items-center justify-between mb-4"
+                    class="mb-4 flex flex-wrap items-start items-center justify-between"
                 >
                     <div class="flex items-center gap-2">
-                        <h1 class="text-xl font-semibold">Deputatsmeldung für</h1>
+                        <h1 class="text-xl font-semibold">
+                            Deputatsmeldung für
+                        </h1>
                         <FloatLabel variant="on">
                             <Select
                                 v-model="teacher"
@@ -674,13 +677,17 @@ export default {
                         </template>
                     </Dialog>
                 </div>
-                <div class="flex items-center gap-2 justify-end">
+                <div class="flex items-center justify-end gap-2">
                     <p class="text-m font-semibold">
                         Vorläufig berechnetes Saldo:
                     </p>
                     <p
                         class="text-m font-semibold"
-                        :style="{ color: balanceDifference < 0 ? 'red' : 'green', fontWeight: 'bold', fontSize: '1.2rem' }"
+                        :style="{
+                            color: balanceDifference < 0 ? 'red' : 'green',
+                            fontWeight: 'bold',
+                            fontSize: '1.2rem',
+                        }"
                     >
                         {{ balanceDifference.toFixed(2) }} SWS
                     </p>
@@ -867,7 +874,10 @@ export default {
                     <p class="font-semibold">
                         Summe (SWS): {{ mentoringSum.toFixed(3) }}
                     </p>
-                    <p v-if="mentoringSum > maxSupervisions" class="font-bold text-red-500">
+                    <p
+                        v-if="mentoringSum > maxSupervisions"
+                        class="font-bold text-red-500"
+                    >
                         Die maximal anrechenbaren SWS wurden überschritten!
                         (gemäß
                         <a

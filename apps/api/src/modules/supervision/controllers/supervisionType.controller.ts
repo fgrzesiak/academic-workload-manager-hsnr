@@ -1,14 +1,8 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Post,
-  Put,
-} from "@nestjs/common";
+import { Body, Controller, Get, Post, Put } from "@nestjs/common";
 import {
   ICreateSupervisionTypeRequest,
-  IUpdateSupervisionTypeRequest,
   ISupervisionTypeResponse,
+  IUpdateSupervisionTypeRequest,
 } from "@workspace/shared";
 
 import { Auth } from "../../../common/decorators/auth.decorator";
@@ -19,7 +13,9 @@ import { SupervisionTypeService } from "../services/supervisionType.service";
 @Controller("supervisionType")
 export class SupervisionTypeController {
   // injects the SupervisionTypeService to handle business logic
-  constructor(private readonly supervisionTypeService: SupervisionTypeService) {}
+  constructor(
+    private readonly supervisionTypeService: SupervisionTypeService,
+  ) {}
 
   /**
    * endpoint: GET /
@@ -42,7 +38,9 @@ export class SupervisionTypeController {
    */
   @Post("/")
   @Auth(Role.CONTROLLER)
-  async createSupervisionType(@Body() supervisionType: ICreateSupervisionTypeRequest): Promise<ISupervisionTypeResponse> {
+  async createSupervisionType(
+    @Body() supervisionType: ICreateSupervisionTypeRequest,
+  ): Promise<ISupervisionTypeResponse> {
     return await this.supervisionTypeService.create(supervisionType);
   }
 
@@ -55,7 +53,9 @@ export class SupervisionTypeController {
    */
   @Put("/")
   @Auth(Role.CONTROLLER)
-  async updateSupervisionType(@Body() supervisionType: IUpdateSupervisionTypeRequest): Promise<ISupervisionTypeResponse> {
+  async updateSupervisionType(
+    @Body() supervisionType: IUpdateSupervisionTypeRequest,
+  ): Promise<ISupervisionTypeResponse> {
     return await this.supervisionTypeService.update(supervisionType);
   }
 }

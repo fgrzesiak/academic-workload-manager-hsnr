@@ -3,8 +3,8 @@ import { JwtService } from "@nestjs/jwt";
 import { evaluationSettings } from "@workspace/repo";
 import {
   ICreateEvaluationSettingsRequest,
-  IUpdateEvaluationSettingsRequest,
   IEvaluationSettingsResponse,
+  IUpdateEvaluationSettingsRequest,
 } from "@workspace/shared";
 
 // marks the service as injectable so it can be used by other parts of the application
@@ -30,7 +30,9 @@ export class EvaluationSettingsService {
    * @param evaluationSetting - the details of the evaluation settings to create (ICreateEvaluationSettingsRequest).
    * @returns a Promise that resolves to the created evaluation settings (IEvaluationSettingsResponse).
    */
-  async create(evaluationSetting: ICreateEvaluationSettingsRequest): Promise<IEvaluationSettingsResponse> {
+  async create(
+    evaluationSetting: ICreateEvaluationSettingsRequest,
+  ): Promise<IEvaluationSettingsResponse> {
     const { ...rest } = await evaluationSettings.create(evaluationSetting);
     return rest;
   }
@@ -40,7 +42,9 @@ export class EvaluationSettingsService {
    * @param evaluationSetting - the updated details of the evaluation settings (IUpdateEvaluationSettingsRequest).
    * @returns a Promise that resolves to the updated evaluation settings (IEvaluationSettingsResponse).
    */
-  async update(evaluationSetting: IUpdateEvaluationSettingsRequest): Promise<IEvaluationSettingsResponse> {
+  async update(
+    evaluationSetting: IUpdateEvaluationSettingsRequest,
+  ): Promise<IEvaluationSettingsResponse> {
     const { ...rest } = await evaluationSettings.update(evaluationSetting);
     return rest;
   }

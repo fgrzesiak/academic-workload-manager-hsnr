@@ -3,8 +3,8 @@ import { JwtService } from "@nestjs/jwt";
 import { supervisions } from "@workspace/repo";
 import {
   ICreateSupervisionRequest,
-  IUpdateSupervisionRequest,
   ISupervisionResponse,
+  IUpdateSupervisionRequest,
 } from "@workspace/shared";
 
 // marks the service as injectable so it can be used by other parts of the application
@@ -30,7 +30,9 @@ export class SupervisionService {
    * @param supervision - the details of the supervision to create (ICreateSupervisionRequest).
    * @returns a Promise that resolves to the created supervision (ISupervisionResponse).
    */
-  async create(supervision: ICreateSupervisionRequest): Promise<ISupervisionResponse> {
+  async create(
+    supervision: ICreateSupervisionRequest,
+  ): Promise<ISupervisionResponse> {
     const { ...rest } = await supervisions.create(supervision);
     return rest;
   }
@@ -40,7 +42,9 @@ export class SupervisionService {
    * @param supervision - the updated details of the supervision (IUpdateSupervisionRequest).
    * @returns a Promise that resolves to the updated supervision (ISupervisionResponse).
    */
-  async update(supervision: IUpdateSupervisionRequest): Promise<ISupervisionResponse> {
+  async update(
+    supervision: IUpdateSupervisionRequest,
+  ): Promise<ISupervisionResponse> {
     const { ...rest } = await supervisions.update(supervision);
     return rest;
   }

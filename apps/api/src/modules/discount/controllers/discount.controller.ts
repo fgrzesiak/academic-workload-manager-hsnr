@@ -1,15 +1,8 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Post,
-  Put,
-  Delete,
-} from "@nestjs/common";
+import { Body, Controller, Delete, Get, Post, Put } from "@nestjs/common";
 import {
   ICreateDiscountRequest,
-  IUpdateDiscountRequest,
   IDiscountResponse,
+  IUpdateDiscountRequest,
 } from "@workspace/shared";
 
 import { Auth } from "../../../common/decorators/auth.decorator";
@@ -43,7 +36,9 @@ export class DiscountController {
    */
   @Post("/")
   @Auth(Role.CONTROLLER)
-  async createDiscount(@Body() discount: ICreateDiscountRequest): Promise<IDiscountResponse> {
+  async createDiscount(
+    @Body() discount: ICreateDiscountRequest,
+  ): Promise<IDiscountResponse> {
     return await this.discountService.create(discount);
   }
 
@@ -56,7 +51,9 @@ export class DiscountController {
    */
   @Put("/")
   @Auth(Role.CONTROLLER)
-  async updateDiscount(@Body() discount: IUpdateDiscountRequest): Promise<IDiscountResponse> {
+  async updateDiscount(
+    @Body() discount: IUpdateDiscountRequest,
+  ): Promise<IDiscountResponse> {
     return await this.discountService.update(discount);
   }
 

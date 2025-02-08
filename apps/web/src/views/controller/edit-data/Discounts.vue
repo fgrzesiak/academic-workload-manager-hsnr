@@ -7,7 +7,12 @@ import DiscountTypeService from '@/service/discountType.service'
 import SemesterService from '@/service/semester.service'
 import TeacherService from '@/service/teacher.service'
 import CommentService from '@/service/comment.service'
-import { IDiscountTypeResponse, ISemesterResponse, ITeacherResponse, ICommentResponse } from '@workspace/shared'
+import {
+    IDiscountTypeResponse,
+    ISemesterResponse,
+    ITeacherResponse,
+    ICommentResponse,
+} from '@workspace/shared'
 import {
     DataTableFilterMeta,
     DataTableRowEditSaveEvent,
@@ -19,14 +24,14 @@ import { zodResolver } from '@primevue/forms/resolvers/zod'
 import { Form, FormSubmitEvent } from '@primevue/forms'
 
 interface SelectOption {
-    label: string;
-    value: number;
+    label: string
+    value: number
 }
 
 const booleanOptions = ref([
     { label: 'Ja', value: true },
     { label: 'Nein', value: false },
-]);
+])
 
 const discounts = ref<IDiscountResponse[]>([])
 const filters = ref<DataTableFilterMeta>({})
@@ -59,8 +64,8 @@ const newDiscountSchema = z.object({
     scope: z.number(),
 })
 const resolver = ref(zodResolver(newDiscountSchema))
-const currentCommentContent = ref("")
-const currentCommentDate = ref("")
+const currentCommentContent = ref('')
+const currentCommentDate = ref('')
 const commentDrawerVisible = ref(false)
 
 const openNew = () => {
@@ -75,7 +80,7 @@ const hideDialog = () => {
 
 const deleteEntry = (id: number) => {
     try {
-        DiscountService.deleteDiscount(id);
+        DiscountService.deleteDiscount(id)
 
         toast.add({
             severity: 'success',
@@ -83,8 +88,8 @@ const deleteEntry = (id: number) => {
             detail: 'Ermäßigung gelöscht',
             life: 3000,
         })
-            
-        discounts.value = discounts.value.filter(event => event.id !== id);
+
+        discounts.value = discounts.value.filter((event) => event.id !== id)
     } catch (error) {
         toast.add({
             severity: 'error',
@@ -109,7 +114,10 @@ const getNewDiscountValues = (): z.infer<typeof newDiscountSchema> => {
     } satisfies ICreateDiscountRequest
 }
 
-const onCreateDiscountFormSubmit = async ({ valid, states }: FormSubmitEvent) => {
+const onCreateDiscountFormSubmit = async ({
+    valid,
+    states,
+}: FormSubmitEvent) => {
     if (valid) {
         newDiscountSubmitted.value = true
         const newDiscount = getFormStatesAsType<ICreateDiscountRequest>(states)
@@ -149,7 +157,9 @@ const onRowEditSave = ({ newData }: DataTableRowEditSaveEvent) => {
                 life: 5000,
             })
         } else {
-            updateDiscounts(discounts.value.map((u) => (u.id === data.id ? data : u)))
+            updateDiscounts(
+                discounts.value.map((u) => (u.id === data.id ? data : u))
+            )
             toast.add({
                 severity: 'success',
                 summary: 'Erfolgreich',
@@ -179,36 +189,38 @@ onBeforeMount(() => {
     DiscountTypeService.getDiscountTypes().then((res) => {
         const { data, error } = res
         if (error) {
-            console.warn("[Discount-Overview] Couldn`t load discountTypes")
+            console.warn('[Discount-Overview] Couldn`t load discountTypes')
         } else {
-            typeSelect.value = data.map((discountType: IDiscountTypeResponse) => ({
-                label: discountType.discountType,
-                value: discountType.discountTypeId,
-            }));
+            typeSelect.value = data.map(
+                (discountType: IDiscountTypeResponse) => ({
+                    label: discountType.discountType,
+                    value: discountType.discountTypeId,
+                })
+            )
         }
     })
 
     SemesterService.getSemesters().then((res) => {
         const { data, error } = res
         if (error) {
-            console.warn("[Discount-Overview] Couldn`t load semster")
+            console.warn('[Discount-Overview] Couldn`t load semster')
         } else {
             semesterSelect.value = data.map((semester: ISemesterResponse) => ({
                 label: semester.name,
                 value: semester.id,
-            }));
+            }))
         }
     })
 
     TeacherService.getTeachers().then((res) => {
         const { data, error } = res
         if (error) {
-            console.warn("[Discount-Overview] Couldn`t load teachers")
+            console.warn('[Discount-Overview] Couldn`t load teachers')
         } else {
             userSelect.value = data.map((teacher: ITeacherResponse) => ({
-                label: teacher.user.firstName + " " + teacher.user.lastName,
+                label: teacher.user.firstName + ' ' + teacher.user.lastName,
                 value: teacher.id,
-            }));
+            }))
         }
     })
 
@@ -219,9 +231,9 @@ onBeforeMount(() => {
 // Initialize filters
 function initFilters() {
     filters.value = {
-        global: { 
-            value: null, 
-            matchMode: FilterMatchMode.CONTAINS ,
+        global: {
+            value: null,
+            matchMode: FilterMatchMode.CONTAINS,
         },
         description: {
             value: null,
@@ -235,68 +247,76 @@ function initFilters() {
 }
 
 const showComment = async (commentId: number) => {
-    const commentData = await fetchCommentById(commentId);
-    currentCommentContent.value = commentData ? commentData.commentContent : "Kein Inhalt.";
-    currentCommentDate.value = commentData ? formatDate(commentData.commentDate.toString()) : "Kein Datum.";
-    commentDrawerVisible.value = true;
-};
+    const commentData = await fetchCommentById(commentId)
+    currentCommentContent.value = commentData
+        ? commentData.commentContent
+        : 'Kein Inhalt.'
+    currentCommentDate.value = commentData
+        ? formatDate(commentData.commentDate.toString())
+        : 'Kein Datum.'
+    commentDrawerVisible.value = true
+}
 
-const fetchCommentById = async (commentId: number): Promise<ICommentResponse | null> => {
+const fetchCommentById = async (
+    commentId: number
+): Promise<ICommentResponse | null> => {
     try {
-        const res = await CommentService.getComments();
-        const { data, error } = res;
+        const res = await CommentService.getComments()
+        const { data, error } = res
 
         if (error) {
-            console.log("Error Laden von Comments");
-            return null;
+            console.log('Error Laden von Comments')
+            return null
         }
 
-        const response = data.find((item) => item.commentId === commentId);
-        return response || null;
+        const response = data.find((item) => item.commentId === commentId)
+        return response || null
     } catch (e) {
-        console.error("Ein Fehler ist aufgetreten:", e);
-        return null;
+        console.error('Ein Fehler ist aufgetreten:', e)
+        return null
     }
-};
+}
 
 const closeCommentDrawer = () => {
-    commentDrawerVisible.value = false;
-    currentCommentContent.value = "";
-    currentCommentDate.value = "";
-};
+    commentDrawerVisible.value = false
+    currentCommentContent.value = ''
+    currentCommentDate.value = ''
+}
 
 //convert semester ID into Name
 const getSemesterName = (id: number) => {
-    const semester = semesterSelect.value.find((s) => s.value === id);
-    return semester ? semester.label : 'Unbekannt';
-};
+    const semester = semesterSelect.value.find((s) => s.value === id)
+    return semester ? semester.label : 'Unbekannt'
+}
 
 const getUserName = (id: number) => {
-    const user = userSelect.value.find((s) => s.value === id);
-    return user ? user.label : 'Unbekannt';
-};
+    const user = userSelect.value.find((s) => s.value === id)
+    return user ? user.label : 'Unbekannt'
+}
 
 const getTypeName = (id: number) => {
-    const type = typeSelect.value.find((s) => s.value === id);
-    return type ? type.label : 'Unbekannt';
-};
+    const type = typeSelect.value.find((s) => s.value === id)
+    return type ? type.label : 'Unbekannt'
+}
 
-const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein');
+const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein')
 
 const formatDate = (value: string) => {
-    if (!value) return '';
-    const date = new Date(value);
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = date.getFullYear();
-    return `${day}.${month}.${year}`;
+    if (!value) return ''
+    const date = new Date(value)
+    const day = String(date.getDate()).padStart(2, '0')
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const year = date.getFullYear()
+    return `${day}.${month}.${year}`
 }
 </script>
 
 <template>
     <div class="card">
-        <div class="flex justify-between mb-4">
-            <h1 class="mb-4 text-xl font-semibold">Übersicht der Ermäßigungen</h1>
+        <div class="mb-4 flex justify-between">
+            <h1 class="mb-4 text-xl font-semibold">
+                Übersicht der Ermäßigungen
+            </h1>
             <Button
                 label="Neue Ermäßigung"
                 icon="pi pi-plus"
@@ -314,7 +334,7 @@ const formatDate = (value: string) => {
             scrollHeight="70vh"
             v-model:expandedRowGroups="expandedRowGroups"
             expandableRowGroups
-            rowGroupMode="subheader" 
+            rowGroupMode="subheader"
             groupRowsBy="teacherId"
             :row-hover="true"
             :loading="loading"
@@ -350,7 +370,9 @@ const formatDate = (value: string) => {
 
             <!-- Group Header -->
             <template #groupheader="{ data }">
-                <span class="align-middle ml-2 font-bold leading-normal">{{ getUserName(data.teacherId) }}</span>
+                <span class="ml-2 align-middle font-bold leading-normal">{{
+                    getUserName(data.teacherId)
+                }}</span>
             </template>
 
             <!-- ID Column -->
@@ -364,9 +386,17 @@ const formatDate = (value: string) => {
                 header="Art der Betreuung"
                 style="min-width: 8rem"
             >
-                <template #body="{ data }">{{ getTypeName(data.discountTypeId) }}</template>
+                <template #body="{ data }">{{
+                    getTypeName(data.discountTypeId)
+                }}</template>
                 <template #editor="{ data, field }">
-                    <Select v-model="data[field]" :options="typeSelect" option-label="label" option-value="value" fluid />
+                    <Select
+                        v-model="data[field]"
+                        :options="typeSelect"
+                        option-label="label"
+                        option-value="value"
+                        fluid
+                    />
                 </template>
             </Column>
 
@@ -401,9 +431,16 @@ const formatDate = (value: string) => {
                 data-type="date"
                 style="min-width: 10rem"
             >
-                <template #body="{ data }">{{ formatDate(data.approvalDate) }}</template>
+                <template #body="{ data }">{{
+                    formatDate(data.approvalDate)
+                }}</template>
                 <template #editor="{ data, field }">
-                    <DatePicker v-model="data[field]" date-format="dd.mm.yy" placeholder="Genehmigungsdatum auswählen" fluid />
+                    <DatePicker
+                        v-model="data[field]"
+                        date-format="dd.mm.yy"
+                        placeholder="Genehmigungsdatum auswählen"
+                        fluid
+                    />
                 </template>
             </Column>
 
@@ -414,21 +451,30 @@ const formatDate = (value: string) => {
                 style="min-width: 8rem"
                 sortable
             >
-                <template #body="{ data }">{{ getSemesterName(data.semesterPeriodId) }}</template>
+                <template #body="{ data }">{{
+                    getSemesterName(data.semesterPeriodId)
+                }}</template>
                 <template #editor="{ data, field }">
-                    <Select v-model="data[field]" :options="semesterSelect" option-label="label" option-value="value" fluid />
+                    <Select
+                        v-model="data[field]"
+                        :options="semesterSelect"
+                        option-label="label"
+                        option-value="value"
+                        fluid
+                    />
                 </template>
             </Column>
 
             <!-- Scope Column -->
-            <Column
-                field="scope"
-                header="Umfang (SWS)"
-                style="min-width: 6rem"
-            >
+            <Column field="scope" header="Umfang (SWS)" style="min-width: 6rem">
                 <template #body="{ data }">{{ data.scope }}</template>
                 <template #editor="{ data, field }">
-                    <InputNumber v-model="data[field]" fluid :min="0" :step="0.1" />
+                    <InputNumber
+                        v-model="data[field]"
+                        fluid
+                        :min="0"
+                        :step="0.1"
+                    />
                 </template>
             </Column>
 
@@ -439,21 +485,29 @@ const formatDate = (value: string) => {
                 style="min-width: 8rem"
                 sortable
             >
-                <template #body="{ data }">{{ formatBoolean(data.ordered) }}</template>
+                <template #body="{ data }">{{
+                    formatBoolean(data.ordered)
+                }}</template>
                 <template #editor="{ data, field }">
-                    <Select v-model="data[field]" :options="booleanOptions" option-label="label" option-value="value" fluid />
+                    <Select
+                        v-model="data[field]"
+                        :options="booleanOptions"
+                        option-label="label"
+                        option-value="value"
+                        fluid
+                    />
                 </template>
             </Column>
 
             <Column
                 :rowEditor="true"
-                style="width: 10%; min-width: 2rem;"
+                style="width: 10%; min-width: 2rem"
                 bodyStyle="text-align:center"
             ></Column>
 
             <Column
-            style="width: 4rem; text-align: center"
-            :headerStyle="{ textAlign: 'center' }"
+                style="width: 4rem; text-align: center"
+                :headerStyle="{ textAlign: 'center' }"
             >
                 <template #body="{ data }">
                     <Button
@@ -466,8 +520,8 @@ const formatDate = (value: string) => {
             </Column>
 
             <Column
-            style="width: 4rem; text-align: center"
-            :headerStyle="{ textAlign: 'center' }"
+                style="width: 4rem; text-align: center"
+                :headerStyle="{ textAlign: 'center' }"
             >
                 <template #body="{ data }">
                     <Button
@@ -479,20 +533,24 @@ const formatDate = (value: string) => {
             </Column>
         </DataTable>
 
-        <Drawer v-model:visible="commentDrawerVisible" header="Kommentar" position="right">
-            <div class="flex flex-wrap flex-col gap-4">
-                <p>Kommentar vom: {{currentCommentDate}}</p>
+        <Drawer
+            v-model:visible="commentDrawerVisible"
+            header="Kommentar"
+            position="right"
+        >
+            <div class="flex flex-col flex-wrap gap-4">
+                <p>Kommentar vom: {{ currentCommentDate }}</p>
                 <Textarea
-                v-model="currentCommentContent"
-                id="comment"
-                rows="8"
-                readonly
+                    v-model="currentCommentContent"
+                    id="comment"
+                    rows="8"
+                    readonly
                 />
                 <Button
-                label="Schließen"
-                class="p-button-secondary"
-                icon="pi pi-times"
-                @click="closeCommentDrawer"
+                    label="Schließen"
+                    class="p-button-secondary"
+                    icon="pi pi-times"
+                    @click="closeCommentDrawer"
                 />
             </div>
         </Drawer>
@@ -511,9 +569,8 @@ const formatDate = (value: string) => {
                 class="flex w-full flex-col gap-4"
                 @submit="onCreateDiscountFormSubmit"
             >
-
                 <!-- DiscountType Field -->
-                <div class="flex flex-col gap-1 mt-2">
+                <div class="mt-2 flex flex-col gap-1">
                     <FloatLabel variant="on">
                         <Select
                             label-id="discountTypeId"
@@ -540,7 +597,7 @@ const formatDate = (value: string) => {
                         {{ $form.discountTypeId.error?.message }}
                     </Message>
                 </div>
-                
+
                 <!-- Description Field -->
                 <div class="flex flex-col gap-1">
                     <FloatLabel variant="on">
@@ -588,7 +645,13 @@ const formatDate = (value: string) => {
                 <!-- ApprovalDate Field -->
                 <div class="flex flex-col gap-1">
                     <FloatLabel variant="on">
-                        <DatePicker id="approvalDate" name="approvalDate" date-format="dd.mm.yy" placeholder="Datum auswählen" fluid/>
+                        <DatePicker
+                            id="approvalDate"
+                            name="approvalDate"
+                            date-format="dd.mm.yy"
+                            placeholder="Datum auswählen"
+                            fluid
+                        />
                         <label
                             for="approvalDate"
                             class="block text-lg font-medium text-surface-900 dark:text-surface-0"

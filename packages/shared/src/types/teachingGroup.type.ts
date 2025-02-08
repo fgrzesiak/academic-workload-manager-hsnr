@@ -1,17 +1,27 @@
 import { TeachingGroup as ITeachingGroup } from "@workspace/database";
 
 // utility type that makes all properties optional except for the specified required keys
-type OptionalExceptFor<T, TRequired extends keyof T> = Partial<T> & Pick<T, TRequired>;
+type OptionalExceptFor<T, TRequired extends keyof T> = Partial<T> &
+  Pick<T, TRequired>;
 
 // defines the response type for a teaching group, including only specific properties
-export type ITeachingGroupResponse = Pick<ITeachingGroup, "id" | "groupName" | "groupDescription" | "groupBalance">;
+export type ITeachingGroupResponse = Pick<
+  ITeachingGroup,
+  "id" | "groupName" | "groupDescription" | "groupBalance"
+>;
 
 // defines the request type for creating a new teaching group
-export type ICreateTeachingGroupRequest = Pick<ITeachingGroup, "groupName" | "groupDescription" | "groupBalance">;
+export type ICreateTeachingGroupRequest = Pick<
+  ITeachingGroup,
+  "groupName" | "groupDescription" | "groupBalance"
+>;
 
 // defines the request type for updating an existing teaching group, with optional fields except for required ones
 export type IUpdateTeachingGroupRequest = OptionalExceptFor<
-  Pick<ITeachingGroup, "id" | "groupName" | "groupDescription" | "groupBalance">,
+  Pick<
+    ITeachingGroup,
+    "id" | "groupName" | "groupDescription" | "groupBalance"
+  >,
   "id"
 >;
 

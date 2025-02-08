@@ -6,21 +6,21 @@ import { UserStore } from '@/types'
 
 // Create the Pinia store for authentication management
 export const useAuthStore = defineStore({
-    id: 'auth',  // unique store identifier for authentication
+    id: 'auth', // unique store identifier for authentication
     state: () => ({
         // Initialize state from local storage to keep the user logged in
         user: JSON.parse(
-            localStorage.getItem('user') || 'null'  // retrieve the user data from local storage, or null if not present
+            localStorage.getItem('user') || 'null' // retrieve the user data from local storage, or null if not present
         ) as UserStore | null,
-        
+
         // Check if the user is authenticated based on the presence of a token
         isAuthenticated: !!JSON.parse(localStorage.getItem('user') || 'null')
-            ?.token, 
-        
+            ?.token,
+
         // Retrieve and store if the user's password is temporary
         isPasswordTemporary: JSON.parse(localStorage.getItem('user') || 'null')
             ?.isPasswordTemporary as UserStore['isPasswordTemporary'] | null,
-        
+
         // Retrieve the user's role from local storage
         role: JSON.parse(localStorage.getItem('user') || 'null')?.role as
             | UserStore['role']
@@ -37,7 +37,7 @@ export const useAuthStore = defineStore({
 
             // Save the user data to local storage to persist the login session
             localStorage.setItem('user', JSON.stringify(user))
-            
+
             // Redirect the user to the home page after successful login
             router.push('/')
         },
@@ -49,7 +49,7 @@ export const useAuthStore = defineStore({
             this.isAuthenticated = false
             this.role = null
             this.isPasswordTemporary = null
-            localStorage.removeItem('user')  // remove user data from local storage
+            localStorage.removeItem('user') // remove user data from local storage
 
             // Redirect the user to the login page after logout
             router.push({ name: 'login' })

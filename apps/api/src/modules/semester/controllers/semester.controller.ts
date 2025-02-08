@@ -1,14 +1,8 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Post,
-  Put,
-} from "@nestjs/common";
+import { Body, Controller, Get, Post, Put } from "@nestjs/common";
 import {
   ICreateSemesterRequest,
-  IUpdateSemesterRequest,
   ISemesterResponse,
+  IUpdateSemesterRequest,
 } from "@workspace/shared";
 
 import { Auth } from "../../../common/decorators/auth.decorator";
@@ -42,7 +36,9 @@ export class SemesterController {
    */
   @Post("/")
   @Auth(Role.CONTROLLER)
-  async createSemester(@Body() semester: ICreateSemesterRequest): Promise<ISemesterResponse> {
+  async createSemester(
+    @Body() semester: ICreateSemesterRequest,
+  ): Promise<ISemesterResponse> {
     return await this.semesterService.create(semester);
   }
 
@@ -55,7 +51,9 @@ export class SemesterController {
    */
   @Put("/")
   @Auth(Role.CONTROLLER)
-  async updateSemester(@Body() semester: IUpdateSemesterRequest): Promise<ISemesterResponse> {
+  async updateSemester(
+    @Body() semester: IUpdateSemesterRequest,
+  ): Promise<ISemesterResponse> {
     return await this.semesterService.update(semester);
   }
 }

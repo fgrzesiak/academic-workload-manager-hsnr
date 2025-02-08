@@ -5,37 +5,28 @@ import {
   Teacher,
 } from "@workspace/database";
 
-import {
-  ICreateTeacherRequest,
-  ITeacherResponse,
-  IUpdateTeacherRequest,
-} from "./teacher.type";
+import { ICreateTeacherRequest } from "./teacher.type";
 
 // utility type that makes all properties optional except for the specified required keys
 type OptionalExceptFor<T, TRequired extends keyof T> = Partial<T> &
   Pick<T, TRequired>;
 
-type IUserResponseSpecific = {
+interface IUserResponseSpecific {
   Teacher?: Teacher;
   Controller?: Controller;
-};
+}
 
-export type ICreateUserSpecificRequest = {
+export interface ICreateUserSpecificRequest {
   relation: ICreateTeacherRequest | undefined;
-};
+}
 
-export type IUpdateUserSpecificRequest = {
+export interface IUpdateUserSpecificRequest {
   Teacher?: Teacher;
   Controller?: Controller;
-};
+}
 
 // defines the response type for a User, including only specific properties
 export type IUserResponse = Omit<IUser, "password"> & IUserResponseSpecific;
-
-// common properties shared between Teacher and Controller types
-type UserCommon = {
-  [K in keyof Teacher & keyof Controller]: Teacher[K] & Controller[K];
-};
 
 // defines the request type for creating a new User
 export type ICreateUserRequest = Omit<IUser, "createdAt" | "updatedAt"> &

@@ -1,25 +1,43 @@
 import { Supervision as ISupervision } from "@workspace/database";
 
 // utility type that makes all properties optional except for the specified required keys
-type OptionalExceptFor<T, TRequired extends keyof T> = Partial<T> & Pick<T, TRequired>;
+type OptionalExceptFor<T, TRequired extends keyof T> = Partial<T> &
+  Pick<T, TRequired>;
 
 // defines the response type for a supervision, including only specific properties
 export type ISupervisionResponse = Pick<
   ISupervision,
-  "id" | "studentId" | "semesterPeriodId" | "supervisionTypeId" | "teacherId" | "commentId" | "supervisionShare"
+  | "id"
+  | "studentId"
+  | "semesterPeriodId"
+  | "supervisionTypeId"
+  | "teacherId"
+  | "commentId"
+  | "supervisionShare"
 >;
 
 // defines the request type for creating a new supervision
 export type ICreateSupervisionRequest = Pick<
   ISupervision,
-  "studentId" | "semesterPeriodId" | "supervisionTypeId" | "teacherId" | "commentId" | "supervisionShare"
+  | "studentId"
+  | "semesterPeriodId"
+  | "supervisionTypeId"
+  | "teacherId"
+  | "commentId"
+  | "supervisionShare"
 >;
 
 // defines the request type for updating an existing supervision, with optional fields except for required ones
 export type IUpdateSupervisionRequest = OptionalExceptFor<
   Pick<
     ISupervision,
-    "id" | "studentId" | "semesterPeriodId" | "supervisionTypeId" | "teacherId" | "commentId" | "supervisionShare"
+    | "id"
+    | "studentId"
+    | "semesterPeriodId"
+    | "supervisionTypeId"
+    | "teacherId"
+    | "commentId"
+    | "supervisionShare"
   >,
   "id" | "commentId" | "supervisionShare"
 >;

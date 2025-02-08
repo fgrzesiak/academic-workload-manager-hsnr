@@ -2,9 +2,9 @@ import { Injectable } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { comments } from "@workspace/repo";
 import {
+  ICommentResponse,
   ICreateCommentRequest,
   IUpdateCommentRequest,
-  ICommentResponse,
 } from "@workspace/shared";
 
 // marks the service as injectable so it can be used by other parts of the application

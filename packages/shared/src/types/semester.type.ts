@@ -1,7 +1,8 @@
 import { SemesterPeriod as ISemesterPeriod } from "@workspace/database";
 
 // utility type that makes all properties optional except for the specified required keys
-type OptionalExceptFor<T, TRequired extends keyof T> = Partial<T> & Pick<T, TRequired>;
+type OptionalExceptFor<T, TRequired extends keyof T> = Partial<T> &
+  Pick<T, TRequired>;
 
 // defines the response type for a semester, including only specific properties
 export type ISemesterResponse = Pick<ISemesterPeriod, "id" | "name" | "active">;

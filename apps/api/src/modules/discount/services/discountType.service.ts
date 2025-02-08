@@ -3,8 +3,8 @@ import { JwtService } from "@nestjs/jwt";
 import { discountTypes } from "@workspace/repo";
 import {
   ICreateDiscountTypeRequest,
-  IUpdateDiscountTypeRequest,
   IDiscountTypeResponse,
+  IUpdateDiscountTypeRequest,
 } from "@workspace/shared";
 
 // marks the service as injectable so it can be used by other parts of the application
@@ -30,7 +30,9 @@ export class DiscountTypeService {
    * @param discountType - the details of the discount type to create (ICreateDiscountTypeRequest).
    * @returns a Promise that resolves to the created discount type (IDiscountTypeResponse).
    */
-  async create(discountType: ICreateDiscountTypeRequest): Promise<IDiscountTypeResponse> {
+  async create(
+    discountType: ICreateDiscountTypeRequest,
+  ): Promise<IDiscountTypeResponse> {
     const { ...rest } = await discountTypes.create(discountType);
     return rest;
   }
@@ -40,7 +42,9 @@ export class DiscountTypeService {
    * @param discountType - the updated details of the discount type (IUpdateDiscountTypeRequest).
    * @returns a Promise that resolves to the updated discount type (IDiscountTypeResponse).
    */
-  async update(discountType: IUpdateDiscountTypeRequest): Promise<IDiscountTypeResponse> {
+  async update(
+    discountType: IUpdateDiscountTypeRequest,
+  ): Promise<IDiscountTypeResponse> {
     const { ...rest } = await discountTypes.update(discountType);
     return rest;
   }

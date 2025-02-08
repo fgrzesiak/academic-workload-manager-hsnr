@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { onBeforeMount, ref, } from 'vue'
+import { onBeforeMount, ref } from 'vue'
 import EvaluationSettingsService from '@/service/evaluationSettings.service'
-import { IEvaluationSettingsResponse, ICreateEvaluationSettingsRequest, } from '@workspace/shared'
-import { 
-    DataTableRowEditSaveEvent,
-    useToast,
-} from 'primevue'
+import {
+    IEvaluationSettingsResponse,
+    ICreateEvaluationSettingsRequest,
+} from '@workspace/shared'
+import { DataTableRowEditSaveEvent, useToast } from 'primevue'
 import { getFormStatesAsType } from '@/helpers/functions'
 import { z } from 'zod'
 import { zodResolver } from '@primevue/forms/resolvers/zod'
@@ -19,11 +19,11 @@ const toast = useToast()
 
 // definition of selection options for dataTypes
 const typeSelect = ref([
-    { label: 'Ganze Zahl', value: "int" },
-    { label: 'Komma Zahl', value: "float" },
-    { label: 'Text', value: "string" },
-    { label: 'Wahrheitswert', value: "bool" },
-]);
+    { label: 'Ganze Zahl', value: 'int' },
+    { label: 'Komma Zahl', value: 'float' },
+    { label: 'Text', value: 'string' },
+    { label: 'Wahrheitswert', value: 'bool' },
+])
 
 // variables and schema for creating a new setting
 const newSettingSubmitted = ref(false)
@@ -35,11 +35,10 @@ const newSettingSchema = z.object({
 })
 const resolver = ref(zodResolver(newSettingSchema))
 
-
 // updates the list within the tabular display of the settings with new data
 const updateSettings = (data: IEvaluationSettingsResponse[]) => {
-    settings.value = data.map((d) => { 
-        return d 
+    settings.value = data.map((d) => {
+        return d
     })
 }
 
@@ -65,29 +64,35 @@ const getNewSettingValues = (): z.infer<typeof newSettingSchema> => {
 }
 
 // submit handler for the form for creating a new setting
-const onCreateSettingFormSubmit = async ({ valid, states }: FormSubmitEvent) => {
+const onCreateSettingFormSubmit = async ({
+    valid,
+    states,
+}: FormSubmitEvent) => {
     if (valid) {
         newSettingSubmitted.value = true
-        const newSetting = getFormStatesAsType<ICreateEvaluationSettingsRequest>(states)
-        EvaluationSettingsService.createEvaluationSettings(newSetting).then((res) => {
-            const { data, error } = res
-            if (error) {
-                toast.add({
-                    severity: 'error',
-                    summary: 'Fehler',
-                    detail: error,
-                    life: 5000,
-                })
-            } else {
-                updateSettings([...settings.value, data])
-                toast.add({
-                    severity: 'success',
-                    summary: 'Erfolgreich',
-                    detail: 'Einstellung erstellt',
-                    life: 3000,
-                })
+        const newSetting =
+            getFormStatesAsType<ICreateEvaluationSettingsRequest>(states)
+        EvaluationSettingsService.createEvaluationSettings(newSetting).then(
+            (res) => {
+                const { data, error } = res
+                if (error) {
+                    toast.add({
+                        severity: 'error',
+                        summary: 'Fehler',
+                        detail: error,
+                        life: 5000,
+                    })
+                } else {
+                    updateSettings([...settings.value, data])
+                    toast.add({
+                        severity: 'success',
+                        summary: 'Erfolgreich',
+                        detail: 'Einstellung erstellt',
+                        life: 3000,
+                    })
+                }
             }
-        })
+        )
 
         newSettingDialog.value = false
     }
@@ -95,26 +100,28 @@ const onCreateSettingFormSubmit = async ({ valid, states }: FormSubmitEvent) => 
 
 // function to load data from service
 const loadData = () => {
-    loading.value = true;
+    loading.value = true
     EvaluationSettingsService.getEvaluationSettings().then((res) => {
-        const { data, error } = res;
+        const { data, error } = res
         if (error) {
             toast.add({
                 severity: 'error',
                 summary: 'Fehler beim Laden der Einstellungen',
                 detail: error,
                 life: 5000,
-            });
+            })
         } else {
-            settings.value = data.map((setting: IEvaluationSettingsResponse) => setting);
+            settings.value = data.map(
+                (setting: IEvaluationSettingsResponse) => setting
+            )
         }
-    });
+    })
 
-    loading.value = false;
-};
+    loading.value = false
+}
 
 // load data before mounting the component
-onBeforeMount(loadData);
+onBeforeMount(loadData)
 
 // saves changes to a course
 const onRowEditSave = ({ newData }: DataTableRowEditSaveEvent) => {
@@ -128,7 +135,9 @@ const onRowEditSave = ({ newData }: DataTableRowEditSaveEvent) => {
                 life: 5000,
             })
         } else {
-            updateSettings(settings.value.map((u) => (u.id === data.id ? data : u)))
+            updateSettings(
+                settings.value.map((u) => (u.id === data.id ? data : u))
+            )
             toast.add({
                 severity: 'success',
                 summary: 'Erfolgreich',
@@ -141,19 +150,18 @@ const onRowEditSave = ({ newData }: DataTableRowEditSaveEvent) => {
 
 // converts type IDs to names
 const getDataTypeName = (value: string) => {
-    const type = typeSelect.value.find((s) => s.value === value);
-    return type ? type.label : 'Unbekannt';
+    const type = typeSelect.value.find((s) => s.value === value)
+    return type ? type.label : 'Unbekannt'
 }
 
 const getSetting = (key: string) => {
     const setting = settings.value.find((s) => s.key === key)
-    return setting ? setting.value : '"Unbekannt"';
+    return setting ? setting.value : '"Unbekannt"'
 }
-
 </script>
 
 <template>
-    <div class="grid grid-cols-12 gap-8 mb-4">
+    <div class="mb-4 grid grid-cols-12 gap-8">
         <div class="col-span-12 lg:col-span-6 xl:col-span-3">
             <div class="card mb-0">
                 <div class="mb-4 flex justify-between">
@@ -164,19 +172,21 @@ const getSetting = (key: string) => {
                         <div
                             class="mb-4 text-xl font-medium text-surface-900 dark:text-surface-0"
                         >
-                            {{ getSetting("saldation_period") }}
+                            {{ getSetting('saldation_period') }}
                         </div>
                     </div>
                     <div
                         class="flex items-center justify-center bg-orange-100 rounded-border dark:bg-orange-400/10"
                         style="width: 2.5rem; height: 2.5rem"
                     >
-                        <i
-                            class="pi pi-clock !text-xl text-orange-500"
-                        ></i>
+                        <i class="pi pi-clock !text-xl text-orange-500"></i>
                     </div>
                 </div>
-                <span class="text-xs text-muted-color">*Die Anzahl der Semester, die nach dem ersten aktiven Semester rückwirkend für die Erstellung des Saldos berücksichtigt werden sollen.</span>
+                <span class="text-xs text-muted-color"
+                    >*Die Anzahl der Semester, die nach dem ersten aktiven
+                    Semester rückwirkend für die Erstellung des Saldos
+                    berücksichtigt werden sollen.</span
+                >
             </div>
         </div>
         <div class="col-span-12 lg:col-span-6 xl:col-span-3">
@@ -189,19 +199,21 @@ const getSetting = (key: string) => {
                         <div
                             class="mb-4 text-xl font-medium text-surface-900 dark:text-surface-0"
                         >
-                            {{ getSetting("max_hours_supervisions") }}
+                            {{ getSetting('max_hours_supervisions') }}
                         </div>
                     </div>
                     <div
                         class="flex items-center justify-center bg-red-100 rounded-border dark:bg-red-400/10"
                         style="width: 2.5rem; height: 2.5rem"
                     >
-                        <i
-                            class="pi pi-shield !text-xl text-red-500"
-                        ></i>
+                        <i class="pi pi-shield !text-xl text-red-500"></i>
                     </div>
                 </div>
-                <span class="text-xs text-muted-color">*Die Anzahl der Stunden, die maximal für die Anrechnung pro Semester eines jeden Lehrenden berücksichtigt werden sollen. <br><strong>(vgl. §4 Abs. 5 LVV)</strong></span>
+                <span class="text-xs text-muted-color"
+                    >*Die Anzahl der Stunden, die maximal für die Anrechnung pro
+                    Semester eines jeden Lehrenden berücksichtigt werden sollen.
+                    <br /><strong>(vgl. §4 Abs. 5 LVV)</strong></span
+                >
             </div>
         </div>
         <div class="col-span-12 lg:col-span-6 xl:col-span-3">
@@ -214,17 +226,23 @@ const getSetting = (key: string) => {
                         <div
                             class="mb-4 text-xl font-medium text-surface-900 dark:text-surface-0"
                         >
-                            {{ getSetting("factor_upper_limit") }}
+                            {{ getSetting('factor_upper_limit') }}
                         </div>
                     </div>
                     <div
                         class="flex items-center justify-center bg-cyan-100 rounded-border dark:bg-cyan-400/10"
                         style="width: 2.5rem; height: 2.5rem"
                     >
-                        <i class="pi pi-fast-forward !text-xl text-cyan-500"></i>
+                        <i
+                            class="pi pi-fast-forward !text-xl text-cyan-500"
+                        ></i>
                     </div>
                 </div>
-                <span class="text-xs text-muted-color">*Der Multiplikationsfaktor, um den das zu erreichende Saldo pro Semester das tatsächlich zu erreichende individuelle Deputat nicht überschreiten darf.</span>
+                <span class="text-xs text-muted-color"
+                    >*Der Multiplikationsfaktor, um den das zu erreichende Saldo
+                    pro Semester das tatsächlich zu erreichende individuelle
+                    Deputat nicht überschreiten darf.</span
+                >
             </div>
         </div>
         <div class="col-span-12 lg:col-span-6 xl:col-span-3">
@@ -237,23 +255,31 @@ const getSetting = (key: string) => {
                         <div
                             class="mb-4 text-xl font-medium text-surface-900 dark:text-surface-0"
                         >
-                            {{ getSetting("factor_lower_limit") }}
+                            {{ getSetting('factor_lower_limit') }}
                         </div>
                     </div>
                     <div
                         class="flex items-center justify-center bg-cyan-100 rounded-border dark:bg-cyan-400/10"
                         style="width: 2.5rem; height: 2.5rem"
                     >
-                        <i class="pi pi-fast-backward !text-xl text-cyan-500"></i>
+                        <i
+                            class="pi pi-fast-backward !text-xl text-cyan-500"
+                        ></i>
                     </div>
                 </div>
-                <span class="text-xs text-muted-color">*Der Multiplikationsfaktor, um den das zu erreichende Saldo pro Semester das tatsächlich zu erreichende individuelle Deputat nicht unterschreiten darf.</span>
+                <span class="text-xs text-muted-color"
+                    >*Der Multiplikationsfaktor, um den das zu erreichende Saldo
+                    pro Semester das tatsächlich zu erreichende individuelle
+                    Deputat nicht unterschreiten darf.</span
+                >
             </div>
         </div>
     </div>
     <div class="card">
-        <div class="flex justify-between mb-4">
-            <h1 class="mb-4 text-xl font-semibold">Übersicht der Saldierungs-Einstellungen</h1>
+        <div class="mb-4 flex justify-between">
+            <h1 class="mb-4 text-xl font-semibold">
+                Übersicht der Saldierungs-Einstellungen
+            </h1>
             <Button
                 label="Neue Einstellung"
                 icon="pi pi-plus"
@@ -261,7 +287,7 @@ const getSetting = (key: string) => {
                 @click="openNew"
             />
         </div>
-        
+
         <!-- table to display the data -->
         <DataTable
             :value="settings"
@@ -282,11 +308,7 @@ const getSetting = (key: string) => {
             </Column>
 
             <!-- Name Column -->
-            <Column
-                field="key"
-                header="Name"
-                style="min-width: 10rem"
-            >
+            <Column field="key" header="Name" style="min-width: 10rem">
                 <template #body="{ data }">{{ data.key }}</template>
                 <template #editor="{ data, field }">
                     <InputText v-model="data[field]" fluid />
@@ -294,11 +316,7 @@ const getSetting = (key: string) => {
             </Column>
 
             <!-- Value Column -->
-            <Column
-                field="value"
-                header="Wert"
-                style="min-width: 10rem"
-            >
+            <Column field="value" header="Wert" style="min-width: 10rem">
                 <template #body="{ data }">{{ data.value }}</template>
                 <template #editor="{ data, field }">
                     <InputText v-model="data[field]" fluid />
@@ -312,9 +330,17 @@ const getSetting = (key: string) => {
                 style="min-width: 10rem"
                 sortable
             >
-                <template #body="{ data }">{{ getDataTypeName(data.dataType) }}</template>
+                <template #body="{ data }">{{
+                    getDataTypeName(data.dataType)
+                }}</template>
                 <template #editor="{ data, field }">
-                    <Select v-model="data[field]" :options="typeSelect" option-label="label" option-value="value" fluid />
+                    <Select
+                        v-model="data[field]"
+                        :options="typeSelect"
+                        option-label="label"
+                        option-value="value"
+                        fluid
+                    />
                 </template>
             </Column>
 

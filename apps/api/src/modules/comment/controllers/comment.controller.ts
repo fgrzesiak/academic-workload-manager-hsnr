@@ -1,14 +1,8 @@
+import { Body, Controller, Get, Post, Put } from "@nestjs/common";
 import {
-  Body,
-  Controller,
-  Get,
-  Post,
-  Put,
-} from "@nestjs/common";
-import {
+  ICommentResponse,
   ICreateCommentRequest,
   IUpdateCommentRequest,
-  ICommentResponse,
 } from "@workspace/shared";
 
 import { Auth } from "../../../common/decorators/auth.decorator";
@@ -42,7 +36,9 @@ export class CommentController {
    */
   @Post("/")
   @Auth(Role.CONTROLLER)
-  async createComment(@Body() comment: ICreateCommentRequest): Promise<ICommentResponse> {
+  async createComment(
+    @Body() comment: ICreateCommentRequest,
+  ): Promise<ICommentResponse> {
     return await this.commentService.create(comment);
   }
 
@@ -55,7 +51,9 @@ export class CommentController {
    */
   @Put("/")
   @Auth(Role.CONTROLLER)
-  async updateComment(@Body() comment: IUpdateCommentRequest): Promise<ICommentResponse> {
+  async updateComment(
+    @Body() comment: IUpdateCommentRequest,
+  ): Promise<ICommentResponse> {
     return await this.commentService.update(comment);
   }
 }
