@@ -83,7 +83,7 @@ const preset = definePreset(Lara, {
     },
 })
 
-const app = createApp(App)
+export const app = createApp(App)
 
 app.use(router)
 app.use(PrimeVue, {
