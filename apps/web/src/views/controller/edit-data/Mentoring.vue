@@ -52,9 +52,16 @@ const newSupervisionSubmitted = ref(false)
 const newSupervisionDialog = ref(false)
 const newSupervisionSchema = z.object({
     studentId: z.number(),
-    semesterPeriodId: z.number(),
-    supervisionTypeId: z.number(),
-    teacherId: z.number(),
+    //must match a valid id from semesterSelect
+    semesterPeriodId: z
+        .number()
+        .refine((value) => semesterSelect.value.some((s) => s.value === value)),
+    supervisionTypeId: z
+        .number()
+        .refine((value) => typeSelect.value.some((s) => s.value === value)),
+    teacherId: z
+        .number()
+        .refine((value) => userSelect.value.some((s) => s.value === value)),
     commentId: z.number(),
     supervisionShare: z.number(),
 })
@@ -594,7 +601,10 @@ const formatNumber = (value: number) => {
                             name="supervisionShare"
                             :min="0"
                             :max="100"
-                            :step="0.1"
+                            :max-fraction-digits="2"
+                            :step="1"
+                            suffix=" %"
+                            showButtons
                             fluid
                         />
                         <label

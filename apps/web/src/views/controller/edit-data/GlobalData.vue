@@ -178,7 +178,7 @@ const hideMentoringDialog = () => {
 const getNewMentoringValues = (): z.infer<typeof newMentoringSchema> => {
     return {
         typeOfSupervision: '',
-        calculationFactor: 0,
+        calculationFactor: 1,
         validFrom: 1,
     } satisfies ICreateSupervisionTypeRequest
 }
@@ -436,10 +436,10 @@ onBeforeMount(() => {
 
 const formatNumber = (value: number) => {
     if (value == null) return '' // Leere Anzeige, falls der Wert null oder undefined ist
-    return value.toLocaleString('de-DE', {
+    return new Intl.NumberFormat('de-DE', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
-    })
+    }).format(value)
 }
 
 const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein')
@@ -543,6 +543,10 @@ const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein')
                         v-model="data[field]"
                         :step="0.05"
                         :min="0.1"
+                        mode="decimal"
+                        :minFractionDigits="2"
+                        :maxFractionDigits="2"
+                        showButtons
                         fluid
                     />
                 </template>
@@ -621,9 +625,12 @@ const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein')
                         <InputNumber
                             id="calculationFactor"
                             name="calculationFactor"
-                            type="number"
-                            :step="0.1"
-                            :min="0.1"
+                            :step="0.05"
+                            :min="0.05"
+                            mode="decimal"
+                            :minFractionDigits="2"
+                            :maxFractionDigits="2"
+                            showButtons
                             fluid
                         />
                         <label
@@ -760,7 +767,7 @@ const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein')
                     </template>
                 </Column>
 
-                <!-- Akctive Column -->
+                <!-- Active Column -->
                 <Column
                     field="active"
                     header="Aktiv?"
