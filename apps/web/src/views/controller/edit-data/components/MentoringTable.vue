@@ -45,7 +45,9 @@ const newMentoringSubmitted = ref(false)
 const newMentoringSchema = z.object({
     typeOfSupervision: z.string().trim().min(10).max(30),
     calculationFactor: z.number(),
-    validFrom: z.number(),
+    validFrom: z
+        .number()
+        .refine((v) => props.semesterSelect.some((s) => s.value === v)),
 })
 const resolver = ref(zodResolver(newMentoringSchema))
 
