@@ -21,7 +21,7 @@ import { JwtAuthGuard } from "../../../common/guards/jwt-auth.guard";
 import { AuthRequest } from "../../../common/interfaces/express";
 import { UsersService } from "../services/users.service";
 
-// controller for managing user-related operations
+// controller for  managing user-related operations
 @Controller("users")
 export class UsersController {
   // injects the UsersService to handle business logic

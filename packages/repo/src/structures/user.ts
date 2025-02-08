@@ -1,4 +1,8 @@
-import { User as IUser } from "@workspace/database";
+import {
+  Controller as IController,
+  Teacher as ITeacher,
+  User as IUser,
+} from "@workspace/database";
 import { $Enums } from "@workspace/database";
 import { injectable } from "tsyringe";
 

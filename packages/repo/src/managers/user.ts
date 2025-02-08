@@ -52,7 +52,6 @@ export class UserManager {
     let result;
     if (Teacher) {
       const { id, userId, ...teacherData } = Teacher; // we can't update keys, so we exclude `id` and `userId`
-      console.log(rest);
       result = await this.prisma.user.update({
         data: {
           ...rest,
@@ -63,6 +62,10 @@ export class UserManager {
           },
         },
         where: { id: userId },
+        include: {
+          Teacher: true,
+          Controller: true,
+        },
       });
     } else if (Controller) {
       const { id, userId, ...controllerData } = Controller; // we can't update keys, so we exclude `id` and `userId`
@@ -76,11 +79,19 @@ export class UserManager {
           },
         },
         where: { id: userId },
+        include: {
+          Teacher: true,
+          Controller: true,
+        },
       });
     } else {
       result = await this.prisma.user.update({
         data: rest,
         where: { id },
+        include: {
+          Teacher: true,
+          Controller: true,
+        },
       });
     }
 
