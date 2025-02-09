@@ -1,7 +1,7 @@
 <script setup lang="ts"></script>
 
 <template>
-    <div class="layout-footer flex flex-col justify-center items-center gap-2">
+    <div class="layout-footer flex flex-col items-center justify-center gap-2">
         <div>
             Made with 💙 by
             <a
