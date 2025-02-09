@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onBeforeMount, defineProps } from 'vue'
+import { ref, onBeforeMount } from 'vue'
 import { DataTableFilterMeta, DataTableRowEditSaveEvent } from 'primevue'
 import { z } from 'zod'
 import { zodResolver } from '@primevue/forms/resolvers/zod'

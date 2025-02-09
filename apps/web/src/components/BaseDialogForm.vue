@@ -5,7 +5,7 @@
  *              Unterstützt v-model:visible über einen computed Getter/Setter.
  */
 
-import { computed, defineEmits } from 'vue'
+import { computed } from 'vue'
 import Dialog from 'primevue/dialog'
 
 const props = defineProps<{
