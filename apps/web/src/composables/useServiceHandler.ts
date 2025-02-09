@@ -26,11 +26,11 @@ export async function handleServiceCall<T>(
         if (res.error) {
             toast.add({
                 severity: 'error',
-                summary: errorMessage,
-                detail: String(res.error),
+                summary: 'Fehler',
+                detail: errorMessage,
                 life: 5000,
             })
-
+            console.error(res.error)
             return null
         } else {
             if (successMessage) {
@@ -46,10 +46,11 @@ export async function handleServiceCall<T>(
     } catch (error) {
         toast.add({
             severity: 'error',
-            summary: errorMessage,
-            detail: String(error),
+            summary: 'Fehler',
+            detail: errorMessage,
             life: 5000,
         })
+        console.error(error)
         return null
     }
 }
