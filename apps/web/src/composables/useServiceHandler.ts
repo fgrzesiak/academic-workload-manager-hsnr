@@ -17,7 +17,7 @@ import { useToastService } from './useToastService'
  */
 export async function handleServiceCall<T>(
     promise: PromiseLike<{ data: T; error: String | null }>,
-    successMessage: string,
+    successMessage: string | null,
     errorMessage: string
 ): Promise<T | null> {
     const toast = useToastService()
@@ -30,14 +30,17 @@ export async function handleServiceCall<T>(
                 detail: String(res.error),
                 life: 5000,
             })
+
             return null
         } else {
-            toast.add({
-                severity: 'success',
-                summary: successMessage,
-                detail: successMessage,
-                life: 3000,
-            })
+            if (successMessage) {
+                toast.add({
+                    severity: 'success',
+                    summary: successMessage,
+                    detail: successMessage,
+                    life: 3000,
+                })
+            }
             return res.data
         }
     } catch (error) {

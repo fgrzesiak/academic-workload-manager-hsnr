@@ -1,10 +1,7 @@
 <script setup lang="ts">
 import { ref, onBeforeMount } from 'vue'
-import { useToast } from 'primevue'
 import SemesterService from '@/service/semester.service'
 import type { ISemesterResponse } from '@workspace/shared'
-
-const toast = useToast()
 
 const loadingSemester = ref(false)
 const semesters = ref<ISemesterResponse[]>([])
@@ -14,31 +11,28 @@ const booleanOptions = ref([
     { label: 'Nein', value: false },
 ])
 
-onBeforeMount(() => {
+onBeforeMount(async () => {
     loadingSemester.value = true
-    SemesterService.getSemesters().then((res) => {
-        if (res.error) {
-            toast.add({
-                severity: 'error',
-                summary: 'Fehler beim Laden der Semester',
-                detail: res.error,
-                life: 5000,
-            })
-        } else {
-            semesters.value = res.data
-            semesterSelect.value = res.data.map((s) => ({
-                label: s.name,
-                value: s.id,
-            }))
-        }
-        loadingSemester.value = false
-    })
+    const res = await handleServiceCall(
+        SemesterService.getSemesters(),
+        null,
+        'Fehler beim Laden der Semester'
+    )
+    if (res) {
+        semesters.value = res
+        semesterSelect.value = res.map((s) => ({
+            label: s.name,
+            value: s.id,
+        }))
+    }
+    loadingSemester.value = false
 })
 
 import MentoringTable from './components/MentoringTable.vue'
 import SemesterTable from './components/SemesterTable.vue'
 import DiscountTable from './components/DiscountTable.vue'
 import { SelectOption } from '@/types'
+import { handleServiceCall } from '@/composables/useServiceHandler'
 
 /**
  * Wird ausgeführt, wenn ein neues Semester erstellt wurde.
