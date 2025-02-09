@@ -82,7 +82,14 @@ function removeCourse(index: number) {
                 <label>Name der Veranstaltung</label>
             </FloatLabel>
             <FloatLabel variant="on">
-                <InputNumber v-model="course.sws" :min="0" :step="0.1" />
+                <InputNumber
+                    v-model="course.sws"
+                    :min="0"
+                    :step="1"
+                    :min-fraction-digits="2"
+                    :max-fraction-digits="2"
+                    showButtons
+                />
                 <label>Umfang (SWS)*</label>
             </FloatLabel>
             <div class="flex items-center">

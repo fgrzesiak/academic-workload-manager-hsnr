@@ -98,7 +98,10 @@ function removeMentoring(index: number) {
                 <InputNumber
                     v-model="mentor.matriculationNumber"
                     :min="0"
+                    :min-fraction-digits="0"
+                    :max-fraction-digits="0"
                     :useGrouping="false"
+                    :step="1"
                 />
                 <label>Matrikelnummer</label>
             </FloatLabel>
@@ -109,7 +112,10 @@ function removeMentoring(index: number) {
                     v-model="mentor.supervisionShare"
                     :min="0"
                     :max="100"
-                    :step="0.1"
+                    :step="1"
+                    :min-fraction-digits="2"
+                    :max-fraction-digits="2"
+                    showButtons
                 />
                 <label>Betreuungsanteil (in %)</label>
             </FloatLabel>

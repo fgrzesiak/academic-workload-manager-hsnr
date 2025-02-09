@@ -313,8 +313,8 @@ const getUserName = (id: number) => {
 const formatNumber = (value: number) => {
     if (value == null) return '' // Leere Anzeige, falls der Wert null oder undefined ist
     return value.toLocaleString('de-DE', {
-        minimumFractionDigits: 1,
-        maximumFractionDigits: 1,
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
     })
 }
 
@@ -422,7 +422,7 @@ const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein')
             </Column>
 
             <!-- Hours Column -->
-            <Column field="hours" header="SWS" style="min-width: 6rem">
+            <Column field="hours" header="SWS" style="min-width: 8rem">
                 <template #body="{ data }">{{
                     formatNumber(data.hours)
                 }}</template>
@@ -430,9 +430,12 @@ const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein')
                     <InputNumber
                         v-model="data[field]"
                         fluid
-                        style="max-width: 6rem"
-                        :step="0.1"
+                        style="max-width: 8rem"
+                        :step="1"
                         :min="0"
+                        :min-fraction-digits="2"
+                        :max-fraction-digits="2"
+                        :show-buttons="true"
                     />
                 </template>
             </Column>
@@ -589,7 +592,16 @@ const formatBoolean = (value: boolean) => (value ? 'Ja' : 'Nein')
                 <!-- Hours Field -->
                 <div class="flex flex-col gap-1">
                     <FloatLabel variant="on">
-                        <InputNumber id="hours" name="hours" :min="0" fluid />
+                        <InputNumber
+                            id="hours"
+                            name="hours"
+                            :min="0"
+                            :step="1"
+                            :min-fraction-digits="2"
+                            :max-fraction-digits="2"
+                            showButtons
+                            fluid
+                        />
                         <label
                             for="hours"
                             class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"

@@ -422,7 +422,10 @@ const formatNumber = (value: number) => {
                         :useGrouping="false"
                         :min="0"
                         :max="100"
-                        :step="0.1"
+                        :step="1"
+                        :min-fraction-digits="2"
+                        :max-fraction-digits="2"
+                        :show-buttons="true"
                     />
                 </template>
             </Column>
@@ -440,6 +443,9 @@ const formatNumber = (value: number) => {
                         fluid
                         :useGrouping="false"
                         :min="0"
+                        :min-fraction-digits="0"
+                        :max-fraction-digits="0"
+                        :show-buttons="true"
                     />
                 </template>
             </Column>
@@ -572,6 +578,9 @@ const formatNumber = (value: number) => {
                             name="studentId"
                             :useGrouping="false"
                             :min="0"
+                            :min-fraction-digits="0"
+                            :max-fraction-digits="0"
+                            :show-buttons="true"
                             fluid
                         />
                         <label

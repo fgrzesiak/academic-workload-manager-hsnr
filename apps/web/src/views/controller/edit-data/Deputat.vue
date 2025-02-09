@@ -223,8 +223,11 @@ const formatNumber = (value: number) => {
                         v-model="data[field]"
                         fluid
                         style="max-width: 6rem"
-                        :step="0.1"
+                        :step="1"
                         :min="0"
+                        :min-fraction-digits="2"
+                        :max-fraction-digits="2"
+                        :show-buttons="true"
                     />
                 </template>
             </Column>

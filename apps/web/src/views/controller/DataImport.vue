@@ -551,6 +551,10 @@ onMounted(async () => {
                                 v-model="individualDeputat"
                                 placeholder="18"
                                 :min="0"
+                                :step="1"
+                                :min-fraction-digits="2"
+                                :max-fraction-digits="2"
+                                showButtons
                             />
                             <label class="mb-2 block text-lg font-medium"
                                 >Umfang (SWS)</label

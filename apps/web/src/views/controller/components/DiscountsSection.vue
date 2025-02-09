@@ -110,6 +110,9 @@ function removeReduction(index: number) {
                             v-model="reduction.sws"
                             :min="0"
                             :step="0.1"
+                            :min-fraction-digits="2"
+                            :max-fraction-digits="2"
+                            showButtons
                         />
                         <label>Umfang (SWS)</label>
                     </FloatLabel>

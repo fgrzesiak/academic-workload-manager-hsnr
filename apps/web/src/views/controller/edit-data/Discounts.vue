@@ -473,7 +473,10 @@ const formatDate = (value: string) => {
                         v-model="data[field]"
                         fluid
                         :min="0"
-                        :step="0.1"
+                        :step="1"
+                        :min-fraction-digits="2"
+                        :max-fraction-digits="2"
+                        :show-buttons="true"
                     />
                 </template>
             </Column>
@@ -702,7 +705,15 @@ const formatDate = (value: string) => {
                 <!-- Scope Field -->
                 <div class="flex flex-col gap-1">
                     <FloatLabel variant="on">
-                        <InputNumber id="scope" name="scope" :min="0" fluid />
+                        <InputNumber
+                            id="scope"
+                            name="scope"
+                            :min="0"
+                            fluid
+                            :min-fraction-digits="2"
+                            :max-fraction-digits="2"
+                            :show-buttons="true"
+                        />
                         <label
                             for="scope"
                             class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
