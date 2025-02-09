@@ -1,10 +1,6 @@
 <script setup lang="ts">
 import { ref, onBeforeMount } from 'vue'
-import {
-    useToast,
-    DataTableFilterMeta,
-    DataTableRowEditSaveEvent,
-} from 'primevue'
+import { DataTableFilterMeta, DataTableRowEditSaveEvent } from 'primevue'
 import { z } from 'zod'
 import { zodResolver } from '@primevue/forms/resolvers/zod'
 import { Form, FormSubmitEvent } from '@primevue/forms'
@@ -23,8 +19,7 @@ import Dialog from 'primevue/dialog'
 import FloatLabel from 'primevue/floatlabel'
 import Message from 'primevue/message'
 import { getFormStatesAsType } from '@/helpers'
-
-const toast = useToast()
+import { handleServiceCall } from '@/composables/useServiceHandler'
 
 // Lokale Zustände
 const loading = ref(false)
@@ -51,21 +46,17 @@ initFilters()
 /**
  * Ruft beim Mounten die Ermäßigungsarten ab.
  */
-onBeforeMount(() => {
+onBeforeMount(async () => {
     loading.value = true
-    DiscountTypeService.getDiscountTypes().then((res) => {
-        if (res.error) {
-            toast.add({
-                severity: 'error',
-                summary: 'Fehler beim Laden der Ermäßigungen',
-                detail: res.error,
-                life: 5000,
-            })
-        } else {
-            reductions.value = res.data
-        }
-        loading.value = false
-    })
+    const data = await handleServiceCall(
+        DiscountTypeService.getDiscountTypes(),
+        null,
+        'Fehler beim Laden der Ermäßigungen'
+    )
+    if (data) {
+        reductions.value = data
+    }
+    loading.value = false
 })
 
 /**
@@ -104,25 +95,15 @@ const onCreateReductionFormSubmit = async ({
         newReductionSubmitted.value = true
         const newReduction =
             getFormStatesAsType<ICreateDiscountTypeRequest>(states)
-        DiscountTypeService.createDiscountType(newReduction).then((res) => {
-            const { data, error } = res
-            if (error) {
-                toast.add({
-                    severity: 'error',
-                    summary: 'Fehler',
-                    detail: error,
-                    life: 5000,
-                })
-            } else {
-                reductions.value = [...reductions.value, data]
-                toast.add({
-                    severity: 'success',
-                    summary: 'Erfolgreich',
-                    detail: 'Ermäßigung erstellt',
-                    life: 3000,
-                })
-            }
-        })
+
+        const data = await handleServiceCall(
+            DiscountTypeService.createDiscountType(newReduction),
+            'Ermäßigung erstellt',
+            'Fehler beim Erstellen der Ermäßigung'
+        )
+        if (data) {
+            reductions.value = [...reductions.value, data]
+        }
         hideNewReductionDialog()
     }
 }
@@ -130,28 +111,17 @@ const onCreateReductionFormSubmit = async ({
 /**
  * Handler zum Speichern der Inline-Bearbeitung einer Ermäßigungszeile.
  */
-const onRowEditSave = ({ newData }: DataTableRowEditSaveEvent) => {
-    DiscountTypeService.updateDiscountType(newData).then((res) => {
-        const { data, error } = res
-        if (error) {
-            toast.add({
-                severity: 'error',
-                summary: 'Fehler',
-                detail: error,
-                life: 5000,
-            })
-        } else {
-            reductions.value = reductions.value.map((u) =>
-                u.discountTypeId === data.discountTypeId ? data : u
-            )
-            toast.add({
-                severity: 'success',
-                summary: 'Erfolgreich',
-                detail: 'Ermäßigung aktualisiert',
-                life: 3000,
-            })
-        }
-    })
+const onRowEditSave = async ({ newData }: DataTableRowEditSaveEvent) => {
+    const data = await handleServiceCall(
+        DiscountTypeService.updateDiscountType(newData),
+        'Ermäßigung aktualisiert',
+        'Fehler beim Aktualisieren der Ermäßigung'
+    )
+    if (data) {
+        reductions.value = reductions.value.map((u) =>
+            u.discountTypeId === data.discountTypeId ? data : u
+        )
+    }
 }
 </script>
 

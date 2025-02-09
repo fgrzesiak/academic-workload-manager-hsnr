@@ -1,10 +1,6 @@
 <script setup lang="ts">
 import { ref, onBeforeMount, defineProps } from 'vue'
-import {
-    useToast,
-    DataTableFilterMeta,
-    DataTableRowEditSaveEvent,
-} from 'primevue'
+import { DataTableFilterMeta, DataTableRowEditSaveEvent } from 'primevue'
 import { z } from 'zod'
 import { zodResolver } from '@primevue/forms/resolvers/zod'
 import { Form, FormSubmitEvent } from '@primevue/forms'
@@ -26,12 +22,11 @@ import FloatLabel from 'primevue/floatlabel'
 import Message from 'primevue/message'
 import { getFormStatesAsType } from '@/helpers'
 import { SelectOption } from '@/types'
+import { handleServiceCall } from '@/composables/useServiceHandler'
 
 const props = defineProps<{
     semesterSelect: SelectOption[]
 }>()
-
-const toast = useToast()
 
 // Lokale Zustände
 const loading = ref(false)
@@ -82,21 +77,17 @@ const getSemesterName = (id: number) => {
 /**
  * Ruft beim Mounten die Betreuungsarten ab.
  */
-onBeforeMount(() => {
+onBeforeMount(async () => {
     loading.value = true
-    SupervisionTypeService.getSupervisionTypes().then((res) => {
-        if (res.error) {
-            toast.add({
-                severity: 'error',
-                summary: 'Fehler beim Laden der Betreuungsarten',
-                detail: res.error,
-                life: 5000,
-            })
-        } else {
-            mentorings.value = res.data
-        }
-        loading.value = false
-    })
+    const data = await handleServiceCall(
+        SupervisionTypeService.getSupervisionTypes(),
+        null,
+        'Fehler beim Laden der Betreuungsarten'
+    )
+    if (data) {
+        mentorings.value = data
+    }
+    loading.value = false
 })
 
 /**
@@ -137,27 +128,14 @@ const onCreateMentoringFormSubmit = async ({
         newMentoringSubmitted.value = true
         const newMentoring =
             getFormStatesAsType<ICreateSupervisionTypeRequest>(states)
-        SupervisionTypeService.createSupervisionType(newMentoring).then(
-            (res) => {
-                const { data, error } = res
-                if (error) {
-                    toast.add({
-                        severity: 'error',
-                        summary: 'Fehler',
-                        detail: error,
-                        life: 5000,
-                    })
-                } else {
-                    mentorings.value = [...mentorings.value, data]
-                    toast.add({
-                        severity: 'success',
-                        summary: 'Erfolgreich',
-                        detail: 'Betreuungsart erstellt',
-                        life: 3000,
-                    })
-                }
-            }
+        const data = await handleServiceCall(
+            SupervisionTypeService.createSupervisionType(newMentoring),
+            'Betreuungsart erstellt',
+            'Fehler beim Erstellen der Betreuungsart'
         )
+        if (data) {
+            mentorings.value = [...mentorings.value, data]
+        }
         hideNewMentoringDialog()
     }
 }
@@ -165,28 +143,17 @@ const onCreateMentoringFormSubmit = async ({
 /**
  * Handler zum Speichern der Inline-Bearbeitung einer Betreuungsart.
  */
-const onRowEditSave = ({ newData }: DataTableRowEditSaveEvent) => {
-    SupervisionTypeService.updateSupervisionType(newData).then((res) => {
-        const { data, error } = res
-        if (error) {
-            toast.add({
-                severity: 'error',
-                summary: 'Fehler',
-                detail: error,
-                life: 5000,
-            })
-        } else {
-            mentorings.value = mentorings.value.map((u) =>
-                u.typeOfSupervisionId === data.typeOfSupervisionId ? data : u
-            )
-            toast.add({
-                severity: 'success',
-                summary: 'Erfolgreich',
-                detail: 'Betreuungsart aktualisiert',
-                life: 3000,
-            })
-        }
-    })
+const onRowEditSave = async ({ newData }: DataTableRowEditSaveEvent) => {
+    const data = await handleServiceCall(
+        SupervisionTypeService.updateSupervisionType(newData),
+        'Betreuungsart aktualisiert',
+        'Fehler beim Aktualisieren der Betreuungsart'
+    )
+    if (data) {
+        mentorings.value = mentorings.value.map((u) =>
+            u.typeOfSupervisionId === data.typeOfSupervisionId ? data : u
+        )
+    }
 }
 </script>
 

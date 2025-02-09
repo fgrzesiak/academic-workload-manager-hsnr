@@ -36,7 +36,7 @@ export async function handleServiceCall<T>(
             if (successMessage) {
                 toast.add({
                     severity: 'success',
-                    summary: successMessage,
+                    summary: 'Erfolgreich',
                     detail: successMessage,
                     life: 3000,
                 })
