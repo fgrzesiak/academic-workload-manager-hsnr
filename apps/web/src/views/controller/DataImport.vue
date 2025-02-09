@@ -1,16 +1,17 @@
-<script lang="ts">
-import { ComponentOptions } from 'vue'
-import {
-    ISupervisionTypeResponse,
-    IDiscountTypeResponse,
-    ISemesterResponse,
-    ITeacherResponse,
-    ICreateTeachingEventRequest,
-    ICreateSupervisionRequest,
-    ICreateDiscountRequest,
-    ICreateTeachingDutyRequest,
-    ICreateCommentRequest,
-} from '@workspace/shared'
+<script setup lang="ts">
+/**
+ * @file DataImport.vue
+ * @description Diese Komponente dient als zentrale Ansicht für die Deputatsmeldung.
+ *              Hier können Lehrpersonen, Semester und individuelle Deputate ausgewählt werden.
+ *              Außerdem werden Lehrveranstaltungen, Betreuungen und Ermäßigungen eingegeben.
+ *              Die einzelnen Formabschnitte sind in Child-Komponenten ausgelagert, um Wiederverwendung
+ *              und Übersichtlichkeit zu gewährleisten.
+ */
+
+import { ref, computed, onMounted } from 'vue'
+import { useToast } from 'primevue/usetoast'
+
+// Services aus dem Service-Layer
 import SupervisionTypeService from '@/service/supervisionType.service'
 import SemesterService from '@/service/semester.service'
 import TeacherService from '@/service/teacher.service'
@@ -21,574 +22,496 @@ import DiscountService from '@/service/discount.service'
 import TeachingDutyService from '@/service/teachingDuty.service'
 import CommentService from '@/service/comment.service'
 import EvaluationSettingsService from '@/service/evaluationSettings.service'
-import { useToast } from 'primevue/usetoast'
 
-interface SelectOption {
-    label: string
-    value: number
-}
+// Import der Child-Komponenten für die einzelnen Formabschnitte
+import CoursesSection from './components/CoursesSection.vue'
+import MentoringSection from './components/MentoringSection.vue'
+import DiscountsSection from './components/DiscountsSection.vue'
 
-interface SelectOptionCalculation {
-    label: string
-    value: number
+// PrimeVue-Komponenten für den Kopfbereich (Auswahlfelder, Dialog)
+import FloatLabel from 'primevue/floatlabel'
+import Select from 'primevue/select'
+import InputNumber from 'primevue/inputnumber'
+import Button from 'primevue/button'
+import Dialog from 'primevue/dialog'
+
+// Typen aus dem Shared-Package
+import type {
+    ICreateTeachingEventRequest,
+    ICreateSupervisionRequest,
+    ICreateDiscountRequest,
+    ICreateTeachingDutyRequest,
+    ICreateCommentRequest,
+} from '@workspace/shared'
+import { SelectOption } from '@/types'
+import { handleServiceCall } from '@/composables/useServiceHandler'
+
+/**
+ * Interface für Options, die zusätzlich einen Berechnungswert enthalten.
+ */
+interface SelectOptionCalculation extends SelectOption {
     calculation: number
 }
 
-export default {
-    name: 'DeputatsAbrechnung',
-    data(): {
-        individualDeputat: number
-        semester: number
-        teacher: number
-        courses: {
-            name: string
-            sws: number
-            ordered: boolean
-            comment: string
-            showComment: boolean
-        }[]
-        mentoring: {
-            type: number
-            matriculationNumber: number
-            comment: string
-            showComment: boolean
-            supervisionShare: number
-        }[]
-        reductions: {
-            type: number
-            details: string
-            approvedBy: string
-            approvedOn: Date
-            sws: number
-            comment: string
-            showComment: boolean
-            ordered: boolean
-        }[]
-        display: boolean
-        mentoringTypes: SelectOptionCalculation[]
-        reductionTypes: SelectOption[]
-        semesterSelect: SelectOption[]
-        teacherSelect: SelectOption[]
-        mentoringSum: number
-        coursesSum: number
-        reductionsSum: number
-        totalBalance: number
-        balanceDifference: number
-        maxSupervisions: number
-        toast: any
-    } {
-        return {
-            individualDeputat: 18,
-            semester: 0,
-            teacher: 0,
-            courses: [
-                {
-                    name: '',
-                    sws: 0,
-                    ordered: false,
-                    comment: '',
-                    showComment: false,
-                },
-            ],
-            mentoring: [
-                {
-                    type: 0,
-                    matriculationNumber: 0,
-                    comment: '',
-                    showComment: false,
-                    supervisionShare: 0,
-                },
-            ],
-            reductions: [
-                {
-                    type: 0,
-                    details: '',
-                    approvedBy: '',
-                    approvedOn: new Date(),
-                    sws: 0,
-                    comment: '',
-                    showComment: false,
-                    ordered: false,
-                },
-            ],
-            display: false,
-            mentoringTypes: [] as SelectOptionCalculation[],
-            reductionTypes: [] as SelectOption[],
-            semesterSelect: [] as SelectOption[],
-            teacherSelect: [] as SelectOption[],
-            mentoringSum: 0,
-            coursesSum: 0,
-            reductionsSum: 0,
-            totalBalance: 0,
-            balanceDifference: 0,
-            maxSupervisions: 3.0,
-            toast: null,
+// --------------------------
+// Reaktive Zustände
+// --------------------------
+const individualDeputat = ref(18)
+const semester = ref(0)
+const teacher = ref(0)
+
+// Die Arrays für die einzelnen Eingabebereiche (Lehrveranstaltungen, Betreuungen, Ermäßigungen)
+const courses = ref([
+    {
+        name: '',
+        sws: 0,
+        ordered: false,
+        comment: '',
+        showComment: false,
+    },
+])
+const mentoring = ref([
+    {
+        type: 0,
+        matriculationNumber: 0,
+        comment: '',
+        showComment: false,
+        supervisionShare: 0,
+    },
+])
+const reductions = ref([
+    {
+        type: 0,
+        details: '',
+        approvedBy: '',
+        approvedOn: new Date(),
+        sws: 0,
+        comment: '',
+        showComment: false,
+        ordered: false,
+    },
+])
+
+// Sichtbarkeit des Bestätigungsdialogs
+const display = ref(false)
+
+// Optionslisten für Select-Felder
+const mentoringTypes = ref<SelectOptionCalculation[]>([])
+const reductionTypes = ref<SelectOption[]>([])
+const semesterSelect = ref<SelectOption[]>([])
+const teacherSelect = ref<SelectOption[]>([])
+
+// Maximale anrechenbare SWS für Betreuungen
+const maxSupervisions = ref(3.0)
+
+// Toast-Instanz (für Benachrichtigungen)
+const toast = useToast()
+
+// --------------------------
+// Computed Properties (Berechnungen)
+// --------------------------
+
+// Summe der SWS aus den Lehrveranstaltungen
+const coursesSum = computed(() =>
+    courses.value.reduce((sum, course) => sum + (course.sws || 0), 0)
+)
+
+// Summe der Betreuungs-SWS (basierend auf dem Berechnungsfaktor aus den Options)
+const mentoringSum = computed(() => {
+    if (!mentoringTypes.value || mentoring.value.length === 0) return 0
+    const sum = mentoring.value.reduce((total, mentor) => {
+        const selectedType = mentoringTypes.value.find(
+            (type) => type.value === mentor.type
+        )
+        return total + (selectedType?.calculation || 0)
+    }, 0)
+    return Math.ceil(sum * 1000) / 1000
+})
+
+// Summe der SWS aus den Ermäßigungen
+const reductionsSum = computed(() =>
+    reductions.value.reduce((sum, reduction) => sum + (reduction.sws || 0), 0)
+)
+
+// Gesamtbilanz (Summe aus Lehrveranstaltungen, Betreuungen und Ermäßigungen)
+const totalBalance = computed(
+    () => coursesSum.value + mentoringSum.value + reductionsSum.value
+)
+
+// Differenz zum individuellen Lehrdeputat
+const balanceDifference = computed(
+    () => totalBalance.value - individualDeputat.value
+)
+
+// --------------------------
+// Funktionen
+// --------------------------
+
+/**
+ * Öffnet den Bestätigungsdialog.
+ */
+function openDialog() {
+    display.value = true
+}
+
+/**
+ * Setzt alle Formularfelder auf die Ausgangswerte zurück.
+ */
+function resetForm() {
+    individualDeputat.value = 18
+    teacher.value = 0
+    semester.value = 0
+    courses.value = [
+        {
+            name: '',
+            sws: 0,
+            ordered: false,
+            comment: '',
+            showComment: false,
+        },
+    ]
+    mentoring.value = [
+        {
+            type: 0,
+            matriculationNumber: 0,
+            comment: '',
+            showComment: false,
+            supervisionShare: 0,
+        },
+    ]
+    reductions.value = [
+        {
+            type: 0,
+            details: '',
+            approvedBy: '',
+            approvedOn: new Date(),
+            sws: 0,
+            comment: '',
+            showComment: false,
+            ordered: false,
+        },
+    ]
+}
+
+/**
+ * Prüft, ob bereits eine Deputatsmeldung (Lehrtätigkeit) für das gegebene Semester und die Lehrperson existiert.
+ *
+ * @param semesterId - ID des Semesters
+ * @param teacherId - ID der Lehrperson
+ * @returns {Promise<boolean>} true, wenn bereits eine Meldung existiert, sonst false.
+ */
+async function checkTeachingDuty(
+    semesterId: number,
+    teacherId: number
+): Promise<boolean> {
+    try {
+        const res = await TeachingDutyService.getTeachingDuties()
+        const { data, error } = res
+        if (error) {
+            console.warn("Couldn't load teaching duties")
+            return false
         }
-    },
-    watch: {
-        mentoring: {
-            handler() {
-                this.calculateMentoringSum()
-                this.calculateTotalBalance()
-            },
-            deep: true,
-        },
-        courses: {
-            handler() {
-                this.calculateCoursesSum()
-                this.calculateTotalBalance()
-            },
-            deep: true,
-        },
-        reductions: {
-            handler() {
-                this.calculateReductionsSum()
-                this.calculateTotalBalance()
-            },
-            deep: true,
-        },
-        individualDeputat: {
-            handler() {
-                this.calculateBalanceDifference()
-            },
-        },
-        totalBalance: {
-            handler() {
-                this.calculateBalanceDifference()
-            },
-        },
-    },
-    methods: {
-        addCourse() {
-            this.courses.push({
-                name: '',
-                sws: 0,
-                ordered: false,
-                comment: '',
-                showComment: false,
+        return data.some(
+            (item) =>
+                item.semesterPeriodId === semesterId &&
+                item.teacherId === teacherId
+        )
+    } catch (error) {
+        console.error('Error while checking teaching duties:', error)
+        return false
+    }
+}
+
+/**
+ * Erstellt einen Kommentar und gibt dessen ID zurück.
+ *
+ * @param content - Inhalt des Kommentars
+ * @returns {Promise<number>} Die ID des erstellten Kommentars oder 0 im Fehlerfall.
+ */
+async function createComment(content: string): Promise<number> {
+    const newComment: ICreateCommentRequest = {
+        userId: 1, // TO-DO: Dynamisch setzen
+        commentContent: content,
+        commentDate: new Date(),
+    }
+    try {
+        const res = await CommentService.createComment(newComment)
+        const { data, error } = res
+        if (error) {
+            console.error('Fehler beim Erstellen von Kommentar:', content)
+            return 0
+        }
+        return data.commentId || 0
+    } catch (error) {
+        console.error('Fehler beim Erstellen des Kommentars:', error)
+        return 0
+    }
+}
+
+/**
+ * Übermittelt das gesamte Formular.
+ * Es werden zunächst Lehrdeputat, Lehrveranstaltungen, Betreuungen und Ermäßigungen erstellt.
+ */
+async function submitForm() {
+    if (semester.value && teacher.value && individualDeputat.value > 0) {
+        const exists = await checkTeachingDuty(semester.value, teacher.value)
+        if (exists) {
+            toast.add({
+                severity: 'error',
+                summary: 'Fehler',
+                detail: 'Für dieses Semester und die Lehrperson wurde bereits eine Deputatsmeldung übermittelt',
+                life: 5000,
             })
-        },
-        removeCourse(index: number) {
-            this.courses.splice(index, 1)
-        },
-        addMentoring() {
-            this.mentoring.push({
-                type: 0,
-                matriculationNumber: 0,
-                comment: '',
-                showComment: false,
-                supervisionShare: 0,
-            })
-        },
-        removeMentoring(index: number) {
-            this.mentoring.splice(index, 1)
-        },
-        addReduction() {
-            this.reductions.push({
-                type: 0,
-                details: '',
-                approvedBy: '',
-                approvedOn: new Date(),
-                sws: 0,
-                comment: '',
-                showComment: false,
-                ordered: false,
-            })
-        },
-        removeReduction(index: number) {
-            this.reductions.splice(index, 1)
-        },
-        openDialog() {
-            this.display = true
-        },
-        resetForm() {
-            this.individualDeputat = 18
-            this.teacher = 0
-            this.semester = 0
-            this.courses = [
-                {
-                    name: '',
-                    sws: 0,
-                    ordered: false,
-                    comment: '',
-                    showComment: false,
-                },
-            ]
-            this.mentoring = [
-                {
-                    type: 0,
-                    matriculationNumber: 0,
-                    comment: '',
-                    showComment: false,
-                    supervisionShare: 0,
-                },
-            ]
-            this.reductions = [
-                {
-                    type: 0,
-                    details: '',
-                    approvedBy: '',
-                    approvedOn: new Date(),
-                    sws: 0,
-                    comment: '',
-                    showComment: false,
-                    ordered: false,
-                },
-            ]
-            this.mentoringSum = 0
-            this.coursesSum = 0
-            this.reductionsSum = 0
-            this.totalBalance = 0
-            this.balanceDifference = 0
-        },
-        async checkTeachingDuty(
-            semesterId: number,
-            teacher: number
-        ): Promise<boolean> {
-            try {
-                const res = await TeachingDutyService.getTeachingDuties()
-                const { data, error } = res
-                if (error) {
-                    console.warn("Couldn't load teachingDuties")
-                    return false
+            return
+        }
+        // Lehrdeputat erstellen
+        const newTeachingDuty: ICreateTeachingDutyRequest = {
+            individualDuty: individualDeputat.value,
+            sumBalance: 0,
+            sumOrderedBalance: 0,
+            semesterPeriodId: semester.value,
+            teacherId: teacher.value,
+        }
+        try {
+            const dutyRes =
+                await TeachingDutyService.createTeachingDuty(newTeachingDuty)
+            if (dutyRes.error) {
+                console.error('Fehler beim Übermitteln von Deputat indv.')
+            }
+        } catch (error) {
+            console.error(
+                'Fehler beim Erstellen der Lehrdeputatsmeldung:',
+                error
+            )
+        }
+
+        // Lehrveranstaltungen anlegen
+        for (const course of courses.value) {
+            if (course.name !== '' && course.sws != null) {
+                let commentId: number | null = null
+                if (course.comment !== '') {
+                    commentId = await createComment(course.comment)
                 }
-                return data.some(
-                    (item) =>
-                        item.semesterPeriodId === semesterId &&
-                        item.teacherId === teacher
-                )
-            } catch (error) {
-                console.error('Error while checking teaching duties:', error)
-                return false
-            }
-        },
-        calculateMentoringSum() {
-            if (!this.mentoringTypes || this.mentoring.length === 0) {
-                this.mentoringSum = 0
-                return
-            }
-
-            this.mentoringSum = this.mentoring.reduce((sum, mentor) => {
-                const selectedType = this.mentoringTypes.find(
-                    (type) => type.value === mentor.type
-                )
-                return sum + (selectedType?.calculation || 0)
-            }, 0)
-
-            this.mentoringSum = Math.ceil(this.mentoringSum * 1000) / 1000
-        },
-        calculateCoursesSum() {
-            this.coursesSum = this.courses.reduce((sum, course) => {
-                return sum + (course.sws || 0)
-            }, 0)
-        },
-        calculateReductionsSum() {
-            this.reductionsSum = this.reductions.reduce((sum, reduction) => {
-                return sum + (reduction.sws || 0)
-            }, 0)
-        },
-        calculateTotalBalance() {
-            this.totalBalance =
-                this.coursesSum + this.mentoringSum + this.reductionsSum
-        },
-        calculateBalanceDifference() {
-            this.balanceDifference = this.totalBalance - this.individualDeputat
-        },
-        async createComment(content: string): Promise<number> {
-            const newComment: ICreateCommentRequest = {
-                userId: 1, // TO-DO: nach Prototyp muss das dynamisch gesetzt werden
-                commentContent: content,
-                commentDate: new Date(),
-            }
-
-            try {
-                const res = await CommentService.createComment(newComment)
-                const { data, error } = res
-
-                if (error) {
-                    console.log(
-                        'Fehler beim Erstellen von Kommentar zu ' + content
-                    )
-                    return 0
-                } else {
-                    return data.commentId || 0
+                // Umwandlung des ordered-Werts (abhängig vom Datentyp)
+                const orderedBoolean =
+                    typeof course.ordered === 'boolean'
+                        ? course.ordered
+                        : Array.isArray(course.ordered) &&
+                          course.ordered[0] === 'True'
+                const newTeachingEvent: ICreateTeachingEventRequest = {
+                    name: course.name,
+                    semesterPeriodId: semester.value,
+                    teacherId: teacher.value,
+                    hours: course.sws,
+                    ordered: orderedBoolean,
+                    commentId: commentId,
+                    programId: null,
                 }
-            } catch (error) {
-                console.error('Fehler beim Erstellen des Kommentars:', error)
-                return 0
-            }
-        },
-        async submitForm() {
-            if (this.semester && this.teacher && this.individualDeputat > 0) {
-                const exists = await this.checkTeachingDuty(
-                    this.semester,
-                    this.teacher
-                )
-
-                if (!exists) {
-                    const newTeachingDuty: ICreateTeachingDutyRequest = {
-                        individualDuty: this.individualDeputat,
-                        sumBalance: 0,
-                        sumOrderedBalance: 0,
-                        semesterPeriodId: this.semester,
-                        teacherId: this.teacher,
+                try {
+                    const eventRes =
+                        await TeachingEventService.createTeachingEvent(
+                            newTeachingEvent
+                        )
+                    if (eventRes.error) {
+                        console.error('Fehler beim Erstellen von', course.name)
                     }
-
-                    TeachingDutyService.createTeachingDuty(
-                        newTeachingDuty
-                    ).then((res) => {
-                        const { error } = res
-                        if (error)
-                            console.log(
-                                'Fehler beim Übermitteln von Deputat indv.'
-                            )
-                    })
-
-                    for (const course of this.courses) {
-                        if (course.name !== '' && course.sws !== null) {
-                            let commentId: number | null = null
-
-                            if (course.comment !== '') {
-                                commentId = await this.createComment(
-                                    course.comment
-                                )
-                            }
-
-                            const orderedBoolean =
-                                Array.isArray(course.ordered) &&
-                                course.ordered[0] === 'True'
-
-                            const newTeachingEvent: ICreateTeachingEventRequest =
-                                {
-                                    name: course.name,
-                                    semesterPeriodId: this.semester,
-                                    teacherId: this.teacher,
-                                    hours: course.sws,
-                                    ordered: orderedBoolean,
-                                    commentId: commentId,
-                                    programId: null,
-                                }
-
-                            TeachingEventService.createTeachingEvent(
-                                newTeachingEvent
-                            ).then((res) => {
-                                const { error } = res
-                                if (error)
-                                    console.log(
-                                        'Fehler beim Erstellen von ' +
-                                            course.name
-                                    )
-                            })
-                        }
-                    }
-
-                    for (const mentoring of this.mentoring) {
-                        if (
-                            mentoring.matriculationNumber &&
-                            mentoring.type !== null
-                        ) {
-                            let commentId: number | null = null
-
-                            if (mentoring.comment !== '') {
-                                commentId = await this.createComment(
-                                    mentoring.comment
-                                )
-                            }
-
-                            const newSupervision: ICreateSupervisionRequest = {
-                                studentId: mentoring.matriculationNumber,
-                                semesterPeriodId: this.semester,
-                                supervisionTypeId: mentoring.type,
-                                teacherId: this.teacher,
-                                commentId: commentId,
-                                supervisionShare: mentoring.supervisionShare,
-                            }
-
-                            SupervisionService.createSupervision(
-                                newSupervision
-                            ).then((res) => {
-                                const { error } = res
-                                if (error)
-                                    console.log(
-                                        'Fehler beim Erstellen von ' +
-                                            mentoring.matriculationNumber
-                                    )
-                            })
-                        }
-                    }
-
-                    for (const reduction of this.reductions) {
-                        if (
-                            reduction.details !== '' &&
-                            reduction.type !== null &&
-                            reduction.approvedBy !== ''
-                        ) {
-                            let commentId: number | null = null
-
-                            if (reduction.comment !== '') {
-                                commentId = await this.createComment(
-                                    reduction.comment
-                                )
-                            }
-
-                            const orderedBoolean =
-                                Array.isArray(reduction.ordered) &&
-                                reduction.ordered[0] === 'True'
-
-                            const newDiscount: ICreateDiscountRequest = {
-                                semesterPeriodId: this.semester,
-                                teacherId: this.teacher,
-                                commentId: commentId,
-                                discountTypeId: reduction.type,
-                                ordered: orderedBoolean,
-                                approvalDate: reduction.approvedOn,
-                                supervisor: reduction.approvedBy,
-                                description: reduction.details,
-                                scope: reduction.sws,
-                            }
-
-                            DiscountService.createDiscount(newDiscount).then(
-                                (res) => {
-                                    const { error } = res
-                                    if (error)
-                                        console.log(
-                                            'Fehler beim Erstellen von ' +
-                                                reduction.details
-                                        )
-                                }
-                            )
-                        }
-                    }
-
-                    this.resetForm()
-
-                    this.toast.add({
-                        severity: 'success',
-                        summary: 'Successful',
-                        detail: 'Deputatmeldung erfolgreich übermittelt',
-                        life: 3000,
-                    })
-                } else {
-                    this.toast.add({
-                        severity: 'error',
-                        summary: 'Fehler',
-                        detail: 'Für dieses Semester und die Lehrperson wurde bereits eine Deputatsmeldung übermittelt',
-                        life: 5000,
-                    })
-                    console.log('Gibt bereits eine Meldung')
+                } catch (error) {
+                    console.error(
+                        'Fehler beim Erstellen von Lehrveranstaltung:',
+                        error
+                    )
                 }
-            } else {
-                this.toast.add({
-                    severity: 'error',
-                    summary: 'Fehler',
-                    detail: 'Deputatmeldung konnte nicht übermittelt werden',
-                    life: 5000,
-                })
-                console.log('Nicht alle Felder ausgefüllt')
             }
-            this.display = false
-        },
-        async loadMentoringTypes() {
-            SupervisionTypeService.getSupervisionTypes().then((res) => {
-                const { data, error } = res
-                if (error) {
-                    console.warn('Couldn`t load supervisionTypes')
-                } else {
-                    this.mentoringTypes = data.map(
-                        (supervisionType: ISupervisionTypeResponse) => ({
-                            label: supervisionType.typeOfSupervision,
-                            value: supervisionType.typeOfSupervisionId,
-                            calculation: supervisionType.calculationFactor,
-                        })
+        }
+
+        // Betreuungen anlegen
+        for (const mentor of mentoring.value) {
+            if (mentor.matriculationNumber && mentor.type != null) {
+                let commentId: number | null = null
+                if (mentor.comment !== '') {
+                    commentId = await createComment(mentor.comment)
+                }
+                const newSupervision: ICreateSupervisionRequest = {
+                    studentId: mentor.matriculationNumber,
+                    semesterPeriodId: semester.value,
+                    supervisionTypeId: mentor.type,
+                    teacherId: teacher.value,
+                    commentId: commentId,
+                    supervisionShare: mentor.supervisionShare,
+                }
+                try {
+                    const supervisionRes =
+                        await SupervisionService.createSupervision(
+                            newSupervision
+                        )
+                    if (supervisionRes.error) {
+                        console.error(
+                            'Fehler beim Erstellen von Betreuung für',
+                            mentor.matriculationNumber
+                        )
+                    }
+                } catch (error) {
+                    console.error('Fehler beim Erstellen von Betreuung:', error)
+                }
+            }
+        }
+
+        // Ermäßigungen anlegen
+        for (const reduction of reductions.value) {
+            if (
+                reduction.details !== '' &&
+                reduction.type != null &&
+                reduction.approvedBy !== ''
+            ) {
+                let commentId: number | null = null
+                if (reduction.comment !== '') {
+                    commentId = await createComment(reduction.comment)
+                }
+                const orderedBoolean =
+                    typeof reduction.ordered === 'boolean'
+                        ? reduction.ordered
+                        : Array.isArray(reduction.ordered) &&
+                          reduction.ordered[0] === 'True'
+                const newDiscount: ICreateDiscountRequest = {
+                    semesterPeriodId: semester.value,
+                    teacherId: teacher.value,
+                    commentId: commentId,
+                    discountTypeId: reduction.type,
+                    ordered: orderedBoolean,
+                    approvalDate: reduction.approvedOn,
+                    supervisor: reduction.approvedBy,
+                    description: reduction.details,
+                    scope: reduction.sws,
+                }
+                try {
+                    const discountRes =
+                        await DiscountService.createDiscount(newDiscount)
+                    if (discountRes.error) {
+                        console.error(
+                            'Fehler beim Erstellen von Ermäßigung',
+                            reduction.details
+                        )
+                    }
+                } catch (error) {
+                    console.error(
+                        'Fehler beim Erstellen von Ermäßigung:',
+                        error
                     )
                 }
-            })
-        },
-        async loadReductionTypes() {
-            DiscountTypeService.getDiscountTypes().then((res) => {
-                const { data, error } = res
-                if (error) {
-                    console.warn('Couldn`t load reductionTypes')
-                } else {
-                    this.reductionTypes = data.map(
-                        (reductionType: IDiscountTypeResponse) => ({
-                            label: reductionType.discountType,
-                            value: reductionType.discountTypeId,
-                        })
-                    )
-                }
-            })
-        },
-        async loadSemesters() {
-            SemesterService.getSemesters().then((res) => {
-                const { data, error } = res
-                if (error) {
-                    console.warn('Couldn`t load semster')
-                } else {
-                    this.semesterSelect = data.map(
-                        (semester: ISemesterResponse) => ({
-                            label: semester.name,
-                            value: semester.id,
-                        })
-                    )
-                }
-            })
-        },
-        async loadTeachers() {
-            TeacherService.getTeachers().then((res) => {
-                const { data, error } = res
-                if (error) {
-                    console.warn('Couldn`t load teachers')
-                } else {
-                    this.teacherSelect = data.map(
-                        (teacher: ITeacherResponse) => ({
-                            label:
-                                teacher.user.firstName +
-                                ' ' +
-                                teacher.user.lastName,
-                            value: teacher.id,
-                        })
-                    )
-                }
-            })
-        },
-        async loadEvaluationSettings() {
-            EvaluationSettingsService.getEvaluationSettings().then((res) => {
-                const { data, error } = res
-                if (error) {
-                    console.warn('Couldn`t load evaluation settings')
-                } else {
-                    const maxSupervisionsSetting = data.find(
-                        (s: { key: string }) =>
-                            s.key === 'max_hours_supervisions'
-                    )
-                    this.maxSupervisions = maxSupervisionsSetting
-                        ? parseFloat(maxSupervisionsSetting.value)
-                        : 3.0
-                }
-            })
-        },
-    },
-    created() {
-        this.toast = useToast()
-    },
-    async mounted() {
-        await this.loadMentoringTypes()
-        await this.loadReductionTypes()
-        await this.loadSemesters()
-        await this.loadTeachers()
-        await this.loadEvaluationSettings()
-    },
-} as ComponentOptions
+            }
+        }
+
+        resetForm()
+        toast.add({
+            severity: 'success',
+            summary: 'Successful',
+            detail: 'Deputatmeldung erfolgreich übermittelt',
+            life: 3000,
+        })
+    } else {
+        toast.add({
+            severity: 'error',
+            summary: 'Fehler',
+            detail: 'Deputatmeldung konnte nicht übermittelt werden',
+            life: 5000,
+        })
+        console.log('Nicht alle Felder ausgefüllt')
+    }
+    display.value = false
+}
+
+// --------------------------
+// Laden von Daten (Optionen für Select-Felder, Evaluation Settings)
+// --------------------------
+
+async function loadMentoringTypes() {
+    const data = await handleServiceCall(
+        SupervisionTypeService.getSupervisionTypes(),
+        null,
+        'Fehler beim Laden der Betreuungstypen'
+    )
+    if (data) {
+        mentoringTypes.value = data.map((st) => ({
+            label: st.typeOfSupervision,
+            value: st.typeOfSupervisionId,
+            calculation: st.calculationFactor,
+        }))
+    }
+}
+
+async function loadReductionTypes() {
+    const data = await handleServiceCall(
+        DiscountTypeService.getDiscountTypes(),
+        null,
+        'Fehler beim Laden der Ermäßigungstypen'
+    )
+    if (data) {
+        reductionTypes.value = data.map((dt) => ({
+            label: dt.discountType,
+            value: dt.discountTypeId,
+        }))
+    }
+}
+
+async function loadSemesters() {
+    const data = await handleServiceCall(
+        SemesterService.getSemesters(),
+        null,
+        'Fehler beim Laden der Semester'
+    )
+    if (data) {
+        semesterSelect.value = data.map((sem) => ({
+            label: sem.name,
+            value: sem.id,
+        }))
+    }
+}
+
+async function loadTeachers() {
+    const data = await handleServiceCall(
+        TeacherService.getTeachers(),
+        null,
+        'Fehler beim Laden der Lehrpersonen'
+    )
+    if (data) {
+        teacherSelect.value = data.map((t) => ({
+            label: `${t.user.firstName} ${t.user.lastName}`,
+            value: t.id,
+        }))
+    }
+}
+
+async function loadEvaluationSettings() {
+    const data = await handleServiceCall(
+        EvaluationSettingsService.getEvaluationSettings(),
+        null,
+        'Fehler beim Laden der Evaluation Settings'
+    )
+    if (data) {
+        const maxSetting = data.find(
+            (s: { key: string; value: string }) =>
+                s.key === 'max_hours_supervisions'
+        )
+        maxSupervisions.value = maxSetting ? parseFloat(maxSetting.value) : 3.0
+    }
+}
+
+// Lifecycle-Hook: Laden aller nötigen Daten beim Mounten der Komponente
+onMounted(async () => {
+    await loadMentoringTypes()
+    await loadReductionTypes()
+    await loadSemesters()
+    await loadTeachers()
+    await loadEvaluationSettings()
+})
 </script>
 
 <template>
     <div>
-        <Form v-slot="" class="flex w-full flex-col" @submit="submitForm">
+        <!-- Formularkopf: Auswahl von Lehrperson, Semester und individuellem Deputat -->
+        <form class="flex w-full flex-col" @submit.prevent="submitForm">
             <div class="card">
-                <div
-                    class="mb-4 flex flex-wrap items-start items-center justify-between"
-                >
+                <div class="mb-4 flex flex-wrap items-center justify-between">
                     <div class="flex items-center gap-2">
                         <h1 class="text-xl font-semibold">
                             Deputatsmeldung für
@@ -598,13 +521,10 @@ export default {
                                 v-model="teacher"
                                 option-label="label"
                                 option-value="value"
-                                name="type"
                                 :options="teacherSelect"
                                 :style="{ width: '180px' }"
-                            ></Select>
-                            <label
-                                for="mentor-type"
-                                class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
+                            />
+                            <label class="mb-2 block text-lg font-medium"
                                 >Lehrperson</label
                             >
                         </FloatLabel>
@@ -614,13 +534,10 @@ export default {
                                 v-model="semester"
                                 option-label="label"
                                 option-value="value"
-                                name="type"
                                 :options="semesterSelect"
                                 :style="{ width: '180px' }"
-                            ></Select>
-                            <label
-                                for="mentor-type"
-                                class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
+                            />
+                            <label class="mb-2 block text-lg font-medium"
                                 >Semester</label
                             >
                         </FloatLabel>
@@ -632,13 +549,10 @@ export default {
                         <FloatLabel variant="on">
                             <InputNumber
                                 v-model="individualDeputat"
-                                label-id="indvDeputat"
                                 placeholder="18"
                                 :min="0"
                             />
-                            <label
-                                for="indvDeputat"
-                                class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
+                            <label class="mb-2 block text-lg font-medium"
                                 >Umfang (SWS)</label
                             >
                         </FloatLabel>
@@ -657,14 +571,13 @@ export default {
                         :modal="true"
                     >
                         <p class="m-0 leading-normal">
-                            Bitte überprüfen Sie ihre Eingaben sorgfältig! Sind
-                            sie sicher, dass alle Angaben korrekt sind?
+                            Bitte überprüfen Sie Ihre Eingaben sorgfältig! Sind
+                            Sie sicher, dass alle Angaben korrekt sind?
                         </p>
                         <p class="m-0 leading-normal">
                             Falls alles korrekt ist, klicken Sie auf
-                            "Abschicken", um fortzufahren. Andernfalls,
-                            korrigieren Sie bitte Ihre Eingaben vor dem
-                            Abschicken.
+                            "Abschicken", um fortzufahren. Andernfalls
+                            korrigieren Sie bitte Ihre Eingaben.
                         </p>
                         <template #footer>
                             <Button
@@ -682,7 +595,6 @@ export default {
                         Vorläufig berechnetes Saldo:
                     </p>
                     <p
-                        class="text-m font-semibold"
                         :style="{
                             color: balanceDifference < 0 ? 'red' : 'green',
                             fontWeight: 'bold',
@@ -694,348 +606,23 @@ export default {
                 </div>
             </div>
 
-            <div class="card courses">
-                <h2 class="mb-1 text-xl font-semibold">Lehrveranstaltungen</h2>
-                <p class="mb-6 text-xs">
-                    *Lehrveranstaltungen, die nicht in jeder Woche der
-                    Vorlesungszeit stattfinden, sind in SWS umzurechnen
-                    (Gesamtstunden geteilt durch 15)
-                </p>
-                <div
-                    v-for="(course, index) in courses"
-                    :key="index"
-                    class="course-entry mb-4 flex items-center gap-4"
-                >
-                    <FloatLabel variant="on">
-                        <InputText
-                            label-id="name-course"
-                            v-model="course.name"
-                        />
-                        <label
-                            for="name-course"
-                            class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
-                            >Name der Veranstaltung</label
-                        >
-                    </FloatLabel>
-                    <FloatLabel variant="on">
-                        <InputNumber
-                            label-id="sws-course"
-                            v-model="course.sws"
-                            :min="0"
-                            :step="0.1"
-                        />
-                        <label
-                            for="sws-course"
-                            class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
-                            >Umfang (SWS)*</label
-                        >
-                    </FloatLabel>
-                    <div class="mr-4 flex items-center">
-                        <label
-                            for="course.ordered"
-                            class="mr-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
-                            >Angeordnet?</label
-                        >
-                        <Checkbox
-                            id="course.ordered"
-                            v-model="course.ordered"
-                            name="option"
-                            value="True"
-                        />
-                    </div>
-                    <Button
-                        label="Entfernen"
-                        icon="pi pi-trash"
-                        class="p-button-danger"
-                        @click="removeCourse(index)"
-                    />
-                    <Button
-                        label="Kommentar hinzufügen"
-                        icon="pi pi-comments"
-                        class="p-button-secondary"
-                        @click="(course.showComment = true)"
-                    />
-                    <Drawer
-                        v-model:visible="course.showComment"
-                        header="Kommentar zur Lehrveranstaltung"
-                        position="right"
-                    >
-                        <div class="flex flex-col flex-wrap gap-4">
-                            <Textarea
-                                v-model="course.comment"
-                                id="comment"
-                                rows="8"
-                            />
-                            <Button
-                                label="Speichern"
-                                class="p-button-success"
-                                icon="pi pi-save"
-                                @click="(course.showComment = false)"
-                            />
-                        </div>
-                    </Drawer>
-                </div>
-                <div class="mb-4 flex-row items-center">
-                    <p class="font-semibold">
-                        Summe (SWS): {{ coursesSum.toFixed(2) }}
-                    </p>
-                </div>
-                <Button
-                    label="Lehrveranstaltung hinzufügen"
-                    icon="pi pi-plus"
-                    class="p-button-primary"
-                    @click="addCourse"
-                />
-            </div>
+            <!-- Abschnitt für Lehrveranstaltungen -->
+            <CoursesSection v-model:courses="courses" :sum="coursesSum" />
 
-            <div class="card mentoring">
-                <h2 class="mb-4 text-xl font-semibold">Betreuungen</h2>
-                <div
-                    v-for="(mentor, index) in mentoring"
-                    :key="index"
-                    class="course-entry mb-4 flex flex-wrap gap-4"
-                >
-                    <FloatLabel variant="on">
-                        <Select
-                            v-model="mentor.type"
-                            option-label="label"
-                            option-value="value"
-                            name="type"
-                            :options="mentoringTypes"
-                            :style="{ width: '200px' }"
-                        ></Select>
-                        <label
-                            for="mentor-type"
-                            class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
-                            >Art der Betreuung</label
-                        >
-                    </FloatLabel>
-                    <FloatLabel variant="on">
-                        <InputNumber
-                            label-id="mentor-matriculationNumber"
-                            v-model="mentor.matriculationNumber"
-                            v-tooltip="'Matrikelnummer des betreuten Studenten'"
-                            :useGrouping="false"
-                            :min="0"
-                        />
-                        <label
-                            for="mentor-matriculationNumber"
-                            class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
-                            >Matrikelnummer</label
-                        >
-                    </FloatLabel>
-                    <FloatLabel variant="on" v-if="mentor.type === 4">
-                        <InputNumber
-                            label-id="mentor-supervisionShare"
-                            v-model="mentor.supervisionShare"
-                            :min="0"
-                            :max="100"
-                            :step="0.1"
-                        />
-                        <label
-                            for="mentor-supervisionShare"
-                            class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
-                            >Betreuungsanteil (in %)</label
-                        >
-                    </FloatLabel>
-                    <Button
-                        label="Entfernen"
-                        icon="pi pi-trash"
-                        class="p-button-danger"
-                        @click="removeMentoring(index)"
-                    />
-                    <Button
-                        label="Kommentar hinzufügen"
-                        icon="pi pi-comments"
-                        class="p-button-secondary"
-                        @click="(mentor.showComment = true)"
-                    />
-                    <Drawer
-                        v-model:visible="mentor.showComment"
-                        header="Kommentar zur Betreuung"
-                        position="right"
-                    >
-                        <div class="flex flex-col flex-wrap gap-4">
-                            <Textarea
-                                v-model="mentor.comment"
-                                id="comment"
-                                rows="8"
-                            />
-                            <Button
-                                label="Speichern"
-                                class="p-button-success"
-                                icon="pi pi-save"
-                                @click="(mentor.showComment = false)"
-                            />
-                        </div>
-                    </Drawer>
-                </div>
-                <div class="mb-4 flex-row items-center">
-                    <p class="font-semibold">
-                        Summe (SWS): {{ mentoringSum.toFixed(3) }}
-                    </p>
-                    <p
-                        v-if="mentoringSum > maxSupervisions"
-                        class="font-bold text-red-500"
-                    >
-                        Die maximal anrechenbaren SWS wurden überschritten!
-                        (gemäß
-                        <a
-                            href="https://www.lexsoft.de/cgi-bin/lexsoft/justizportal_nrw.cgi?xid=3804662,5"
-                            target="_blank"
-                            ><u>§4 Abs. 5 LVV</u></a
-                        >)
-                    </p>
-                </div>
-                <Button
-                    label="Betreuung hinzufügen"
-                    icon="pi pi-plus"
-                    class="p-button-primary"
-                    @click="addMentoring"
-                />
-            </div>
+            <!-- Abschnitt für Betreuungen -->
+            <MentoringSection
+                v-model:mentoring="mentoring"
+                :mentoringTypes="mentoringTypes"
+                :sum="mentoringSum"
+                :maxSupervisions="maxSupervisions"
+            />
 
-            <div class="card discounts">
-                <h2 class="mb-4 text-xl font-semibold">Ermäßigungen</h2>
-                <div
-                    v-for="(reduction, index) in reductions"
-                    :key="index"
-                    class="course-entry mb-8 flex gap-4"
-                >
-                    <div class="flex-col">
-                        <div class="mb-4 flex gap-4">
-                            <FloatLabel variant="on">
-                                <Select
-                                    v-model="reduction.type"
-                                    option-label="label"
-                                    option-value="value"
-                                    name="type"
-                                    :options="reductionTypes"
-                                    :style="{ width: '200px' }"
-                                ></Select>
-                                <label
-                                    for="reduction-type"
-                                    class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
-                                    >Art der Ermäßigung</label
-                                >
-                            </FloatLabel>
-                            <FloatLabel variant="on">
-                                <InputText
-                                    label-id="reduction-details"
-                                    v-model="reduction.details"
-                                    v-tooltip="
-                                        'Kurze Beschreibung der Ermäßigung'
-                                    "
-                                />
-                                <label
-                                    for="reduction-details"
-                                    class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
-                                    >Beschreibung</label
-                                >
-                            </FloatLabel>
-                            <FloatLabel variant="on">
-                                <InputNumber
-                                    label-id="sws-course"
-                                    v-model="reduction.sws"
-                                    :min="0"
-                                    :step="0.1"
-                                />
-                                <label
-                                    for="sws-course"
-                                    class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
-                                    >Umfang (SWS)</label
-                                >
-                            </FloatLabel>
-                        </div>
-                        <div class="flex gap-4">
-                            <FloatLabel variant="on">
-                                <DatePicker
-                                    v-model="reduction.approvedOn"
-                                    date-format="dd.mm.yy"
-                                    placeholder="Datum auswählen"
-                                />
-                                <label
-                                    for="reduction-approvedBy"
-                                    class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
-                                    >Genehmigt am</label
-                                >
-                            </FloatLabel>
-                            <FloatLabel variant="on">
-                                <InputText
-                                    label-id="reduction-approvedBy"
-                                    v-model="reduction.approvedBy"
-                                />
-                                <label
-                                    for="reduction-approvedBy"
-                                    class="mb-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
-                                    >Genehmigt durch</label
-                                >
-                            </FloatLabel>
-                            <div class="flex items-center">
-                                <label
-                                    for="reduction.ordered"
-                                    class="mr-2 block text-lg font-medium text-surface-900 dark:text-surface-0"
-                                    >Angeordnet?</label
-                                >
-                                <Checkbox
-                                    id="reduction.ordered"
-                                    v-model="reduction.ordered"
-                                    name="option"
-                                    value="True"
-                                />
-                            </div>
-                        </div>
-                    </div>
-                    <div class="flex-col">
-                        <div class="mb-4">
-                            <Button
-                                label="Entfernen"
-                                icon="pi pi-trash"
-                                class="p-button-danger"
-                                @click="removeReduction(index)"
-                            />
-                        </div>
-                        <div>
-                            <Button
-                                label="Kommentar hinzufügen"
-                                icon="pi pi-comments"
-                                class="p-button-secondary"
-                                @click="(reduction.showComment = true)"
-                            />
-                        </div>
-                    </div>
-                    <Drawer
-                        v-model:visible="reduction.showComment"
-                        header="Kommentar zur Ermäßigung"
-                        position="right"
-                    >
-                        <div class="flex flex-col flex-wrap gap-4">
-                            <Textarea
-                                v-model="reduction.comment"
-                                id="comment"
-                                rows="8"
-                            />
-                            <Button
-                                label="Speichern"
-                                class="p-button-success"
-                                icon="pi pi-save"
-                                @click="(reduction.showComment = false)"
-                            />
-                        </div>
-                    </Drawer>
-                </div>
-                <div class="mb-4 flex-row items-center">
-                    <p class="font-semibold">
-                        Summe (SWS): {{ reductionsSum.toFixed(2) }}
-                    </p>
-                </div>
-                <Button
-                    label="Ermäßigung hinzufügen"
-                    icon="pi pi-plus"
-                    class="p-button-primary"
-                    @click="addReduction"
-                />
-            </div>
-        </Form>
+            <!-- Abschnitt für Ermäßigungen -->
+            <DiscountsSection
+                v-model:reductions="reductions"
+                :reductionTypes="reductionTypes"
+                :sum="reductionsSum"
+            />
+        </form>
     </div>
 </template>
