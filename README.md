@@ -10,9 +10,9 @@ The Deputat Management System is a comprehensive tool designed to manage teachin
 
 ## Installation for Staging/Production
 
-Before you begin, ensure you have met the following requirements:
-
 ### Prerequisites
+
+Before you begin, ensure you have met the following requirements:
 
 - Docker Desktop installed.
 
