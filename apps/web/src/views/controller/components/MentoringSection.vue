@@ -8,7 +8,7 @@
  *              falls das Maximum überschritten wird.
  */
 
-import { defineProps, defineEmits, computed } from 'vue'
+import { computed } from 'vue'
 import FloatLabel from 'primevue/floatlabel'
 import Select from 'primevue/select'
 import InputNumber from 'primevue/inputnumber'

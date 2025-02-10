@@ -7,7 +7,7 @@ on:
     paths:
       - "apps/**"
       - "packages/**"
-      - "Dockerfile"
+      - "docker/Dockerfile"
 
 jobs:
   paths-filter:
@@ -26,13 +26,13 @@ jobs:
           filters: |
             api_changed:
               - 'apps/api/**'
-              - 'Dockerfile'
+              - 'docker/Dockerfile'
             web_changed:
               - 'apps/web/**'
-              - 'Dockerfile'
+              - 'docker/Dockerfile'
             db_changed:
               - 'packages/database/**'
-              - 'Dockerfile'
+              - 'docker/Dockerfile'
 
   build_and_push_images:
     runs-on: ubuntu-latest
@@ -59,7 +59,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./Dockerfile
+          file: ./docker/Dockerfile
           target: database
           push: true
           tags: ${{ vars.DOCKERHUB_USERNAME }}/dpt:prisma-db-latest
@@ -73,7 +73,7 @@ jobs:
         with:
           # Use root Dockerfile
           context: .
-          file: ./Dockerfile
+          file: ./docker/Dockerfile
           # Name of the multi-stage target
           target: api
           push: true
@@ -88,7 +88,7 @@ jobs:
         with:
           # Use root Dockerfile
           context: .
-          file: ./Dockerfile
+          file: ./docker/Dockerfile
           target: web
           push: true
           tags: ${{ vars.DOCKERHUB_USERNAME }}/dpt:web-latest

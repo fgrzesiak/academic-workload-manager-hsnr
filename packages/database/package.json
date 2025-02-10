@@ -9,7 +9,7 @@
   ],
   "scripts": {
     "build": "pnpm db:generate",
-    "db:start": "docker-compose up -d --wait",
+    "db:start": "docker-compose -f ../../docker/docker-compose.yml up -d --wait",
     "db:generate": "prisma generate",
     "db:push": "prisma db push --skip-generate",
     "db:migrate": "pnpm db:start && prisma migrate dev",

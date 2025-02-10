@@ -6,7 +6,7 @@
  *              Außerdem wird die Teilsumme der SWS berechnet und angezeigt.
  */
 
-import { defineProps, defineEmits, computed } from 'vue'
+import { computed } from 'vue'
 import FloatLabel from 'primevue/floatlabel'
 import InputText from 'primevue/inputtext'
 import InputNumber from 'primevue/inputnumber'
@@ -93,17 +93,12 @@ function removeCourse(index: number) {
                 <label>Umfang (SWS)*</label>
             </FloatLabel>
             <div class="flex items-center">
-                <label 
-                    for="course.ordered"
-                    class="mr-2"
-                >
-                    Angeordnet?
-                </label>
+                <label for="course.ordered" class="mr-2"> Angeordnet? </label>
                 <Checkbox
-                    id="course.ordered" 
-                    v-model="course.ordered" 
+                    id="course.ordered"
+                    v-model="course.ordered"
                     name="option"
-                    value="True" 
+                    value="True"
                 />
             </div>
             <Button

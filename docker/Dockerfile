@@ -16,7 +16,7 @@ ENV VITE_API_URL=http://localhost:4000
 # --------------------------------------
 FROM base AS build
 
-COPY . /usr/src/app
+COPY ../. /usr/src/app
 
 WORKDIR /usr/src/app
 

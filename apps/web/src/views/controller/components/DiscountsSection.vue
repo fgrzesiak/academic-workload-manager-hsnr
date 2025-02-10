@@ -7,7 +7,7 @@
  *              Genehmigungsdatum und -person sowie ein Checkbox-Feld für „Angeordnet?“ angezeigt.
  */
 
-import { defineProps, defineEmits, computed } from 'vue'
+import { computed } from 'vue'
 import FloatLabel from 'primevue/floatlabel'
 import InputText from 'primevue/inputtext'
 import InputNumber from 'primevue/inputnumber'
@@ -131,17 +131,14 @@ function removeReduction(index: number) {
                         <label>Genehmigt durch</label>
                     </FloatLabel>
                     <div class="flex items-center">
-                        <label 
-                            for="reduction.ordered"
-                            class="mr-2"
-                        >
+                        <label for="reduction.ordered" class="mr-2">
                             Angeordnet?
                         </label>
-                        <Checkbox 
+                        <Checkbox
                             id="reduction.ordered"
                             v-model="reduction.ordered"
                             name="option"
-                            value="True"  
+                            value="True"
                         />
                     </div>
                 </div>
