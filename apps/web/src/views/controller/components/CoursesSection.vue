@@ -94,7 +94,11 @@ function removeCourse(index: number) {
             </FloatLabel>
             <div class="flex items-center">
                 <label class="mr-2">Angeordnet?</label>
-                <Checkbox v-model="course.ordered" />
+                <Checkbox 
+                    v-model="course.ordered" 
+                    name="option"
+                    value="True" 
+                />
             </div>
             <Button
                 label="Entfernen"

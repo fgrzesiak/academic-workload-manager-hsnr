@@ -132,7 +132,11 @@ function removeReduction(index: number) {
                     </FloatLabel>
                     <div class="flex items-center">
                         <label class="mr-2">Angeordnet?</label>
-                        <Checkbox v-model="reduction.ordered" />
+                        <Checkbox 
+                            v-model="reduction.ordered"
+                            name="option"
+                            value="True"  
+                        />
                     </div>
                 </div>
             </div>
