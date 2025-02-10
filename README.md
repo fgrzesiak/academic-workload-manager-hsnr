@@ -8,7 +8,22 @@
 
 The Deputat Management System is a comprehensive tool designed to manage teaching duties, supervisions, and discounts for educational institutions. It provides functionalities to create, update, and manage semesters, supervision types, and discount types. The system also allows for the calculation and management of teaching balances for teachers.
 
-## Installation
+## Installation for Staging/Production
+
+Before you begin, ensure you have met the following requirements:
+
+### Prerequisites
+
+- Docker Desktop installed.
+
+### Steps
+
+1. Download the latest release from the releases page. Make sure to download the .exe as well as the .yml file.
+2. Run the .exe file to start the application.
+3. Ignore the warning from Windows Defender and click on "More Info" and then "Run Anyway".
+4. The boot manager will start and lets you configure the application before starting it.
+
+## Installation for Development
 
 ### Prerequisites
 
@@ -36,10 +51,12 @@ Before you begin, ensure you have met the following requirements:
 3. **Copy environment variables:**
 
    ```sh
-   cp .env.example .env
+   cp ./apps/api/.env.example ./apps/api/.env
+   cp ./apps/web/.env.example ./apps/web/.env
+   cp ./packages/database/.env.example ./packages/database/.env
    ```
 
-4. **Fill out the `.env` file** with the necessary configuration.
+4. **Fill out the `.env` files** with the necessary configurations.
 
 5. **Start Docker Desktop.**
 
