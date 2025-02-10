@@ -93,8 +93,14 @@ function removeCourse(index: number) {
                 <label>Umfang (SWS)*</label>
             </FloatLabel>
             <div class="flex items-center">
-                <label class="mr-2">Angeordnet?</label>
-                <Checkbox 
+                <label 
+                    for="course.ordered"
+                    class="mr-2"
+                >
+                    Angeordnet?
+                </label>
+                <Checkbox
+                    id="course.ordered" 
                     v-model="course.ordered" 
                     name="option"
                     value="True" 

@@ -131,8 +131,14 @@ function removeReduction(index: number) {
                         <label>Genehmigt durch</label>
                     </FloatLabel>
                     <div class="flex items-center">
-                        <label class="mr-2">Angeordnet?</label>
+                        <label 
+                            for="reduction.ordered"
+                            class="mr-2"
+                        >
+                            Angeordnet?
+                        </label>
                         <Checkbox 
+                            id="reduction.ordered"
                             v-model="reduction.ordered"
                             name="option"
                             value="True"  
