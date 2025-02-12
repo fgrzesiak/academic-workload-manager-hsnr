@@ -725,6 +725,19 @@ def start_application():
     Wird aufgerufen, wenn der Benutzer 'Anwendung starten' klickt.
     Docker wird ggf. gestartet, danach wird 'docker-compose up' ausgeführt.
     """
+    # Check if Docker Desktop can be automatically found.
+    if not is_docker_running():
+        if not os.path.exists("C:\\Program Files\\Docker\\Docker\\Docker Desktop.exe"):
+            root.after(
+                0,
+                lambda: log_output.insert(
+                    tk.END,
+                    "Docker Desktop nicht gefunden. Bitte starten Sie Docker Desktop manuell.\n",
+                ),
+            )
+            root.after(0, lambda: log_output.see(tk.END))
+            return
+
     toggle_button.configure(text="Anwendung startet...", style="UpdateOrange.TButton")
     disable_action_buttons()
     start_docker_if_needed()
