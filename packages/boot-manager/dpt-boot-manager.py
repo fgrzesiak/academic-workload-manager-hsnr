@@ -16,11 +16,8 @@ from tkinter import messagebox, ttk
 #   KONSTANTEN / GLOBALE EINSTELLUNGEN
 # ============================================================================
 
-# GitHub-Repository und API
-GITHUB_REPO = "fgrzesiak/dpt-testing"
+# GitHub API
 GITHUB_API_BASE_URL = "https://api.github.com"
-# ACHTUNG: Der Token sollte niemals öffentlich sichtbar sein (nur Leserechte)
-GITHUB_ACCESS_TOKEN = "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"
 
 # Versionsangabe der Anwendung (wird per CI/CD aktualisiert)
 CURRENT_VERSION = "v1.0.10"
@@ -31,7 +28,7 @@ if getattr(sys, "frozen", False):
     COMPOSE_NAME = f"docker-compose-{CURRENT_VERSION}.yml"
 else:
     # Ungefrorener Python-Code
-    COMPOSE_NAME = f"docker-compose.prod.yml"
+    COMPOSE_NAME = f"../../docker/docker-compose.prod.yml"
 
 
 def get_app_folder():
@@ -259,11 +256,10 @@ def get_latest_release():
     Ruft die neueste Release-Version und deren Assets über die GitHub-API ab.
     Gibt (tag_name, assets) zurück oder (None, None) bei Fehler.
     """
-    headers = {"Authorization": f"Bearer {GITHUB_ACCESS_TOKEN}"}
-    url = f"{GITHUB_API_BASE_URL}/repos/{GITHUB_REPO}/releases/latest"
+    url = f"{GITHUB_API_BASE_URL}/repositories/861008208/releases/latest"
 
     try:
-        response = requests.get(url, headers=headers)
+        response = requests.get(url)
         response.raise_for_status()
         data = response.json()
         return data["tag_name"], data["assets"]
@@ -279,10 +275,9 @@ def get_asset_download_url(asset_id):
     Gibt die Download-URL oder None zurück.
     """
     headers = {
-        "Authorization": f"Bearer {GITHUB_ACCESS_TOKEN}",
         "Accept": "application/octet-stream",
     }
-    url = f"{GITHUB_API_BASE_URL}/repos/{GITHUB_REPO}/releases/assets/{asset_id}"
+    url = f"{GITHUB_API_BASE_URL}/repositories/861008208/releases/assets/{asset_id}"
     try:
         response = requests.get(url, headers=headers, stream=True)
         response.raise_for_status()
@@ -411,7 +406,6 @@ def download_and_replace_files(
         try:
             response = requests.get(
                 url,
-                headers={"Authorization": f"Bearer {GITHUB_ACCESS_TOKEN}"},
                 stream=True,
                 timeout=10,
             )

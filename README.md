@@ -1,8 +1,8 @@
 # DPT - Deputat Management System
 
 ![university](https://img.shields.io/badge/university-HSNR-blue)
-![size](https://img.shields.io/github/repo-size/fgrzesiak/dpt-testing)
-![commit](https://img.shields.io/github/last-commit/fgrzesiak/dpt-testing)
+![size](https://img.shields.io/github/repo-size/fgrzesiak/academic-workload-manager-hsnr)
+![commit](https://img.shields.io/github/last-commit/fgrzesiak/academic-workload-manager-hsnr)
 
 ## Name and Description
 
@@ -39,7 +39,7 @@ Before you begin, ensure you have met the following requirements:
 
    ```sh
    git clone <repository-url>
-   cd dpt-testing
+   cd academic-workload-manager-hsnr
    ```
 
 2. **Install dependencies:**
