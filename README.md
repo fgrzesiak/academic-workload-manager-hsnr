@@ -1,8 +1,10 @@
 # DPT - Deputat Management System
 
-![university](https://img.shields.io/badge/university-HSNR-blue)
-![size](https://img.shields.io/github/repo-size/fgrzesiak/academic-workload-manager-hsnr)
-![commit](https://img.shields.io/github/last-commit/fgrzesiak/academic-workload-manager-hsnr)
+![size](https://img.shields.io/github/repo-size/fgrzesiak/academic-workload-manager-hsnr?logo=github)
+![GitHub commit activity](https://img.shields.io/github/commit-activity/m/fgrzesiak/academic-workload-manager-hsnr?logo=github)
+![commit](https://img.shields.io/github/last-commit/fgrzesiak/academic-workload-manager-hsnr?logo=github)  
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/fgrzesiak/academic-workload-manager-hsnr/build.yml?logo=githubactions&logoColor=white)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/fgrzesiak/academic-workload-manager-hsnr/docker.yml?label=docker-build&logo=docker&logoColor=white)
 
 ## Name and Description
 
